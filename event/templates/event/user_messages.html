@@ -1,0 +1,332 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block slider %}
+{% endblock slider %}
+
+{% block content %}
+<style>
+    .messages-container {
+        display: flex;
+        height: calc(100vh - 100px);
+        background-color: #f0f2f5;
+    }
+    .conversation-list {
+        width: 30%;
+        border-right: 1px solid #e4e6eb;
+        overflow-y: auto;
+    }
+    .conversation-messages {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .conversation-header {
+        padding: 16px;
+        background-color: white;
+        border-bottom: 1px solid #e4e6eb;
+        display: flex;
+        align-items: center;
+    }
+    .message-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 16px;
+    }
+    .message-input {
+        padding: 16px;
+        background-color: white;
+        border-top: 1px solid #e4e6eb;
+    }
+    .conversation-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+    }
+    .conversation-item:hover {
+        background-color: #e6f2ff;
+    }
+    .conversation-item.active {
+        background-color: #e6f2ff;
+    }
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1877f2;
+        color: white;
+        font-weight: bold;
+    }
+    .quote-card {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 8px;
+        max-width: 100%;
+    }
+    .quote-image {
+        width: 100%;
+        border-radius: 4px;
+        height: 230px;
+        object-fit: cover;
+    }
+    @media (max-width: 768px) {
+        .messages-container {
+            flex-direction: column;
+            height: calc(100vh - 60px);
+        }
+        .conversation-list {
+            width: 100%;
+            height: 30%;
+            border-right: none;
+            border-bottom: 1px solid #e4e6eb;
+        }
+        .conversation-messages {
+            height: 70%;
+        }
+        .quote-card {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="messages-container" style="margin-top: 120px;">
+    <!-- Left sidebar with conversation list -->
+    <div class="conversation-list">
+        <div style="padding: 16px;">
+            <h2 style="margin: 0 0 16px; font-size: 24px; color: #1c1e21;">Messages</h2>
+            {% for msg in user_messages %}
+                <div onclick="loadConversation('{% if msg.business.seller == request.user %}{{ msg.user.username }}{% else %}{{ msg.business.business_slug }}{% endif %}', '{% if msg.business.seller == request.user %}user{% else %}business{% endif %}')" 
+                     class="conversation-item {% if msg.business == selected_business and msg.user == selected_user %}active{% endif %}">
+                    <div class="avatar">
+                        {% if msg.business.seller == request.user %}
+                            {{ msg.user.first_name|first }}{{ msg.user.last_name|first }}
+                        {% else %}
+                            <img src="{{ msg.business.profile_picture.url }}" alt="{{ msg.business.business_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: bold; margin-bottom: 4px;">
+                            {% if msg.business.seller == request.user %}
+                                {{ msg.user.first_name }} {{ msg.user.last_name }}
+                            {% else %}
+                                {{ msg.business.business_name }}
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 14px; color: #65676b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ msg.last_message.content|truncatechars:20 }}
+                        </div>
+                    </div>
+                    {% if msg.unread_count > 0 %}
+                        <div style="background-color: #1877f2; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                            {{ msg.unread_count }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right side with conversation messages -->
+    <div class="conversation-messages">
+        {% if selected_business or selected_user %}
+            <div class="conversation-header">
+                <div class="avatar">
+                    {% if selected_user %}
+                        {{ selected_user.first_name|first }}{{ selected_user.last_name|first }}
+                    {% else %}
+                        <img src="{{ selected_business.profile_picture.url }}" alt="{{ selected_business.business_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <h3 style="margin: 0; font-size: 18px;">
+                    {% if selected_user %}
+                        {{ selected_user.first_name }} {{ selected_user.last_name }}
+                    {% else %}
+                        {{ selected_business.business_name }}
+                    {% endif %}
+                </h3>
+                {% if can_create_quote %}
+                    <button type="button" class="btn btn-info ml-auto" data-toggle="modal" data-target="#createQuoteModal">
+                        Create Quote
+                    </button>
+                {% endif %}
+            </div>
+            <div id="messageContainer" class="message-container">
+                {% for message in conversation_messages %}
+                    <div style="margin-bottom: 16px; display: flex; {% if message.sender == request.user %}justify-content: flex-end;{% endif %}">
+                        <div style="max-width: 70%; padding: 12px; border-radius: 18px; {% if message.sender == request.user %}background-color: #0084ff; color: white;{% else %}background-color: #e4e6eb; color: black;{% endif %}">
+                            {{ message.content }}
+                            {% if message.quotes.exists %}
+                                {% for quote in message.quotes.all %}
+                                <div class="quote-card" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; border-radius: 8px; width: 400px;">
+                                    <img src="{{ quote.service.image.url }}" alt="{{ quote.service.name }}" class="quote-image" style="width: 100%; border-radius: 4px; height: 230px; object-fit: cover;">
+                                        <div class="quote-details" style="padding-top: 10px;">
+                                            <a href="{% url 'service_detail' quote.service.business.business_slug quote.service.service_slug %}" style="font-size: 16px; font-weight: bold;">{{ quote.service.name }}</a>
+                                            <p style="margin: 5px 0;">Price: ${{ quote.price }}</p>
+                                            {% if not quote.is_accepted and message.recipient == request.user %}
+                                                <button class="btn btn-success accept-quote" data-quote-id="{{ quote.id }}" style="margin-top: 5px;">Accept</button>
+                                            {% endif %}
+                                            <button class="btn btn-primary add-to-cart" data-service-id="{{ quote.service.id }}" data-price="{{ quote.price }}" style="margin-top: 5px;">Add to Cart</button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="message-input">
+                <form method="post" style="display: flex;">
+                    {% csrf_token %}
+                    {% if selected_business %}
+                        <input type="hidden" name="business_slug" value="{{ selected_business.business_slug }}">
+                        {% if selected_user %}
+                            <input type="hidden" name="username" value="{{ selected_user.username }}">
+                        {% endif %}
+                    {% elif selected_user %}
+                        <input type="hidden" name="username" value="{{ selected_user.username }}">
+                    {% endif %}
+                    <input type="text" name="content" placeholder="Type a message..." style="flex-grow: 1; padding: 12px; border: 1px solid #ccd0d5; border-radius: 20px; margin-right: 8px;">
+                    <button type="submit" style="background-color: #0084ff; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                <p style="font-size: 18px; color: #65676b;">Select a conversation to start messaging</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Quote Modal -->
+<div class="modal fade" id="createQuoteModal" tabindex="-1" role="dialog" aria-labelledby="createQuoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createQuoteModalLabel">Create Quote</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="quote-form" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="service">Service</label>
+                        <select name="service" id="service" class="form-control">
+                            {% for service in business_services %}
+                                <option value="{{ service.id }}">{{ service.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" name="price" id="price" class="form-control" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Quote</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadConversation(identifier, type) {
+        if (type === 'user') {
+            window.location.href = `?username=${identifier}`;
+        } else {
+            window.location.href = `?business_slug=${identifier}`;
+        }
+    }
+
+    // Scroll to bottom of message container
+    function scrollToBottom() {
+        var messageContainer = document.getElementById('messageContainer');
+        if (messageContainer) {
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+    }
+
+    // Call scrollToBottom when the page loads
+    window.onload = scrollToBottom;
+
+    document.getElementById('quote-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const recipientUsername = '{{ selected_user.username }}';  // Get the selected user's username
+        fetch(`/create_quote/${recipientUsername}/`, {  // Use the correct URL
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Quote sent successfully.');
+                window.location.reload();
+            } else {
+                alert('Error sending quote: ' + (data.error || 'Unknown error'));
+            }
+        });
+    });
+
+    document.querySelectorAll('.accept-quote').forEach(button => {
+        button.addEventListener('click', function() {
+            const quoteId = this.dataset.quoteId;
+            fetch(`/accept_quote/${quoteId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Quote accepted.');
+                    window.location.reload();
+                } else {
+                    alert('Error accepting quote.');
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function() {
+            const serviceId = this.dataset.serviceId;
+            const price = this.dataset.price;
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+            fetch('/cart/add/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: `service_id=${serviceId}&price=${price}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Service added to cart.');
+                    // Optionally, update cart count or refresh the page
+                } else {
+                    alert('Error adding service to cart: ' + (data.error || 'Unknown error'));
+                }
+            });
+        });
+    });
+</script>
+{% endblock content %}

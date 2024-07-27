@@ -1,0 +1,239 @@
+{% extends "event/base.html" %}
+
+{% load static %}
+
+{% block slider %}
+
+{% endblock slider %}
+
+{% block content %}
+<section class="section-holder" style="margin-top: 120px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="contact-form-holder">
+                    <form method="post" id="product-form" action="{% url 'product_create' business.business_slug %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row margin-b24">
+                            <!-- Basic Product Information -->
+                            <div class="col-md-6 margin-bm24 mt-3"><input type="text" name="name" class="comm-field" placeholder="Product Name" required/></div>
+                            <div class="col-md-6 margin-bm24 mt-3"><input type="number" step="0.01" name="price" class="comm-field" placeholder="Price" required/></div>
+                            <div class="col-md-12 margin-bm24 mt-3"><textarea name="description" class="comm-field" placeholder="Description" required></textarea></div>
+                    
+                            <!-- Product Images -->
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="image">Image 1*:</label>
+                                <input type="file" name="image" id="image" class="comm-field" required/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="image2">Image 2:</label>
+                                <input type="file" name="image2" id="image2" class="comm-field"/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="image3">Image 3:</label>
+                                <input type="file" name="image3" id="image3" class="comm-field"/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="image4">Image 4:</label>
+                                <input type="file" name="image4" id="image4" class="comm-field"/>
+                            </div>
+                    
+                            <!-- Category and Stock -->
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="category">Category:</label>
+                                <select name="category" id="category" class="comm-field">
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="checkbox" name="in_stock" id="in_stock">
+                                <label for="in_stock">In Stock</label>
+                            </div>
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <label for="stock_level">Stock Level:</label>
+                                <input type="number" name="stock_level" id="stock_level" class="comm-field" placeholder="Stock Level" required/>
+                            </div>
+                    
+                            <!-- Variations -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="checkbox" name="has_variations" id="has_variations" onchange="toggleVariations()">
+                                <label for="has_variations">Has Variations</label>
+                            </div>
+                            <div id="variations-section" class="col-md-12 margin-bm24 mt-3" style="display: none;">
+                                <div id="variation_fields" class="col-md-12 margin-bm24 mt-3"></div>
+                                <button type="button" class="btn btn-secondary mt-3" onclick="addVariation()">Add Another Variation</button>
+                            </div>
+                    
+                            <!-- For Hire -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="checkbox" name="for_hire" id="for_hire" onchange="toggleHireFields()">
+                                <label for="for_hire">For Hire</label>
+                            </div>
+                            <div id="hire-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6 margin-bm24 mt-3">
+                                        <input type="number" step="0.01" name="hire_price" class="comm-field" placeholder="Hire Price"/>
+                                    </div>
+                                    <div class="col-md-6 margin-bm24 mt-3">
+                                        <label for="hire_duration">Hire Duration:</label>
+                                        <select name="hire_duration" id="hire_duration" class="comm-field">
+                                            <option value="hour">Per Hour</option>
+                                            <option value="day">Per Day</option>
+                                            <option value="week">Per Week</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <!-- For Pickup -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="checkbox" name="for_pickup" id="for_pickup" onchange="togglePickupFields()">
+                                <label for="for_pickup">For Pickup</label>
+                            </div>
+                            <div id="pickup-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="text" name="pickup_location" class="comm-field" placeholder="Pickup Location"/>
+                                </div>
+                            </div>
+                    
+                            <!-- Can Deliver -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="checkbox" name="can_deliver" id="can_deliver" onchange="toggleDeliveryFields()">
+                                <label for="can_deliver">Can Deliver</label>
+                            </div>
+                            <div id="delivery-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <label for="delivery_radius">Delivery Radius (km):</label>
+                                    <input type="number" name="delivery_radius" id="delivery_radius" class="comm-field" placeholder="Delivery Radius"/>
+                                </div>
+                            </div>
+                    
+                            <!-- Main Colour Theme -->
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="main_colour_theme">Main Colour Theme:</label>
+                                <select name="main_colour_theme" id="main_colour_theme" class="comm-field">
+                                    <option value="red">Red</option>
+                                    <option value="blue">Blue</option>
+                                    <option value="green">Green</option>
+                                    <option value="yellow">Yellow</option>
+                                    <option value="black">Black</option>
+                                    <option value="white">White</option>
+                                </select>
+                            </div>
+                    
+                            <!-- Setup/Packdown Fee -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="checkbox" name="setup_packdown_fee" id="setup_packdown_fee" onchange="toggleSetupPackdownFields()">
+                                <label for="setup_packdown_fee">Setup/Packdown Fee</label>
+                            </div>
+                            <div id="setup-packdown-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" step="0.01" name="setup_packdown_fee_amount" class="comm-field" placeholder="Setup/Packdown Fee Amount"/>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <p><input type="submit" value="Create Product" id="submit"/></p>
+                    </form>
+                </div>
+                <div id="output-contact"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+    let variationIndex = 0;
+
+    function addVariation() {
+        let variationFields = document.getElementById('variation_fields');
+        let newVariation = document.createElement('div');
+        newVariation.className = 'variation-field mt-3';
+        newVariation.innerHTML = `
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <input type="text" name="variation_names_${variationIndex}" class="comm-field w-100" placeholder="Variation Name (e.g., Color, Size)" required>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary w-100" onclick="addVariationValue(this, ${variationIndex})">Add Another Variation Value</button>
+                </div>
+            </div>
+            <div class="variation-values" data-index="${variationIndex}"></div>
+        `;
+        variationFields.appendChild(newVariation);
+        addVariationValue(newVariation.querySelector('button'), variationIndex);
+        variationIndex++;
+    }
+
+    function addVariationValue(button, variationIndex) {
+        let variationValues = button.closest('.variation-field').querySelector('.variation-values');
+        let valueIndex = variationValues.children.length;
+        let newValue = document.createElement('div');
+        newValue.className = 'row mt-3';
+        newValue.innerHTML = `
+            <div class="col-md-3">
+                <input type="text" name="variation_values_${variationIndex}[]" class="comm-field w-100" placeholder="Value (e.g., Red, Small)" required>
+            </div>
+            <div class="col-md-3">
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" name="price_varies_${variationIndex}[]" onchange="togglePriceInput(this)">
+                    <label class="form-check-label">Price Varies</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <input type="number" step="0.01" name="variation_prices_${variationIndex}[]" class="comm-field w-100" placeholder="Price" style="display: none;">
+                <small class="form-text text-muted">This price will be added to the main purchase price/hire price.</small>
+            </div>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-danger w-100" onclick="removeVariationValue(this)">Remove</button>
+            </div>
+        `;
+        variationValues.appendChild(newValue);
+    }
+
+    function togglePriceInput(checkbox) {
+        let priceInput = checkbox.closest('.row').querySelector('input[name^="variation_prices"]');
+        priceInput.style.display = checkbox.checked ? 'block' : 'none';
+        priceInput.required = checkbox.checked;
+    }
+
+    function removeVariationValue(button) {
+        let valueRow = button.closest('.row');
+        valueRow.remove();
+    }
+
+    function toggleVariations() {
+        var variationsSection = document.getElementById('variations-section');
+        variationsSection.style.display = variationsSection.style.display === 'none' ? 'block' : 'none';
+        if (variationsSection.style.display === 'block' && document.getElementsByClassName('variation-field').length === 0) {
+            addVariation();
+        }
+    }
+
+    function toggleHireFields() {
+        var hireFields = document.getElementById('hire-fields');
+        hireFields.style.display = hireFields.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function togglePickupFields() {
+        var pickupFields = document.getElementById('pickup-fields');
+        pickupFields.style.display = pickupFields.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleDeliveryFields() {
+        var deliveryFields = document.getElementById('delivery-fields');
+        deliveryFields.style.display = deliveryFields.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleSetupPackdownFields() {
+        var setupPackdownFields = document.getElementById('setup-packdown-fields');
+        setupPackdownFields.style.display = setupPackdownFields.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+
+
+
+{% endblock content %}

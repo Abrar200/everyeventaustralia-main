@@ -1,0 +1,324 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block slider %}
+{% endblock slider %}
+
+{% block content %}
+<section class="section-holder" style="margin-top: 120px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="contact-form-holder">
+                    <form method="post" id="venue-registration-form" action="{% url 'venue_vendor_register' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Section 1: Personal Information -->
+                        <div class="form-section" data-section="1">
+                            <h3>Personal Information</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-6 margin-bm24">
+                                    <input type="text" name="first_name" class="comm-field" placeholder="First Name" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24">
+                                    <input type="text" name="last_name" class="comm-field" placeholder="Last Name" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="text" name="username" class="comm-field" placeholder="Username" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="email" name="venue_email" class="comm-field" placeholder="Venue Email" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="password" name="password1" class="comm-field" placeholder="Password" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="password" name="password2" class="comm-field" placeholder="Confirm Password" required/>
+                                </div>
+                            </div>
+                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(1)">Next</button>
+                        </div>
+                        
+                        <!-- Section 2: Venue Information -->
+                        <div class="form-section" data-section="2" style="display: none;">
+                            <h3>Venue Information</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="text" name="venue_name" class="comm-field" placeholder="Venue Name" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="text" id="address-input" name="venue_address" class="comm-field" placeholder="Venue Address" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="tel" name="venue_contact_number" class="comm-field" placeholder="Venue Contact Number" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" name="price_per_event" class="comm-field" placeholder="Price Per Event" required/>
+                                    <small class="form-text text-muted">You can write 0 if you are not sure.</small>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" name="min_reception_guests" class="comm-field" placeholder="Min Reception Guests" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" name="max_reception_guests" class="comm-field" placeholder="Max Reception Guests" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" name="low_price_per_head" class="comm-field" placeholder="Low Price Per Head" required/>
+                                    <small class="form-text text-muted">You can write 0 if you are not sure.</small>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" name="high_price_per_head" class="comm-field" placeholder="High Price Per Head" required/>
+                                    <small class="form-text text-muted">You can write 0 if you are not sure.</small>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <textarea name="description" class="comm-field" placeholder="Description" required></textarea>
+                                </div>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(2)">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Options and Categories -->
+                        <div class="form-section" data-section="3" style="display: none;">
+                            <h3>Options and Categories</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <label>Ceremony Options (select at least one):</label><br>
+                                    <input type="checkbox" name="ceremony_indoors" id="ceremony_indoors" class="option-checkbox">
+                                    <label for="ceremony_indoors">Indoors</label><br>
+                                    <input type="checkbox" name="ceremony_outdoors" id="ceremony_outdoors" class="option-checkbox">
+                                    <label for="ceremony_outdoors">Outdoors</label>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <input type="checkbox" name="in_house_catering" id="in_house_catering">
+                                    <label for="in_house_catering">In-house Catering</label>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <label>Amenities (select at least one):</label><br>
+                                    {% for amenity in amenities %}
+                                        <div class="form-check">
+                                            <input class="form-check-input amenity-checkbox" type="checkbox" name="amenities" value="{{ amenity.id }}" id="amenity_{{ amenity.id }}">
+                                            <label class="form-check-label" for="amenity_{{ amenity.id }}">{{ amenity.name }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <label>Event Categories (select at least one):</label><br>
+                                    {% for category in event_categories %}
+                                        <div class="form-check">
+                                            <input class="form-check-input category-checkbox" type="checkbox" name="event_category" value="{{ category.id }}" id="category_{{ category.id }}">
+                                            <label class="form-check-label" for="category_{{ category.id }}">{{ category.name }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <label for="states">States (select at least one):</label><br>
+                                    {% for state in states %}
+                                        <div class="form-check">
+                                            <input class="form-check-input state-checkbox" type="checkbox" name="states" value="{{ state.id }}" id="state_{{ state.id }}">
+                                            <label class="form-check-label" for="state_{{ state.id }}">{{ state.name }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(3)">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Images and Media -->
+                        <div class="form-section" data-section="4" style="display: none;">
+                            <h3>Images and Media</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <label for="profile_picture">Profile Picture:</label>
+                                    <input type="file" name="profile_picture" id="profile_picture" class="comm-field"/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <label for="cover_photo">Cover Photo:</label>
+                                    <input type="file" name="cover_photo" id="cover_photo" class="comm-field"/>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <label for="venue_image">Venue Image:</label>
+                                    <input type="file" name="venue_image" id="venue_image" class="comm-field" required/>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <div id="venue-images-container">
+                                        <label for="venue_images">Additional Venue Images:</label>
+                                        <input type="file" name="venue_images" class="comm-field mt-3"/>
+                                    </div>
+                                    <button type="button" onclick="addVenueImageField()" class="btn btn-secondary mt-3">Add Another Image</button>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <label for="video_url">Video URL:</label>
+                                    <input type="text" name="video_url" id="video_url" class="comm-field" placeholder="Enter video link"/>
+                                </div>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(4)">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Section 5: Opening Hours and Confirmation -->
+                        <div class="form-section" data-section="5" style="display: none;">
+                            <h3>Opening Hours</h3>
+                            <div class="row margin-b24">
+                                {% for day, day_display in day_choices %}
+                                    <div class="row mt-3">
+                                        <div class="col-md-2">
+                                            <label for="opening_hours-{{ day }}">{{ day_display }}:</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="time" name="opening_hours-{{ day }}-opening_time" id="opening_hours-{{ day }}-opening_time" class="comm-field opening-time">
+                                            <label for="opening_hours-{{ day }}-opening_time">Opening Time</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="time" name="opening_hours-{{ day }}-closing_time" id="opening_hours-{{ day }}-closing_time" class="comm-field closing-time">
+                                            <label for="opening_hours-{{ day }}-closing_time">Closing Time</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="checkbox" name="opening_hours-{{ day }}-is_closed" id="opening_hours-{{ day }}-is_closed" class="closed-checkbox" onchange="toggleOpeningClosingFields('{{ day }}')">
+                                            <label for="opening_hours-{{ day }}-is_closed">Closed</label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="agree_terms" id="agree_terms" class="form-check-input" required>
+                                <label for="agree_terms" class="form-check-label">I agree to the <a href="#">terms and conditions</a></label>
+                            </div>
+                            <p><input type="submit" value="Register Venue" id="submit" class="btn btn-primary mt-3"/></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initAutocomplete" async defer></script>
+<script>
+    function initAutocomplete() {
+        var input = document.getElementById('address-input');
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            componentRestrictions: { country: 'au' }
+        });
+    
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+    
+            document.getElementById('latitude').value = place.geometry.location.lat();
+            document.getElementById('longitude').value = place.geometry.location.lng();
+        });
+    }
+    
+    function nextSection(currentSection) {
+        const currentFormSection = document.querySelector(`.form-section[data-section="${currentSection}"]`);
+        const nextFormSection = document.querySelector(`.form-section[data-section="${currentSection + 1}"]`);
+    
+        if (validateSection(currentFormSection)) {
+            currentFormSection.style.display = 'none';
+            if (nextFormSection) {
+                nextFormSection.style.display = 'block';
+            }
+        } else {
+            if (currentSection === 5) {
+                alert('Please ensure that for each day, you either provide both opening and closing times or mark the day as closed.');
+            } else {
+                alert('Please fill out all required fields and make necessary selections.');
+            }
+        }
+    }
+    
+    function validateSection(section) {
+        let isValid = true;
+        const requiredInputs = section.querySelectorAll('[required]');
+    
+        requiredInputs.forEach(input => {
+            if (!input.value) {
+                isValid = false;
+            }
+        });
+    
+        // Check for at least one checkbox selected in section 3
+        if (section.dataset.section === "3") {
+            const optionCheckboxes = section.querySelectorAll('.option-checkbox');
+            const amenityCheckboxes = section.querySelectorAll('.amenity-checkbox');
+            const categoryCheckboxes = section.querySelectorAll('.category-checkbox');
+            const stateCheckboxes = section.querySelectorAll('.state-checkbox');
+    
+            if (!Array.from(optionCheckboxes).some(cb => cb.checked) ||
+                !Array.from(amenityCheckboxes).some(cb => cb.checked) ||
+                !Array.from(categoryCheckboxes).some(cb => cb.checked) ||
+                !Array.from(stateCheckboxes).some(cb => cb.checked)) {
+                isValid = false;
+            }
+        }
+    
+        // Check for opening hours in section 5
+        if (section.dataset.section === "5") {
+            const rows = section.querySelectorAll('.row.mt-3');
+            rows.forEach(row => {
+                const openingTime = row.querySelector('.opening-time');
+                const closingTime = row.querySelector('.closing-time');
+                const closedCheckbox = row.querySelector('.closed-checkbox');
+                
+                if (!closedCheckbox.checked && (!openingTime.value || !closingTime.value)) {
+                    isValid = false;
+                }
+            });
+        }
+    
+        return isValid;
+    }
+    
+    function addVenueImageField() {
+        const container = document.getElementById('venue-images-container');
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.name = 'venue_images';
+        input.className = 'comm-field mt-3';
+        container.appendChild(input);
+    }
+    
+    function toggleOpeningClosingFields(day) {
+        const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
+        const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
+        const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
+    
+        if (isClosedCheckbox.checked) {
+            openingTimeField.value = '';
+            closingTimeField.value = '';
+            openingTimeField.disabled = true;
+            closingTimeField.disabled = true;
+        } else {
+            openingTimeField.disabled = false;
+            closingTimeField.disabled = false;
+        }
+    }
+    
+    // Initialize opening hours fields
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for day, _ in day_choices %}
+            toggleOpeningClosingFields('{{ day }}');
+        {% endfor %}
+    
+        // Add submit event listener to the form
+        document.getElementById('venue-registration-form').addEventListener('submit', function(event) {
+            const sections = this.querySelectorAll('.form-section');
+            let isValid = true;
+    
+            sections.forEach(section => {
+                if (!validateSection(section)) {
+                    isValid = false;
+                }
+            });
+    
+            if (!isValid) {
+                event.preventDefault();
+                alert('Please ensure all sections are filled out correctly, including opening hours for each day.');
+            }
+        });
+    });
+</script>
+{% endblock content %}

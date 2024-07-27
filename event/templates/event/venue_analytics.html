@@ -1,0 +1,79 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="main-wrapper" style="padding-top: 0; margin-top: 50px">
+    <div class="container">
+        <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">Analytics for {{ venue.venue_name }}</h2>
+        
+        <div style="margin-bottom: 40px;">
+            <h3>Venue Views</h3>
+            <canvas id="viewsChart"></canvas>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+            <h3>Inquiries</h3>
+            <canvas id="inquiriesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewData = {{ view_data|safe }};
+        const inquiryData = {{ inquiry_data|safe }};
+        
+        // Prepare data for views chart
+        const viewsLabels = Object.keys(viewData);
+        const viewsCounts = Object.values(viewData);
+        
+        // Prepare data for inquiries chart
+        const inquiriesLabels = Object.keys(inquiryData);
+        const inquiriesCounts = Object.values(inquiryData);
+        
+        // Views chart
+        const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+        new Chart(viewsCtx, {
+            type: 'line',
+            data: {
+                labels: viewsLabels,
+                datasets: [{
+                    label: 'Views',
+                    data: viewsCounts,
+                    borderColor: 'rgba(113, 9, 25, 0.8)',
+                    backgroundColor: 'rgba(113, 9, 25, 0.2)',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true },
+                    y: { beginAtZero: true },
+                }
+            }
+        });
+        
+        // Inquiries chart
+        const inquiriesCtx = document.getElementById('inquiriesChart').getContext('2d');
+        new Chart(inquiriesCtx, {
+            type: 'bar',
+            data: {
+                labels: inquiriesLabels,
+                datasets: [{
+                    label: 'Inquiries',
+                    data: inquiriesCounts,
+                    backgroundColor: 'rgba(113, 9, 25, 0.8)',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true },
+                    y: { beginAtZero: true },
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

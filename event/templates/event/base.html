@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Every Event Australia{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
+    <!-- Bootstrap CSS -->
+    <link rel='stylesheet' id='bootstrap-css' href='{% static "event/css/bootstrap/css/bootstrap.css" %}' type='text/css' media='all' />
+    <!-- Font Awesome Icons CSS -->
+    <link rel='stylesheet' id='font-awesome' href='{% static "event/css/fontawesome/css/all.css" %}' type='text/css' media='all' />
+    <!-- Owl Carousel -->
+    <link rel='stylesheet' id='owl-carousel' href='{% static "event/js/owl-carousel/owl.carousel.css" %}' type='text/css' media='all' />
+    <!-- Main CSS File -->
+    <link rel='stylesheet' id='gleam-style-css' href='{% static "event/style.css" %}' type='text/css' media='all' />
+    <!-- favicons -->
+    <link rel="icon" href="{% static 'event/images/favicon.png' %}" />
+</head>
+
+<body class="home no-top-image">
+    <div class="menu-mask"></div>
+
+
+    <!-- AFTERPAY BLACK BAR -->
+    <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 10px 0; font-family: Arial, sans-serif; font-size: 14px; letter-spacing: 0.5px; position: fixed; top: 0; left: 0; right: 0; z-index: 1001;">
+        BUY NOW, PAY LATER WITH 
+        <img src="{% static 'event/images/afterpay_white.png' %}" alt="Afterpay" style="height: 18px; vertical-align: middle; margin-left: 5px;">
+    </div>
+    <!-- /AFTERPAY BLACK BAR -->
+
+    <!-- MOBILE MENU HOLDER -->
+    <div class="mobile-menu-holder" style="display: none;">
+        <div class="modal-menu-container">
+            <div class="exit-mobile"> <span class="icon-bar1"></span> <span class="icon-bar2"></span></div>
+            <ul class="menu-mobile">
+                <li class="menu-item menu-item-has-children current-menu-item">
+                    <a href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
+                <li class="menu-item"><a href="{% url 'all_events' %}?type=hire">Hire</a></li>
+                <li class="menu-item"><a href="{% url 'all_events' %}?type=services">Services</a></li>
+                <li class="menu-item"><a href="{% url 'venues' %}">Find a Venue</a></li>
+                {% if user.is_authenticated %}
+                    {% if user.is_seller %}
+                        <li class="menu-item"><a href="{% url 'business_detail' user.business.business_slug %}">My Business</a></li>
+                    {% elif user.is_venue_vendor %}
+                        <li class="menu-item"><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
+                        <li class="menu-item"><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>
+                    {% endif %}
+                    {% if not user.is_seller and not user.is_venue_vendor %}
+                        <li class="menu-item"><a href="{% url 'business_registration' %}">Register Your Business</a></li>
+                    {% endif %}
+                    <li class="menu-item"><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li class="menu-item"><a href="{% url 'login' %}">Login</a></li>
+                    <li class="menu-item"><a href="{% url 'register' %}">Register</a></li>
+                    <li class="menu-item"><a href="{% url 'venue_vendor_register' %}">Onboard Your Venue</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <!-- /modal-menu-container -->
+        <div class="menu-contact">
+            <ul>
+                <li><i class="fas fa-map-marker-alt"></i><span>40 Park Ave, Brooklyn, New York</span></li>
+                <li><i class="fas fa-mobile-alt"></i><span>1-800-111-2222</span></li>
+                <li><i class="far fa-envelope"></i><span><a href="mailto:info@everyeventaustralia.com.au">info@everyeventaustralia.com.au</a></span></li>
+            </ul>
+            <ul class="social-media">
+                <li><a class="social-facebook" href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                <li><a class="social-twitter" href="#" target="_blank"><i class="fab fa-twitter"></i></a></li>
+                <li><a class="social-instagram" href="#" target="_blank"><i class="fab fa-instagram"></i></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /MOBILE MENU HOLDER -->
+
+    <!-- HEADER -->
+    <header class="main-header header-1" style="position: fixed; top: 40px; left: 0; right: 0; z-index: 1000; background-color: #ffffff; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="logo logo-1 logo-dark" style="flex: 0 0 auto;">
+                <a href="{% url 'home' %}">
+                    <img class="img-fluid" src="{% static 'event/images/logo.svg' %}" style="height: 40px; max-width: 100%;" alt="Every Event Australia">
+                </a>
+            </div>
+            <nav class="nav-holder nav-holder-1" style="flex: 1 1 auto; display: flex; justify-content: center;">
+                <ul class="menu-nav" style="list-style: none; padding: 0; margin: 0; display: flex;">
+                    <li class="menu-item" style="margin: 0 15px;"><a href="{% url 'about_us' %}" style="text-decoration: none; color: #000; font-weight: 500;">ABOUT US</a></li>
+                    <li class="menu-item" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=hire" style="text-decoration: none; color: #000; font-weight: 500;">HIRE</a></li>
+                    <li class="menu-item" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=services" style="text-decoration: none; color: #000; font-weight: 500;">SERVICES</a></li>
+                    <li class="menu-item" style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">FIND A VENUE</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions" style="display: flex; align-items: center;">
+                <a href="#" onclick="openSearchModal()" style="color: #000; font-size: 18px; margin-left: 20px;">
+                    <i class="fas fa-search"></i>
+                </a>
+                <div class="dropdown" style="position: relative; margin-left: 20px;">
+                    <a href="#" class="dropdown-toggle" style="color: #000; text-decoration: none; font-size: 18px;">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <ul class="dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background-color: #fff; list-style-type: none; padding: 0; margin: 10px 0 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; min-width: 180px; z-index: 1000;">
+                        {% if user.is_authenticated %}
+                            <li style="padding: 12px 20px;"><a href="{% url 'profile' user.username %}" style="color: #333; text-decoration: none; display: block;">Profile</a></li>
+                            <li style="padding: 12px 20px;"><a href="{% url 'user_orders' %}" style="color: #333; text-decoration: none; display: block;">My Orders</a></li>
+                            {% if user.is_seller %}
+                                <li style="padding: 12px 20px;"><a href="{% url 'business_detail' user.business.business_slug %}" style="color: #333; text-decoration: none; display: block;">My Business</a></li>
+                            {% elif user.is_venue_vendor %}
+                                <li style="padding: 12px 20px;"><a href="{% url 'venue_detail' user.venue.venue_slug %}" style="color: #333; text-decoration: none; display: block;">My Venue</a></li>
+                                <li style="padding: 12px 20px;"><a href="{% url 'venue_analytics' user.venue.venue_slug %}" style="color: #333; text-decoration: none; display: block;">Venue Analytics</a></li>
+                            {% endif %}
+                            {% if not user.is_seller and not user.is_venue_vendor %}
+                                <li style="padding: 12px 20px;"><a href="{% url 'business_registration' %}" style="color: #333; text-decoration: none; display: block;">Register Your Business</a></li>
+                            {% endif %}
+                            <li style="padding: 12px 20px;"><a href="{% url 'logout' %}" style="color: #333; text-decoration: none; display: block;">Logout</a></li>
+                        {% else %}
+                            <li style="padding: 12px 20px;"><a href="{% url 'login' %}" style="color: #333; text-decoration: none; display: block;">Login</a></li>
+                            <li style="padding: 12px 20px;"><a href="{% url 'register' %}" style="color: #333; text-decoration: none; display: block;">Register</a></li>
+                            <li style="padding: 12px 20px;"><a href="{% url 'venue_vendor_register' %}" style="color: #333; text-decoration: none; display: block;">Onboard Your Venue</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% if user.is_authenticated %}
+                    <a class="cart-icon" href="{% url 'cart' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
+                        <i class="fas fa-shopping-cart"></i>
+                        {% if cart_item_count > 0 %}
+                            <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
+                                {{ cart_item_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+                {% endif %}
+                <a class="messages-icon" href="{% url 'user_messages' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
+                    <i class="fas fa-comment-alt"></i>
+                    {% if unread_message_count > 0 %}
+                        <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
+                            {{ unread_message_count }}
+                        </span>
+                    {% endif %}
+                </a>
+                <div class="nav-button-holder" style="margin-left: 20px;">
+                    <button type="button" class="nav-button"><span class="icon-bar"></span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Add this to create space for the fixed elements -->
+    <div style="height: 100px;"></div>
+
+    <style>
+        @media (max-width: 1024px) {
+            .nav-holder-1 {
+                display: none !important;
+            }
+            .header-actions {
+                margin-left: auto;
+            }
+            .nav-button {
+                display: block !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .logo img {
+                height: 30px !important;
+            }
+            .header-actions a, .header-actions .dropdown-toggle {
+                font-size: 16px !important;
+                margin-left: 15px !important;
+            }
+        }
+    </style>
+
+    <!-- Search Modal -->
+    <div id="searchModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(5px);">
+        <div style="background-color: #fff; margin: 15% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+            <span onclick="closeSearchModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.3s;">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #333; text-align: center; font-size: calc(18px + 1vw);">Search</h2>
+            <form id="searchForm" action="{% url 'search' %}" method="GET">
+                <div style="display: flex; align-items: center; background-color: #f5f5f5; border-radius: 30px; padding: 5px 20px; margin-bottom: 20px;">
+                    <i class="fas fa-search" style="color: #777; font-size: 18px;"></i>
+                    <input type="text" id="searchInput" name="q" style="flex-grow: 1; border: none; background: none; padding: 10px 15px; font-size: 16px; outline: none; width: 100%;" placeholder="What are you looking for?">
+                </div>
+                <div style="text-align: center;">
+                    <button type="submit" style="background-color: #710919; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; width: 100%; max-width: 200px; margin: 0 auto;">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        @media (max-width: 768px) {
+            #searchModal > div {
+                margin: 5% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown toggle
+            document.body.addEventListener('click', function(event) {
+                if (event.target.matches('.dropdown-toggle') || event.target.closest('.dropdown-toggle')) {
+                    event.preventDefault();
+                    var dropdownMenu = event.target.closest('.dropdown').querySelector('.dropdown-menu');
+                    dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+                } else if (!event.target.closest('.dropdown-menu')) {
+                    // Close all dropdowns when clicking outside
+                    var dropdowns = document.getElementsByClassName("dropdown-menu");
+                    for (var i = 0; i < dropdowns.length; i++) {
+                        dropdowns[i].style.display = 'none';
+                    }
+                }
+            });
+
+            // Search modal
+            window.openSearchModal = function() {
+                document.getElementById('searchModal').style.display = 'flex';
+                document.getElementById('searchInput').focus();
+            }
+
+            window.closeSearchModal = function() {
+                document.getElementById('searchModal').style.display = 'none';
+            }
+
+            window.performSearch = function() {
+                document.getElementById('searchForm').submit();
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                var modal = document.getElementById('searchModal');
+                if (event.target == modal) {
+                    closeSearchModal();
+                }
+            }
+
+            // Mobile menu toggle
+            document.querySelector('.nav-button').addEventListener('click', function() {
+                var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
+                mobileMenuHolder.style.display = mobileMenuHolder.style.display === 'block' ? 'none' : 'block';
+            });
+
+            document.querySelector('.exit-mobile').addEventListener('click', function() {
+                var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
+                mobileMenuHolder.style.display = 'none';
+            });
+        });
+    </script>
+
+    <!-- /HEADER -->
+    {% block blackbar %}
+    
+    {% endblock blackbar %}
+    <!-- PAGE CONTENT -->
+    <div class="page-holder custom-page-template page-full fullscreen-page home-page-content clearfix">
+
+
+        {% block slider %}
+        
+        {% endblock slider %}
+
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">
+                        <p style="color:white">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+    <!-- /PAGE CONTENT -->
+    <!-- FOOTER -->
+    
+    <footer>
+        <div class="container">
+            <div class="footer-widgets">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="foo-block">
+                            <div class="widget widget-footer widget_text">
+                                <h5 class="widgettitle">About Us</h5>
+                                <div class="textwidget">
+                                    <p style="text-align: justify">Every Event Australia, Australia's First Online Events Marketplace & Venue Directory, was created after our founder Mariah, planned her own wedding in 2020 and realised the huge need for a centralised platform where all event hire and services across different vendors could be easily viewed and booked online - without the need for the back and forth between client and vendor. <br> <br>
+                                        "The idea is to simplify the event and wedding planning process while showing transparent prices and no booking fees." - Mariah</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="foo-block">
+                            <div class="widget widget-footer widget_text">
+                                <h5 class="widgettitle">Customer Care</h5>
+                                <div class="textwidget custom-html-widget">
+                                    <ul style="list-style-type: none; padding-left: 0;">
+                                        <li><a href="{% url 'home' %}">Home page</a></li>
+                                        <li><a href="{% url 'about_us' %}#contact-us">Contact us</a></li>
+                                        <li><a href="#">FAQs</a></li>
+                                        <li><a href="{% url 'all_events' %}">Find Vendors</a></li>
+                                        <li><a href="#">Real Events and Advice</a></li>
+                                        <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                                        <li><a href="{% url 'terms_and_conditions' %}">Terms and Conditions</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="foo-block foo-last">
+                            <div class="widget_text widget widget-footer widget_custom_html">
+                                <h5 class="widgettitle">Vendor Portals</h5>
+                                <div class="textwidget custom-html-widget">
+                                    <ul style="list-style-type: none; padding-left: 0;">
+                                        {% if user.is_authenticated %}
+                                            {% if user.is_seller %}
+                                                <li class="menu-item"><a href="{% url 'business_detail' user.business.business_slug %}">My Business</a></li>
+                                            {% elif user.is_venue_vendor %}
+                                                <li class="menu-item"><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
+                                                <li class="menu-item"><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>
+                                            {% endif %}
+                                            {% if not user.is_seller and not user.is_venue_vendor %}
+                                                <li class="menu-item"><a href="{% url 'business_registration' %}">Register Your Business</a></li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="menu-item"><a href="{% url 'login' %}">Login</a></li>
+                                            <li class="menu-item"><a href="{% url 'register' %}">Register</a></li>
+                                            <li class="menu-item"><a href="{% url 'venue_vendor_register' %}">Onboard Your Venue</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row align-items-center mt-4">
+                    <div class="col-md-4">
+                        <img src="{% static 'event/images/payment.png' %}" alt="Payment Methods" style="max-width: 200px; display: inline-block;">
+                        <img src="{% static 'event/images/afterpay.png' %}" alt="Payment Methods" style="max-width: 130px; max-height: 140px; display: inline-block;">
+                    </div>
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <div class="social-icons text-md-right">
+                            <a href="#" target="_blank" style="margin-right: 15px;"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" target="_blank" style="margin-right: 15px;"><i class="fab fa-instagram"></i></a>
+                            <a href="#" target="_blank" style="margin-right: 15px;"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright mt-4">
+                <div class="footer-copy"> Copyright &copy; 2024, Every Event Australia</div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- FOOTER -->
+    <div class="scrollup">
+        <a class="scrolltop" href="#">
+            <i class="fa fa-chevron-up"></i>
+        </a>
+    </div>
+    <!-- JS --> 
+    <script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script src='{% static "event/js/jquery.js" %}'></script>
+    <script src='{% static "event/js/jquery-migrate.min.js" %}'></script>
+    <script src='{% static "event/css/bootstrap/js/popper.js" %}'></script>
+    <script src='{% static "event/css/bootstrap/js/bootstrap.js" %}'></script>
+    <script src='{% static "event/js/easing.js" %}'></script>
+    <script src='{% static "event/js/fitvids.js" %}'></script>
+    <script src='{% static "event/js/owl-carousel/owl.carousel.js" %}'></script>
+    <script src='{% static "event/js/isotope.js" %}'></script>
+    <script src='{% static "event/js/simple-lightbox.js" %}'></script>
+    <!-- MAIN JS -->
+    <script src='{% static "event/js/init.js" %}'></script>
+    <!-- CONTACT FORM JS -->
+    <script src='{% static "event/js/jquery.form.min.js" %}'></script>
+    <script src='{% static "event/js/contactform.js" %}'></script>
+</body>
+</html>

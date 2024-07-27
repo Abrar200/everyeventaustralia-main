@@ -1,0 +1,59 @@
+{% extends "event/base.html" %}
+
+
+{% block slider %}
+
+{% endblock slider %}
+
+{% load static %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; margin-top: 120px;">
+    <h2 style="margin-bottom: 30px; color: #710919; font-size: 28px; border-bottom: 2px solid #710919; padding-bottom: 10px;">Search Results for "{{ query }}"</h2>
+    
+    {% if results %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px;">
+            {% for item in results %}
+                <div style="border: 1px solid #e0e0e0; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <a href="{% if item.get_item_type == 'product' %}{% url 'product_detail' item.business.business_slug item.product_slug %}{% else %}{% url 'service_detail' item.business.business_slug item.service_slug %}{% endif %}">
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                    </a>
+                    <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
+                        <a href="{% if item.get_item_type == 'product' %}{% url 'product_detail' item.business.business_slug item.product_slug %}{% else %}{% url 'service_detail' item.business.business_slug item.service_slug %}{% endif %}" style="text-decoration: none; color: inherit;">
+                            <h3 style="font-size: 18px; margin: 0 0 10px; color: #333; height: 54px; overflow: hidden; line-height: 1.5;">{{ item.name }}</h3>
+                        </a>
+                        <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #710919;">
+                            {% if item.hire_price %}
+                                ${{ item.hire_price }}/{{ item.get_hire_duration_display }}
+                            {% else %}
+                                ${{ item.price }}
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {% for state in item.business.states.all %}
+                                {{ state.abbreviation }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center;">
+                                {% if item.business.profile_picture %}
+                                    <img src="{{ item.business.profile_picture.url }}" alt="{{ item.business.business_name }}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+                                {% else %}
+                                    <span style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; background-color: #710919; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">{{ item.business.business_name|first }}</span>
+                                {% endif %}
+                                <span style="font-size: 14px; color: #666;">Listed by <a href="{% url "business_detail" item.business.business_slug %}" style="color: #710919; text-decoration: none; font-weight: bold;">{{ item.business.business_name }}</a></span>
+                            </div>
+                        </div>
+                        <button style="background-color: #710919; color: white; border: none; padding: 8px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="font-size: 18px; color: #666;">No results found for "{{ query }}".</p>
+    {% endif %}
+</div>
+{% endblock %}

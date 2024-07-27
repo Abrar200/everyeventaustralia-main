@@ -1,0 +1,216 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block slider %}
+
+{% endblock slider %}
+
+{% block content %}
+<section class="section-holder" style="margin-top: 120px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="contact-form-holder">
+                    <form method="post" id="contact-form" action="{% url 'edit_business' business.business_slug %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row margin-b24 mt-3">
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <input type="text" name="business_name" class="comm-field" placeholder="Business Name" value="{{ business.business_name }}" required/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label>States:</label><br>
+                                {% for state in states %}
+                                    <input type="checkbox" name="states" value="{{ state.id }}" id="state_{{ state.id }}" {% if state in business.states.all %}checked{% endif %}>
+                                    <label for="state_{{ state.id }}">{{ state.name }}</label><br>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Event Categories -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <h3>Events You Cater</h3>
+                                {% for category in event_categories %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="event_categories" value="{{ category.id }}" id="category_{{ category.id }}"
+                                            {% if category in business.event_categories.all %}checked{% endif %}>
+                                        <label class="form-check-label" for="category_{{ category.id }}">
+                                            {{ category.name }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <h3>Terms and Conditions</h3>
+                                <textarea name="terms_and_conditions" class="comm-field" placeholder="Enter your business terms and conditions">{{ business.terms_and_conditions }}</textarea>
+                                <div style="text-align: center; margin: 10px 0;">OR</div>
+                                <input type="file" name="terms_and_conditions_pdf" class="comm-field" accept="application/pdf">
+                            </div>
+
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <h3>Delivery Radius (in km)</h3>
+                                <input type="number" name="delivery_radius" class="comm-field" min="1" max="100" placeholder="Enter delivery radius in kilometers" value="{{ business.delivery_radius }}">
+                            </div>
+
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <h3>Awards</h3>
+                                <div id="awards-container">
+                                    {% for award in business.awards.all %}
+                                        <div id="award-{{ award.id }}" class="award-item">
+                                            <img src="{{ award.image.url }}" alt="Award" style="width: 100px; height: auto; margin-bottom: 10px;">
+                                            <button type="button" onclick="removeAward({{ award.id }})" class="btn btn-danger btn-sm">Remove</button>
+                                        </div>
+                                    {% endfor %}
+                                    <input type="file" name="awards" class="comm-field">
+                                </div>
+                                <button type="button" onclick="addAwardField()" class="btn btn-secondary mt-3">Add Another Award</button>                                
+                            </div>
+
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <textarea name="description" class="comm-field" placeholder="Description" required>{{ business.description }}</textarea>
+                            </div>
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="text" id="address-input" name="address" class="comm-field" placeholder="Start typing your address" required value="{{ business.address }}"/>
+                                <input type="hidden" id="latitude" name="latitude">
+                                <input type="hidden" id="longitude" name="longitude">
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <input type="tel" name="phone" class="comm-field" placeholder="Phone" value="{{ business.phone }}" required/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <input type="email" name="email" class="comm-field" placeholder="Email" value="{{ business.email }}" required/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="profile_picture">Profile Picture:</label>
+                                <input type="file" name="profile_picture" id="profile_picture" class="comm-field"/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <label for="banner_image">Banner Image:</label>
+                                <input type="file" name="banner_image" id="banner_image" class="comm-field"/>
+                            </div>
+                            
+                            <!-- Opening Hours -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <h3>Opening Hours</h3>
+                                {% for day, day_display in day_choices %}
+                                    {% with day_hours=business.opening_hours.all %}
+                                    <div class="row mt-3">
+                                        <div class="col-md-2">
+                                            <label for="opening_hours-{{ day }}">{{ day_display }}:</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="time" name="opening_hours-{{ day }}-opening_time" id="opening_hours-{{ day }}-opening_time" class="comm-field" 
+                                                value="{% for hour in day_hours %}{% if hour.day == day %}{{ hour.opening_time|time:'H:i' }}{% endif %}{% endfor %}"
+                                                {% for hour in day_hours %}{% if hour.day == day and not hour.is_closed %}required{% endif %}{% endfor %}
+                                                {% for hour in day_hours %}{% if hour.day == day and hour.is_closed %}disabled{% endif %}{% endfor %}>
+                                            <label for="opening_hours-{{ day }}-opening_time">Opening Time</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="time" name="opening_hours-{{ day }}-closing_time" id="opening_hours-{{ day }}-closing_time" class="comm-field"
+                                                value="{% for hour in day_hours %}{% if hour.day == day %}{{ hour.closing_time|time:'H:i' }}{% endif %}{% endfor %}"
+                                                {% for hour in day_hours %}{% if hour.day == day and not hour.is_closed %}required{% endif %}{% endfor %}
+                                                {% for hour in day_hours %}{% if hour.day == day and hour.is_closed %}disabled{% endif %}{% endfor %}>
+                                            <label for="opening_hours-{{ day }}-closing_time">Closing Time</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="checkbox" name="opening_hours-{{ day }}-is_closed" id="opening_hours-{{ day }}-is_closed"
+                                                {% for hour in day_hours %}{% if hour.day == day and hour.is_closed %}checked{% endif %}{% endfor %}
+                                                onchange="toggleOpeningClosingFields('{{ day }}')">
+                                            <label for="opening_hours-{{ day }}-is_closed">Closed</label>
+                                        </div>
+                                    </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p><input type="submit" value="Update Business" id="submit" class="btn btn-primary"/></p>
+                    </form>
+                </div>
+                <!-- contact-form-holder-->
+                <div id="output-contact"></div>
+            </div>
+            <!-- /col-lg-12 -->
+        </div>
+        <!-- /row -->
+    </div>
+    <!-- /container -->
+</section>
+<!-- /SECTION 1-->
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
+<script>
+    
+    function toggleOpeningClosingFields(day) {
+        const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
+        const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
+        const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
+    
+        if (isClosedCheckbox.checked) {
+            openingTimeField.required = false;
+            closingTimeField.required = false;
+            openingTimeField.disabled = true;
+            closingTimeField.disabled = true;
+        } else {
+            openingTimeField.required = true;
+            closingTimeField.required = true;
+            openingTimeField.disabled = false;
+            closingTimeField.disabled = false;
+        }
+    }
+    
+    window.addEventListener('load', function() {
+        const days = {{ day_choices|safe }};
+        days.forEach(day => {
+            toggleOpeningClosingFields(day[0]);
+        });
+    });
+
+    function initAutocomplete() {
+        var input = document.getElementById('address-input');
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            componentRestrictions: { country: 'au' }
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            document.getElementById('latitude').value = place.geometry.location.lat();
+            document.getElementById('longitude').value = place.geometry.location.lng();
+        });
+    }
+
+    google.maps.event.addDomListener(window, 'load', initAutocomplete);
+
+    function addAwardField() {
+        const container = document.getElementById('awards-container');
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.name = 'awards';
+        input.className = 'comm-field';
+        container.appendChild(input);
+    }
+
+    function removeAward(awardId) {
+        fetch(`/remove-award/${awardId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ 'award_id': awardId })
+        }).then(response => {
+            if (response.ok) {
+                document.getElementById(`award-${awardId}`).remove();
+            } else {
+                console.error('Failed to remove award.');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }    
+</script>
+{% endblock content %}

@@ -1,0 +1,260 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block slider %}
+{% endblock slider %}
+
+{% block content %}
+<section class="section-holder" style="margin-top: 120px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="contact-form-holder">
+                    <form method="post" id="contact-form" action="{% url 'business_registration' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Section 1: Business Information -->
+                        <div class="form-section" data-section="1">
+                            <h3>Business Information</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-6 margin-bm24">
+                                    <input type="text" name="business_name" class="comm-field" placeholder="Business Name" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24">
+                                    <textarea name="description" class="comm-field" placeholder="Description" required></textarea>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <input type="text" id="address-input" name="address" class="comm-field" placeholder="Start typing your address" required/>
+                                    <input type="hidden" id="latitude" name="latitude">
+                                    <input type="hidden" id="longitude" name="longitude">
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="tel" name="phone" class="comm-field" placeholder="Phone" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="email" name="email" class="comm-field" placeholder="Email" required/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <label for="profile_picture">Profile Picture:</label>
+                                    <input type="file" name="profile_picture" id="profile_picture" class="comm-field"/>
+                                </div>
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <label for="banner_image">Banner Image:</label>
+                                    <input type="file" name="banner_image" id="banner_image" class="comm-field"/>
+                                </div>
+                            </div>
+                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(1)">Next</button>
+                        </div>
+                        
+                        <!-- Section 2: Location and Contact Information -->
+                        <div class="form-section" data-section="2" style="display: none;">
+                            <h3>Location and Contact Information</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-6 margin-bm24">
+                                    <label>States:</label><br>
+                                    {% for state in states %}
+                                        <input type="checkbox" name="states" value="{{ state.id }}" id="state_{{ state.id }}">
+                                        <label for="state_{{ state.id }}">{{ state.name }}</label><br>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <h3>Events You Cater</h3>
+                                    {% for category in event_categories %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="event_categories" value="{{ category.id }}" id="category_{{ category.id }}">
+                                            <label class="form-check-label" for="category_{{ category.id }}">
+                                                {{ category.name }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(2)">Next</button>
+                        </div>
+
+                        <!-- Section 3: Terms and Conditions -->
+                        <div class="form-section" data-section="3" style="display: none;">
+                            <h3>Terms and Conditions</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <textarea name="terms_and_conditions" class="comm-field" placeholder="Enter your business terms and conditions"></textarea>
+                                    <div style="text-align: center; margin: 10px 0;">OR</div>
+                                    <input type="file" name="terms_and_conditions_pdf" class="comm-field" accept="application/pdf">
+                                </div>
+                            </div>
+                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(3)">Next</button>
+                        </div>
+
+                        <!-- Section 4: Delivery and Awards -->
+                        <div class="form-section" data-section="4" style="display: none;">
+                            <h3>Delivery and Awards</h3>
+                            <div class="row margin-b24">
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <h3>Delivery Radius (in km)</h3>
+                                    <input type="number" name="delivery_radius" class="comm-field" min="1" max="100" placeholder="Enter delivery radius in kilometers">
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <h3>Price per Way</h3>
+                                    <input type="number" name="price_per_way" class="comm-field" min="0">
+                                    <small class="form-text text-muted">Enter the delivery fee per way. The total fee will be twice this amount for a round trip.</small>
+                                </div>
+                                <div class="col-md-12 margin-bm24 mt-3">
+                                    <h3>Awards</h3>
+                                    <div id="awards-container">
+                                        <input type="file" name="awards" class="comm-field">
+                                    </div>
+                                    <button type="button" onclick="addAwardField()" class="btn btn-secondary mt-3">Add Another Award</button>
+                                </div>
+                            </div>
+                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(4)">Next</button>
+                        </div>
+
+                        <!-- Section 5: Opening Hours -->
+                        <div class="form-section" data-section="5" style="display: none;">
+                            <h3>Opening Hours</h3>
+                            {% for day, day_display in day_choices %}
+                                <div class="row mt-3">
+                                    <div class="col-md-2">
+                                        <label for="opening_hours-{{ day }}">{{ day_display }}:</label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="time" name="opening_hours-{{ day }}-opening_time" id="opening_hours-{{ day }}-opening_time" class="comm-field">
+                                        <label for="opening_hours-{{ day }}-opening_time">Opening Time</label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="time" name="opening_hours-{{ day }}-closing_time" id="opening_hours-{{ day }}-closing_time" class="comm-field">
+                                        <label for="opening_hours-{{ day }}-closing_time">Closing Time</label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="checkbox" name="opening_hours-{{ day }}-is_closed" id="opening_hours-{{ day }}-is_closed" onchange="toggleOpeningClosingFields('{{ day }}')">
+                                        <label for="opening_hours-{{ day }}-is_closed">Closed</label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="agree_terms" id="agree_terms" class="form-check-input" required>
+                                <label for="agree_terms" class="form-check-label">I agree to the terms and conditions</label>
+                            </div>
+                            <p><input type="submit" value="Register Business" id="submit" class="btn btn-primary mt-3"/></p>
+                        </div>
+                    </form>
+                </div>
+                <!-- contact-form-holder-->
+                <div id="output-contact"></div>
+            </div>
+            <!-- /col-lg-12 -->
+        </div>
+        <!-- /row -->
+    </div>
+    <!-- /container -->
+</section>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initAutocomplete" async defer></script>
+<script>
+    function initAutocomplete() {
+        var input = document.getElementById('address-input');
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            componentRestrictions: { country: 'au' }
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            document.getElementById('latitude').value = place.geometry.location.lat();
+            document.getElementById('longitude').value = place.geometry.location.lng();
+        });
+    }
+
+    function nextSection(currentSection) {
+        const currentFormSection = document.querySelector(`.form-section[data-section="${currentSection}"]`);
+        const nextFormSection = document.querySelector(`.form-section[data-section="${currentSection + 1}"]`);
+
+        if (validateSection(currentFormSection)) {
+            currentFormSection.style.display = 'none';
+            if (nextFormSection) {
+                nextFormSection.style.display = 'block';
+            }
+        } else {
+            alert('Please fill out all required fields.');
+        }
+    }
+
+    function validateSection(section) {
+        let isValid = true;
+        const requiredInputs = section.querySelectorAll('[required]');
+
+        requiredInputs.forEach(input => {
+            if (!input.value) {
+                isValid = false;
+            }
+        });
+
+        // Check specific for Opening Hours section
+        if (section.querySelector('[name^="opening_hours"]')) {
+            const dayRows = section.querySelectorAll('.row.mt-3');
+            dayRows.forEach(row => {
+                const isClosed = row.querySelector('[name$="-is_closed"]').checked;
+                const openingTime = row.querySelector('[name$="-opening_time"]').value;
+                const closingTime = row.querySelector('[name$="-closing_time"]').value;
+
+                if (!isClosed && (!openingTime || !closingTime)) {
+                    isValid = false;
+                }
+            });
+        }
+
+        // Additional checks for specific fields
+        if (section.querySelector('[name="states"]')) {
+            const statesChecked = section.querySelectorAll('[name="states"]:checked').length > 0;
+            if (!statesChecked) isValid = false;
+        }
+
+        if (section.querySelector('[name="event_categories"]')) {
+            const eventCategoriesChecked = section.querySelectorAll('[name="event_categories"]:checked').length > 0;
+            if (!eventCategoriesChecked) isValid = false;
+        }
+
+        const terms = section.querySelector('[name="terms_and_conditions"]');
+        const termsPdf = section.querySelector('[name="terms_and_conditions_pdf"]');
+        if (terms && termsPdf && !terms.value && !termsPdf.value) {
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function addAwardField() {
+        const container = document.getElementById('awards-container');
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.name = 'awards';
+        input.className = 'comm-field';
+        container.appendChild(input);
+    }
+
+    function toggleOpeningClosingFields(day) {
+        const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
+        const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
+        const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
+
+        if (isClosedCheckbox.checked) {
+            openingTimeField.required = false;
+            closingTimeField.required = false;
+            openingTimeField.value = '';
+            closingTimeField.value = '';
+            openingTimeField.disabled = true;
+            closingTimeField.disabled = true;
+        } else {
+            openingTimeField.required = true;
+            closingTimeField.required = true;
+            openingTimeField.disabled = false;
+            closingTimeField.disabled = false;
+        }
+    }
+</script>
+{% endblock content %}

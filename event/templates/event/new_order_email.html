@@ -1,0 +1,21 @@
+<p>Dear {{ business.business_name }},</p>
+
+<p>You have received a new order.</p>
+
+<p><strong>Ordered By:</strong> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+<p><strong>Order Reference Number:</strong> {{ order.ref_code }}</p>
+<p><strong>Order Placed On:</strong> {{ order.created_at }}</p>
+<p><strong>Address:</strong> {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}</p>
+<p><strong>Note:</strong> {{ order.note }}</p>
+
+<p><strong>Items:</strong></p>
+<ul>
+    {% for item in item_details %}
+        <li>{{ item }}</li>
+    {% endfor %}
+</ul>
+
+<p><strong>Total:</strong> ${{ business_total }}</p>
+
+<p>Best regards,</p>
+<p>Dukani Ethnic Store.</p>

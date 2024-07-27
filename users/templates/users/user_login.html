@@ -1,0 +1,43 @@
+{% extends "event/base.html" %}
+
+{% load static %}
+
+{% block slider %}
+
+{% endblock slider %}
+
+{% block content %}
+<!-- SECTION 1-->
+<section class="section-holder" style="margin-top: 120px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 margin-bm54 aligncm">
+                <div class="margin-r54">
+                    <h2 class="section-title margin-b32">Don't have an account?</h2>
+                    <p><a href="{% url 'register' %}"><input type="submit" value="Register" id="submit"/></a></p>
+                </div>
+            </div>
+            <!-- /col-lg-6 -->
+            <div class="col-lg-6">
+                <div id="contact-form-holder">
+                    <form method="post" id="contact-form" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div class="row margin-b24">
+                            <div class="col-md-12 margin-bm24"><input type="text" name="username" class="comm-field" placeholder="Username" required/></div>
+                            <div class="col-md-12 mt-3"><input type="password" name="password" class="comm-field" placeholder="Password" required/> </div>
+                        </div>
+                        <p><input type="submit" value="Login" id="submit"/></p>
+                    </form>
+                </div>
+                <!-- contact-form-holder-->
+                <div id="output-contact"></div>
+                <p><a href="{% url 'reset_password' %}">Forgot Password?</a></p>
+            </div>
+            <!-- /col-lg-6 -->
+        </div>
+        <!-- /row -->
+    </div>
+    <!-- /container -->
+</section>
+<!-- /SECTION 1-->
+{% endblock content %}

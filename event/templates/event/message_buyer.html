@@ -1,0 +1,196 @@
+{% extends "event/base.html" %}
+
+{% load static %}
+
+{% block slider %}
+
+{% endblock slider %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; height: calc(100vh - 100px); background-color: #f0f2f5; margin-top: 120px;">
+    <!-- Header -->
+    <div style="padding: 16px; background-color: white; border-bottom: 1px solid #e4e6eb; display: flex; align-items: center;">
+        <h2 style="margin: 0; font-size: 24px; color: #1c1e21;">{{ user.username }}</h2>
+        <button type="button" class="btn btn-info ml-auto" data-toggle="modal" data-target="#createQuoteModal">
+            Create Quote
+        </button>
+    </div>
+
+    <!-- Messages -->
+    <div id="messageContainer" style="flex-grow: 1; overflow-y: auto; padding: 16px;">
+        {% for message in conversation_messages %}
+        <div style="margin-bottom: 16px; display: flex; {% if message.sender == request.user %}justify-content: flex-end;{% endif %}">
+            <div style="max-width: 70%; padding: 12px; border-radius: 18px; {% if message.sender == request.user %}background-color: #0084ff; color: white;{% else %}background-color: #e4e6eb; color: black;{% endif %}">
+                {{ message.content }}
+                {% if message.quotes.exists %}
+                    {% for quote in message.quotes.all %}
+                    <div class="quote-card" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; border-radius: 8px; width: 400px;">
+                        <img src="{{ quote.service.image.url }}" alt="{{ quote.service.name }}" class="quote-image" style="width: 100%; border-radius: 4px; height: 230px; object-fit: cover;">
+                            <div class="quote-details">
+                                <a href="{% url 'service_detail' quote.service.business.business_slug quote.service.service_slug %}" class="quote-title">{{ quote.service.name }}</a>
+                                <p style="margin: 5px 0;">Price: ${{ quote.price }}</p>
+                                {% if not quote.is_accepted and message.recipient == request.user %}
+                                    <button class="btn btn-success accept-quote" data-quote-id="{{ quote.id }}" style="margin-top: 5px;">Accept</button>
+                                {% endif %}
+                                <button class="btn btn-primary add-to-cart" data-service-id="{{ quote.service.id }}" data-price="{{ quote.price }}" style="margin-top: 5px;">Add to Cart</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+    <!-- Message input -->
+    <div style="padding: 16px; background-color: white; border-top: 1px solid #e4e6eb;">
+        <form method="post" style="display: flex;">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Type a message..." style="flex-grow: 1; padding: 12px; border: 1px solid #ccd0d5; border-radius: 20px; margin-right: 8px;">
+            <button type="submit" style="background-color: #0084ff; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer;">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Create Quote Modal -->
+<div class="modal fade" id="createQuoteModal" tabindex="-1" role="dialog" aria-labelledby="createQuoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createQuoteModalLabel">Create Quote</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="quote-form" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="service">Service</label>
+                        <select name="service" id="service" class="form-control">
+                            {% for service in business.services.all %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" name="price" id="price" class="form-control" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Quote</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('quote-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch("{% url 'create_quote' user.username %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Quote sent successfully.');
+                window.location.reload();
+            } else {
+                alert('Error sending quote.');
+            }
+        });
+    });
+
+    document.querySelectorAll('.accept-quote').forEach(button => {
+        button.addEventListener('click', function() {
+            const quoteId = this.dataset.quoteId;
+            fetch(`/accept_quote/${quoteId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Quote accepted.');
+                    window.location.reload();
+                } else {
+                    alert('Error accepting quote.');
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function() {
+            const serviceId = this.dataset.serviceId;
+            const price = this.dataset.price;
+            fetch('/cart/add/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    service_id: serviceId,
+                    price: price
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Service added to cart.');
+                } else {
+                    alert('Error adding service to cart.');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .quote-card {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .quote-image {
+        width: 100%;
+        border-radius: 4px;
+        height: 230px;
+        object-fit: cover;
+    }
+
+    .quote-details {
+        padding-top: 10px;
+    }
+
+    .quote-title {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .quote-card {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .quote-image {
+            height: 150px;
+        }
+    }
+</style>
+{% endblock content %}

@@ -1,0 +1,195 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block slider %}
+{% endblock slider %}
+
+{% block content %}
+<div style="display: flex; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; padding: 20px; font-family: 'Roboto', Arial, sans-serif; margin-top: 120px;">
+    <!-- Filters on the left side -->
+    <div style="flex: 1 1 250px; max-width: 250px; padding: 20px; background-color: #f8f8f8; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h3 style="margin-bottom: 20px; color: #710919; font-size: 22px; border-bottom: 2px solid #710919; padding-bottom: 10px;">Filters</h3>
+        
+        <form id="filter-form" method="GET" action="">
+            <!-- State Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">State</h4>
+                <div style="max-height: 150px; overflow-y: auto; padding-right: 10px;">
+                    {% for state in states %}
+                        <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <input type="checkbox" name="state" value="{{ state.id }}" 
+                                   {% if state.id|stringformat:"i" in selected_states %}checked{% endif %}
+                                   style="margin-right: 10px; accent-color: #710919;"> 
+                            {{ state.name }} ({{ state.venue_count }})
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Grid of venues -->
+    <div style="flex: 4 1 0; padding-left: 30px;">
+        <h2 style="margin-bottom: 30px; color: #710919; font-size: 28px; border-bottom: 2px solid #710919; padding-bottom: 10px;">Venues</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px;">
+            {% for venue in venues %}
+                <div style="border: 1px solid #e0e0e0; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <a href="{% url 'venue_detail' venue.venue_slug %}">
+                        <img src="{{ venue.venue_image.url }}" alt="{{ venue.venue_name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                    </a>
+                    <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
+                        <a href="{% url 'venue_detail' venue.venue_slug %}" style="text-decoration: none; color: inherit;">
+                            <h3 style="font-size: 18px; margin: 0 0 15px; color: #333; height: 54px; overflow: hidden; line-height: 1.5;">{{ venue.venue_name }}</h3>
+                        </a>
+                        <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #710919;">
+                            ${{ venue.price_per_event }}
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>
+                            {% for state in venue.states.all %}
+                                {{ state.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center;">
+                                {% if venue.profile_picture %}
+                                    <img src="{{ venue.profile_picture.url }}" alt="{{ venue.venue_name }}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+                                {% else %}
+                                    <span style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; background-color: #710919; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">{{ venue.venue_name|first }}</span>
+                                {% endif %}
+                                <span style="font-size: 14px; color: #666;">{{ venue.venue_name }}</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            <i class="fas fa-users" style="margin-right: 5px;"></i>
+                            {{ venue.min_reception_guests }} - {{ venue.max_reception_guests }} guests
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            <i class="fas fa-dollar-sign" style="margin-right: 5px;"></i>
+                            ${{ venue.low_price_per_head }} - ${{ venue.high_price_per_head }} per head
+                        </div>
+                        <a href="{% url 'venue_detail' venue.venue_slug %}" style="background-color: #710919; color: white; border: none; padding: 12px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto; text-align: center; text-decoration: none;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div style="margin-top: 40px; text-align: center;">
+            {% if venues.has_previous %}
+                <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">&laquo; First</a>
+                <a href="?page={{ venues.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">Previous</a>
+            {% endif %}
+        
+            <span style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; background-color: #710919; color: #fff;">
+                Page {{ venues.number }} of {{ venues.paginator.num_pages }}
+            </span>
+        
+            {% if venues.has_next %}
+                <a href="?page={{ venues.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">Next</a>
+                <a href="?page={{ venues.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">Last &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filter-form');
+        const inputs = filterForm.querySelectorAll('input[type="checkbox"]');
+    
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    
+        // Add smooth scrolling for mobile when opening filters
+        const filterToggle = document.createElement('button');
+        filterToggle.textContent = 'Show Filters';
+        filterToggle.style.cssText = `
+            display: none;
+            width: 100%;
+            padding: 10px;
+            background-color: #710919;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        `;
+        
+        const filterContainer = document.querySelector('div[style*="flex: 1 1 250px"]');
+        filterContainer.parentNode.insertBefore(filterToggle, filterContainer);
+    
+        filterToggle.addEventListener('click', function() {
+            filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
+            this.textContent = filterContainer.style.display === 'none' ? 'Show Filters' : 'Hide Filters';
+            if (filterContainer.style.display === 'block') {
+                filterContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    
+        // Responsive design adjustments
+        function adjustLayout() {
+            if (window.innerWidth <= 768) {
+                filterToggle.style.display = 'block';
+                filterContainer.style.display = 'none';
+                document.querySelector('div[style*="flex: 4 1 0"]').style.paddingLeft = '0';
+            } else {
+                filterToggle.style.display = 'none';
+                filterContainer.style.display = 'block';
+                document.querySelector('div[style*="flex: 4 1 0"]').style.paddingLeft = '30px';
+            }
+        }
+    
+        window.addEventListener('resize', adjustLayout);
+        adjustLayout(); // Initial call
+    });
+</script>
+
+<style>
+    @media (max-width: 768px) {
+        div[style*="display: flex; max-width: 1200px;"] {
+            flex-direction: column;
+        }
+    
+        div[style*="flex: 1 1 250px;"] {
+            max-width: 100% !important;
+            margin-bottom: 20px;
+        }
+    
+        div[style*="flex: 4 1 0;"] {
+            padding-left: 0 !important;
+        }
+    
+        div[style*="display: grid;"] {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+        }
+    
+        .pagination a, .pagination span {
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        div[style*="display: grid;"] {
+            grid-template-columns: 1fr !important;
+        }
+    
+        h2[style*="font-size: 28px;"] {
+            font-size: 24px !important;
+        }
+    
+        .pagination a, .pagination span {
+            padding: 6px 10px !important;
+            font-size: 12px !important;
+        }
+    }
+</style>
+{% endblock content %}

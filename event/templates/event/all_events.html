@@ -1,0 +1,292 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block slider %}
+
+{% endblock slider %}
+
+{% block content %}
+<div style="display: flex; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; padding: 20px; font-family: 'Roboto', Arial, sans-serif; margin-top: 120px;">
+    <!-- Filters on the left side -->
+    <div style="flex: 1 1 250px; max-width: 250px; padding: 20px; background-color: #f8f8f8; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h3 style="margin-bottom: 20px; color: #710919; font-size: 22px; border-bottom: 2px solid #710919; padding-bottom: 10px;">Filters</h3>
+        
+        <form id="filter-form" method="GET" action="">
+            
+            <!-- Type Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Type</h4>
+                <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;"> 
+                    <input type="checkbox" name="type" value="products" 
+                        {% if 'products' in type_filter %}checked{% endif %}
+                        style="margin-right: 10px; accent-color: #710919;"> 
+                    Products
+                </label>
+                <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                    <input type="checkbox" name="type" value="services" 
+                        {% if 'services' in type_filter %}checked{% endif %}
+                        style="margin-right: 10px; accent-color: #710919;"> 
+                    Services
+                </label>
+                <label style="display: block; font-size: 14px; color: #333;">
+                    <input type="checkbox" name="type" value="hire" 
+                        {% if 'hire' in type_filter %}checked{% endif %}
+                        style="margin-right: 10px; accent-color: #710919;"> 
+                    For Hire
+                </label>
+            </div>
+
+            <!-- Price Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Price</h4>
+                <select name="price_sort" style="width: 100%; padding: 8px; margin-bottom: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background-color: white;">
+                    <option value="">Sort</option>
+                    <option value="high_to_low" {% if get_params.price_sort == 'high_to_low' %}selected{% endif %}>High to Low</option>
+                    <option value="low_to_high" {% if get_params.price_sort == 'low_to_high' %}selected{% endif %}>Low to High</option>
+                </select>
+                <input type="number" name="min_price" placeholder="Min" 
+                    style="width: calc(50% - 5px); padding: 8px; margin-bottom: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;" 
+                    value="{{ get_params.min_price }}">
+                <input type="number" name="max_price" placeholder="Max" 
+                    style="width: calc(50% - 5px); padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;" 
+                    value="{{ get_params.max_price }}">
+            </div>
+
+            <!-- State Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">State</h4>
+                <div style="max-height: 150px; overflow-y: auto; padding-right: 10px;">
+                    {% for state in states %}
+                        <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <input type="checkbox" name="state" value="{{ state.name }}" 
+                                   {% if state.name in state_filter %}checked{% endif %}
+                                   style="margin-right: 10px; accent-color: #710919;"> 
+                            {{ state.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Event Category Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Event Category</h4>
+                <div style="max-height: 150px; overflow-y: auto; padding-right: 10px;">
+                    {% for category in event_categories %}
+                        <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <input type="checkbox" name="event_category" value="{{ category.name }}" 
+                                   {% if category.name in event_category_filter %}checked{% endif %}
+                                   style="margin-right: 10px; accent-color: #710919;"> 
+                            {{ category.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Product Category Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Product Category</h4>
+                <div style="max-height: 150px; overflow-y: auto; padding-right: 10px;">
+                    {% for category in product_categories %}
+                        <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <input type="checkbox" name="product_category" value="{{ category.name }}" 
+                                   {% if category.name in product_category_filter %}checked{% endif %}
+                                   style="margin-right: 10px; accent-color: #710919;"> 
+                            {{ category.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Service Category Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Service Category</h4>
+                <div style="max-height: 150px; overflow-y: auto; padding-right: 10px;">
+                    {% for category in service_categories %}
+                        <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <input type="checkbox" name="service_category" value="{{ category.name }}" 
+                                   {% if category.name in service_category_filter %}checked{% endif %}
+                                   style="margin-right: 10px; accent-color: #710919;"> 
+                            {{ category.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Color Filter -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Color</h4>
+                <div style="max-height: 150px; overflow-y: auto; padding-right: 10px;">
+                    {% for color_value, color_name in color_choices %}
+                        <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                            <input type="checkbox" name="color" value="{{ color_value }}" 
+                                   {% if color_value in color_filter %}checked{% endif %}
+                                   style="margin-right: 10px; accent-color: #710919;"> 
+                            {{ color_name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Grid of items -->
+    <div style="flex: 4 1 0; padding-left: 30px;">
+        <h2 style="margin-bottom: 30px; color: #710919; font-size: 28px; border-bottom: 2px solid #710919; padding-bottom: 10px;">Search Results</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px;">
+            {% for item in page_obj %}
+                <div style="border: 1px solid #e0e0e0; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <a href="{% if item.get_item_type == 'product' %}{% url 'product_detail' item.business.business_slug item.product_slug %}{% else %}{% url 'service_detail' item.business.business_slug item.service_slug %}{% endif %}">
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                    </a>
+                    <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
+                        <a href="{% if item.get_item_type == 'product' %}{% url 'product_detail' item.business.business_slug item.product_slug %}{% else %}{% url 'service_detail' item.business.business_slug item.service_slug %}{% endif %}" style="text-decoration: none; color: inherit;">
+                            <h3 style="font-size: 18px; margin: 0 0 15px; color: #333; height: 54px; overflow: hidden; line-height: 1.5;">{{ item.name }}</h3>
+                        </a>
+                        <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #710919;">
+                            {% if item.hire_price %}
+                                ${{ item.hire_price }}/{{ item.get_hire_duration_display }}
+                            {% else %}
+                                ${{ item.price }}
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>
+                            {% for state in item.business.states.all %}
+                                {{ state.abbreviation }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center;">
+                                {% if item.business.profile_picture %}
+                                    <img src="{{ item.business.profile_picture.url }}" alt="{{ item.business.business_name }}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+                                {% else %}
+                                    <span style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; background-color: #710919; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">{{ item.business.business_name|first }}</span>
+                                {% endif %}
+                                <span style="font-size: 14px; color: #666;">Listed by <a href="{% url "business_detail" item.business.business_slug %}" style="color: #710919; text-decoration: none; font-weight: bold;">{{ item.business.business_name }}</a></span>
+                            </div>
+                        </div>
+                        <button style="background-color: #710919; color: white; border: none; padding: 12px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div style="margin-top: 40px; text-align: center;">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% for key, value in get_params.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">&laquo; First</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% for key, value in get_params.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">Previous</a>
+            {% endif %}
+        
+            <span style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; background-color: #710919; color: #fff;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+        
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% for key, value in get_params.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in get_params.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;">Last &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filter-form');
+        const inputs = filterForm.querySelectorAll('input[type="checkbox"], input[type="number"], select');
+    
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    
+        // Add smooth scrolling for mobile when opening filters
+        const filterToggle = document.createElement('button');
+        filterToggle.textContent = 'Show Filters';
+        filterToggle.style.cssText = `
+            display: none;
+            width: 100%;
+            padding: 10px;
+            background-color: #710919;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        `;
+        
+        const filterContainer = document.querySelector('div[style*="flex: 1 1 250px"]');
+        filterContainer.parentNode.insertBefore(filterToggle, filterContainer);
+    
+        filterToggle.addEventListener('click', function() {
+            filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
+            this.textContent = filterContainer.style.display === 'none' ? 'Show Filters' : 'Hide Filters';
+            if (filterContainer.style.display === 'block') {
+                filterContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    
+        // Responsive design adjustments
+        function adjustLayout() {
+            if (window.innerWidth <= 768) {
+                filterToggle.style.display = 'block';
+                filterContainer.style.display = 'none';
+                document.querySelector('div[style*="flex: 4 1 0"]').style.paddingLeft = '0';
+            } else {
+                filterToggle.style.display = 'none';
+                filterContainer.style.display = 'block';
+                document.querySelector('div[style*="flex: 4 1 0"]').style.paddingLeft = '30px';
+            }
+        }
+    
+        window.addEventListener('resize', adjustLayout);
+        adjustLayout(); // Initial call
+    });
+    </script>
+    
+    <style>
+    @media (max-width: 768px) {
+        div[style*="display: flex; max-width: 1200px;"] {
+            flex-direction: column;
+        }
+    
+        div[style*="flex: 1 1 250px;"] {
+            max-width: 100% !important;
+            margin-bottom: 20px;
+        }
+    
+        div[style*="flex: 4 1 0;"] {
+            padding-left: 0 !important;
+        }
+    
+        div[style*="display: grid;"] {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+        }
+    
+        .pagination a, .pagination span {
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        div[style*="display: grid;"] {
+            grid-template-columns: 1fr !important;
+        }
+    
+        h2[style*="font-size: 28px;"] {
+            font-size: 24px !important;
+        }
+    
+        .pagination a, .pagination span {
+            padding: 6px 10px !important;
+            font-size: 12px !important;
+        }
+    }
+</style>
+{% endblock content %}

@@ -1,0 +1,405 @@
+{% extends "event/base.html" %}
+
+{% load static %}
+
+{% block title %}Home - Every Event Australia{% endblock %}
+{% block content %}
+
+<!-- HOME SLIDER -->
+<div class="container">
+    <div class="slider-container slider-boxed">
+        <div class="owl-carousel owl-theme home-slider">
+            <div class="slider-post slider-item-box-bkg slider-item-box3">
+                <div class="slider-img" style="background-image:url('/static/event/images/home/1.webp');"></div>
+                <div class="container slider-caption">
+                    <div class="slider-text" style="padding: 0 15px;">
+                        <h1 style="font-size: clamp(24px, 5vw, 36px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
+                        <p style="font-size: clamp(14px, 3vw, 18px); line-height: 1.4; margin-bottom: 20px;">Browse, compare & book online from trusted Melbourne and Adelaide vendors online storefronts</p>
+                        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <a href="#" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
+                            <a href="#" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Repeat the same changes for the other two slider items -->
+            <div class="slider-post slider-item-box-bkg slider-item-box3">
+                <div class="slider-img" style="background-image:url('/static/event/images/home/2.webp');"></div>
+                <div class="container slider-caption">
+                    <div class="slider-text" style="padding: 0 15px;">
+                        <h1 style="font-size: clamp(24px, 5vw, 36px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
+                        <p style="font-size: clamp(14px, 3vw, 18px); line-height: 1.4; margin-bottom: 20px;">Browse, compare & book online from trusted Melbourne and Adelaide vendors online storefronts</p>
+                        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <a href="#" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
+                            <a href="#" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-post slider-item-box-bkg slider-item-box3">
+                <div class="slider-img" style="background-image:url('/static/event/images/home/3.webp');"></div>
+                <div class="container slider-caption">
+                    <div class="slider-text" style="padding: 0 15px;">
+                        <h1 style="font-size: clamp(24px, 5vw, 36px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
+                        <p style="font-size: clamp(14px, 3vw, 18px); line-height: 1.4; margin-bottom: 20px;">Browse, compare & book online from trusted Melbourne and Adelaide vendors online storefronts</p>
+                        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <a href="#" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
+                            <a href="#" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /HOME SLIDER -->
+
+<script>
+    document.querySelectorAll('.view-more.find-more').forEach(button => {
+        button.addEventListener('mouseover', function() {
+            this.style.backgroundColor = '#710919';
+            this.style.borderColor = '#710919';
+            this.style.color = 'white';
+        });
+        button.addEventListener('mouseout', function() {
+            this.style.backgroundColor = 'transparent';
+            this.style.borderColor = 'white';
+            this.style.color = 'white';
+        });
+    });
+</script>
+
+
+
+<div class="section-event ptb80 pb-0 mb-5" style="background-color: #FFFFFF;">
+    <div class="container">
+        <div class="section-title mb-4">
+            <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left;">How It Works</h2>
+        </div>
+        <div class="row justify-content-between">
+            <div class="col-lg-4 mb-3">
+                <div class="e-event-col text-center d-flex flex-column h-100" style="border: 1px solid #D3D3D3; padding: 15px;">
+                    <h3 style="margin-bottom: 0;">Trusted Vendors</h3>
+                    <p style="margin-top: 10px; flex-grow: 1;">Browse and compare the hundreds of event items available to hire, buy or book directly from trusted and approved Melbourne & Adelaide Vendors in one location.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-3">
+                <div class="e-event-col text-center d-flex flex-column h-100" style="border: 1px solid #D3D3D3; padding: 15px;">
+                    <h3 style="margin-bottom: 0;">Your One Stop Shop</h3>
+                    <p style="margin-top: 10px; flex-grow: 1;">Put together your whole event with items from different vendors within your state, then book with a single checkout. For any product questions, click the "message vendor" button on the product page.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-3">
+                <div class="e-event-col text-center d-flex flex-column h-100" style="border: 1px solid #D3D3D3; padding: 15px;">
+                    <h3 style="margin-bottom: 0;">Easy Booking System</h3>
+                    <p style="margin-top: 10px; flex-grow: 1;">Once you find an item you love, send it straight to our secure checkout and enter your event details. The vendor(s) will confirm your order within 24-48hrs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="search-by-event py-5">
+    <div class="container">
+        <h2 class="mb-4" style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left;">Search by Event</h2>
+        
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
+            <!-- Card 1 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static "event/images/engagement.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            Engagement & Wedding
+                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static "event/images/birthdays.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            Birthdays and Celebrations
+                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static "event/images/christening.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            Christening & Baptisms
+                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 4 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{% static "event/images/bridal.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            Bridal Shower & Hen's Night
+                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 5 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <a href="{% url "all_events" %}">
+                        <img src="{% static "event/images/all.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-0 d-flex align-items-center">
+                                All Events
+                                <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                            </h5>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="best-sellers py-5" style="position: relative;">
+    <div class="container">
+        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Best Sellers</h2>
+        
+        <div class="slider-container" style="position: relative; overflow: hidden;">
+            <button class="slider-btn prev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 2; background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">&lt;</button>
+            <button class="slider-btn next" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2; background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">&gt;</button>
+            
+            <div class="slider" style="display: flex; transition: transform 0.3s ease-in-out;">
+                {% for item in best_sellers %}
+                    <div class="item-card" style="flex: 0 0 auto; width: 300px; margin-right: 20px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+                        {% if item.type == 'product' %}
+                            <a href="{% url 'product_detail' item.business.business_slug item.product_slug %}">
+                        {% else %}
+                            <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}">
+                        {% endif %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                        </a>
+                        <div style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
+                            {% if item.type == 'product' %}
+                                <a href="{% url 'product_detail' item.business.business_slug item.product_slug %}" style="text-decoration: none; color: inherit;">
+                            {% else %}
+                                <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}" style="text-decoration: none; color: inherit;">
+                            {% endif %}
+                                <h3 style="font-size: 18px; margin-bottom: 5px;">{{ item.name }}</h3>
+                            </a>
+                            <p style="font-size: 14px; color: #666; margin-bottom: 5px;">{{ item.business.name }}</p>
+                            
+                            <div style="flex-grow: 1;"></div>
+                            <p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">${{ item.price }}</p>
+                            {% if item.type == 'product' %}
+                                <button class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Add to Cart</small></button>
+                            {% else %}
+                                <button class="get-quote" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Get Quote</small></button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    @media (max-width: 768px) {
+        .slider-container {
+            padding: 0 40px;
+        }
+        .item-card {
+            width: 200px !important;
+        }
+    }
+    
+    .add-to-cart:hover, .get-quote:hover {
+        background-color: #710919 !important;
+        color: white !important;
+        border-color: #710919 !important;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.querySelector('.slider');
+        const prevBtn = document.querySelector('.prev');
+        const nextBtn = document.querySelector('.next');
+        let slideIndex = 0;
+        prevBtn.addEventListener('click', () => {
+            slideIndex = Math.max(slideIndex - 1, 0);
+            updateSliderPosition();
+        });
+        nextBtn.addEventListener('click', () => {
+            slideIndex = Math.min(slideIndex + 1, slider.children.length - 1);
+            updateSliderPosition();
+        });
+        function updateSliderPosition() {
+            const slideWidth = slider.children[0].offsetWidth + 20; // width + margin
+            slider.style.transform = `translateX(-${slideIndex * slideWidth}px)`;
+        }
+    });
+</script>
+
+<section class="py-5">
+    <div class="container">
+        <div style="border: 1px solid #e0e0e0; display: flex; margin: 0 auto; padding: 0; max-width: 100%;">
+            <div style="flex: 1; width: 60%;">
+                <img src="{% static 'event/images/wedding.jpeg' %}" alt="Description of image" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div style="flex: 1; width: 40%; padding: 40px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
+                <h2 style="font-size: 32px; margin-bottom: 20px; line-height: 1.2;"><small style="font-size: 24px;">Find Your</small><br> Dream Wedding <br> Venue</h2>
+                <p style="font-size: 18px; line-height: 1.6; margin-bottom: 30px;">Browse our Exclusive Selection of <br> Premier Wedding and Event Venues.</p>
+                <div style="text-align: center;">
+                    <a href="{% url 'venues' %}" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
+                        Venue Directory
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="as-seen-with py-5">
+    <div class="container">
+        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">As seen with</h2>
+        
+        <div class="logo-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <img src="{% static 'event/images/saweddings.png' %}" alt="Brand Logo 1" style="max-width: 150px; height: auto; margin: 10px;">
+            <img src="{% static 'event/images/uni.jpeg' %}" alt="Brand Logo 2" style="max-width: 150px; height: auto; margin: 10px;">
+            <img src="{% static 'event/images/pa.webp' %}" alt="Brand Logo 3" style="max-width: 150px; height: auto; margin: 10px;">
+            <img src="{% static 'event/images/grid.png' %}" alt="Brand Logo 4" style="max-width: 150px; height: auto; margin: 10px;">
+            <img src="{% static 'event/images/sastyle.webp' %}" alt="Brand Logo 5" style="max-width: 150px; height: auto; margin: 10px;">
+        </div>
+    </div>
+</section>
+
+<style>
+    @media (max-width: 768px) {
+        .logo-container {
+            justify-content: center;
+        }
+        .logo-container img {
+            max-width: 120px;
+        }
+    }
+</style>
+
+
+<section class="real-events-advice py-5">
+    <div class="container">
+        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Real Events & Advice</h2>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-bottom: 30px;">
+            <!-- Card 1 -->
+            <div style="flex: 1 1 300px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease-in-out;">
+                <img src="{% static 'event/images/blog1.jpeg' %}" alt="Event 1" style="width: 100%; height: 200px; object-fit: cover;">
+                <div style="padding: 15px;">
+                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Elegant Garden Wedding</h5>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">April 23, 2024</p>
+                    <p style="font-size: 0.9rem;">A charming outdoor celebration filled with floral delights and rustic touches.</p>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div style="flex: 1 1 300px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease-in-out;">
+                <img src="{% static 'event/images/blog2.webp' %}" alt="Event 2" style="width: 100%; height: 200px; object-fit: cover;">
+                <div style="padding: 15px;">
+                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Chic Urban Birthday Bash</h5>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">April 23, 2024</p>
+                    <p style="font-size: 0.9rem;">A stylish city celebration with modern decor and gourmet catering.</p>
+                </div>
+            </div>
+            
+            <!-- Card 3 -->
+            <div style="flex: 1 1 300px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease-in-out;">
+                <img src="{% static 'event/images/blog3.webp' %}" alt="Event 3" style="width: 100%; height: 200px; object-fit: cover;">
+                <div style="padding: 15px;">
+                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Intimate Beachside Vow Renewal</h5>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">April 23, 2024</p>
+                    <p style="font-size: 0.9rem;">A romantic seaside ceremony celebrating years of love and commitment.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="#" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
+                View all blogs
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+    @media (max-width: 768px) {
+        .real-events-advice .container > div:first-of-type {
+            justify-content: center;
+        }
+    }
+</style>
+
+<section class="listing-benefits py-5">
+    <div class="container">
+        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Interested in listing with us?</h2>
+        
+        <ul style="list-style-type: none; padding-left: 0; margin-bottom: 40px;">
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Setup your e-commerce storefront</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Enhance your online Presence</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Make sales directly with your target audience</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Benefit from automatic customer payments paid on time</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Fully manageable dashboard for order and storefront management</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Receive assistance with sales and customer service operations</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Receive complimentary advertising and marketing of your product offerings</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Join and be listed alongside reputable event vendors</span>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+                <span style="color: #000000; margin-right: 10px; font-weight: bold;">&#10003;</span>
+                <span>Chance to contribute to blog features</span>
+            </li>
+        </ul>
+        
+        <a href="#" style="display: inline-block; padding: 12px 24px; background-color: #710919; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; transition: background-color 0.3s ease;">
+            Get Started
+        </a>
+    </div>
+</section>
+
+
+{% endblock %}
