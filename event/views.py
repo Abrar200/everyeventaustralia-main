@@ -199,9 +199,7 @@ def community(request):
     return render(request, 'event/community.html', context)
 
 
-
-
-class BusinessRegistrationView(LoginRequiredMixin, View):
+class BusinessRegistrationView(View):
     def get(self, request):
         states = State.objects.all()
         day_choices = OpeningHour.DAY_CHOICES
@@ -216,6 +214,29 @@ class BusinessRegistrationView(LoginRequiredMixin, View):
 
     def post(self, request):
         try:
+            # User information
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            if password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return redirect('business_registration')
+
+            # Create user
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_seller=True
+            )
+
+            # Business information
             business_name = request.POST.get('business_name')
             description = request.POST.get('description')
             state_ids = request.POST.getlist('states')
@@ -227,13 +248,8 @@ class BusinessRegistrationView(LoginRequiredMixin, View):
             terms_and_conditions_pdf = request.FILES.get('terms_and_conditions_pdf')
             delivery_radius = request.POST.get('delivery_radius')
             price_per_way = request.POST.get('price_per_way')
-            email = request.POST.get('email')
             profile_picture = request.FILES.get('profile_picture')
             banner_image = request.FILES.get('banner_image')
-
-            user = request.user
-            user.is_seller = True
-            user.save()
 
             business = Business.objects.create(
                 seller=user,
@@ -298,14 +314,18 @@ class BusinessRegistrationView(LoginRequiredMixin, View):
                     type='account_onboarding',
                 )
 
+                login(request, user)
                 return redirect(account_link.url)
             except stripe.error.StripeError as e:
                 messages.error(request, f"Stripe error: {e.user_message}")
+                user.delete()
                 business.delete()
                 return redirect('business_registration')
 
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
+            if 'user' in locals():
+                user.delete()
             if 'business' in locals():
                 business.delete()
             return redirect('business_registration')

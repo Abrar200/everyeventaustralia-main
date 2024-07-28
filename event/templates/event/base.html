@@ -46,22 +46,8 @@
                 <li class="menu-item"><a href="{% url 'all_events' %}?type=hire">Hire</a></li>
                 <li class="menu-item"><a href="{% url 'all_events' %}?type=services">Services</a></li>
                 <li class="menu-item"><a href="{% url 'venues' %}">Find a Venue</a></li>
-                {% if user.is_authenticated %}
-                    {% if user.is_seller %}
-                        <li class="menu-item"><a href="{% url 'business_detail' user.business.business_slug %}">My Business</a></li>
-                    {% elif user.is_venue_vendor %}
-                        <li class="menu-item"><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
-                        <li class="menu-item"><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>
-                    {% endif %}
-                    {% if not user.is_seller and not user.is_venue_vendor %}
-                        <li class="menu-item"><a href="{% url 'business_registration' %}">Register Your Business</a></li>
-                    {% endif %}
-                    <li class="menu-item"><a href="{% url 'logout' %}">Logout</a></li>
-                {% else %}
-                    <li class="menu-item"><a href="{% url 'login' %}">Login</a></li>
-                    <li class="menu-item"><a href="{% url 'register' %}">Register</a></li>
-                    <li class="menu-item"><a href="{% url 'venue_vendor_register' %}">Onboard Your Venue</a></li>
-                {% endif %}
+                <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
+                <li class="menu-item"><a href="{% url 'venues' %}">Blogs</a></li>
             </ul>
         </div>
         <!-- /modal-menu-container -->
@@ -104,7 +90,7 @@
                     <a href="#" class="dropdown-toggle" style="color: #000; text-decoration: none; font-size: 18px;">
                         <i class="fas fa-user"></i>
                     </a>
-                    <ul class="dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background-color: #fff; list-style-type: none; padding: 0; margin: 10px 0 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; min-width: 180px; z-index: 1000;">
+                    <ul class="dropdown-menu" style="display: none; position: fixed; top: auto; left: 0; right: 0; background-color: #fff; list-style-type: none; padding: 0; margin: 10px 0 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; width: 100%; max-width: 300px; z-index: 1001; max-height: 80vh; overflow-y: auto;">
                         {% if user.is_authenticated %}
                             <li style="padding: 12px 20px;"><a href="{% url 'profile' user.username %}" style="color: #333; text-decoration: none; display: block;">Profile</a></li>
                             <li style="padding: 12px 20px;"><a href="{% url 'user_orders' %}" style="color: #333; text-decoration: none; display: block;">My Orders</a></li>
@@ -114,17 +100,16 @@
                                 <li style="padding: 12px 20px;"><a href="{% url 'venue_detail' user.venue.venue_slug %}" style="color: #333; text-decoration: none; display: block;">My Venue</a></li>
                                 <li style="padding: 12px 20px;"><a href="{% url 'venue_analytics' user.venue.venue_slug %}" style="color: #333; text-decoration: none; display: block;">Venue Analytics</a></li>
                             {% endif %}
-                            {% if not user.is_seller and not user.is_venue_vendor %}
-                                <li style="padding: 12px 20px;"><a href="{% url 'business_registration' %}" style="color: #333; text-decoration: none; display: block;">Register Your Business</a></li>
-                            {% endif %}
                             <li style="padding: 12px 20px;"><a href="{% url 'logout' %}" style="color: #333; text-decoration: none; display: block;">Logout</a></li>
                         {% else %}
                             <li style="padding: 12px 20px;"><a href="{% url 'login' %}" style="color: #333; text-decoration: none; display: block;">Login</a></li>
-                            <li style="padding: 12px 20px;"><a href="{% url 'register' %}" style="color: #333; text-decoration: none; display: block;">Register</a></li>
-                            <li style="padding: 12px 20px;"><a href="{% url 'venue_vendor_register' %}" style="color: #333; text-decoration: none; display: block;">Onboard Your Venue</a></li>
+                            <li style="padding: 12px 20px;"><a href="{% url 'register' %}" style="color: #333; text-decoration: none; display: block;">User Registration</a></li>
+                            <li style="padding: 12px 20px;"><a href="{% url 'business_registration' %}" style="color: #333; text-decoration: none; display: block;">Register Your Business</a></li>
+                            <li style="padding: 12px 20px;"><a href="{% url 'venue_vendor_register' %}" style="color: #333; text-decoration: none; display: block;">List Your Venue</a></li>
                         {% endif %}
                     </ul>
                 </div>
+                
                 {% if user.is_authenticated %}
                     <a class="cart-icon" href="{% url 'cart' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
                         <i class="fas fa-shopping-cart"></i>
@@ -205,17 +190,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Dropdown toggle
-            document.body.addEventListener('click', function(event) {
-                if (event.target.matches('.dropdown-toggle') || event.target.closest('.dropdown-toggle')) {
-                    event.preventDefault();
-                    var dropdownMenu = event.target.closest('.dropdown').querySelector('.dropdown-menu');
-                    dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
-                } else if (!event.target.closest('.dropdown-menu')) {
-                    // Close all dropdowns when clicking outside
-                    var dropdowns = document.getElementsByClassName("dropdown-menu");
-                    for (var i = 0; i < dropdowns.length; i++) {
-                        dropdowns[i].style.display = 'none';
-                    }
+            const dropdownToggle = document.querySelector('.dropdown-toggle');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+
+            dropdownToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+                
+                if (dropdownMenu.style.display === 'block') {
+                    const rect = dropdownToggle.getBoundingClientRect();
+                    dropdownMenu.style.top = (rect.bottom + window.scrollY) + 'px';
+                    dropdownMenu.style.left = 'auto';
+                    dropdownMenu.style.right = '10px'; // Adjust this value as needed
+                }
+            });
+
+            // Close the dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.style.display = 'none';
                 }
             });
 
@@ -328,13 +321,11 @@
                                                 <li class="menu-item"><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
                                                 <li class="menu-item"><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>
                                             {% endif %}
-                                            {% if not user.is_seller and not user.is_venue_vendor %}
-                                                <li class="menu-item"><a href="{% url 'business_registration' %}">Register Your Business</a></li>
-                                            {% endif %}
                                         {% else %}
                                             <li class="menu-item"><a href="{% url 'login' %}">Login</a></li>
                                             <li class="menu-item"><a href="{% url 'register' %}">Register</a></li>
-                                            <li class="menu-item"><a href="{% url 'venue_vendor_register' %}">Onboard Your Venue</a></li>
+                                            <li class="menu-item"><a href="{% url 'business_registration' %}">Register Your Business</a></li>
+                                            <li class="menu-item"><a href="{% url 'venue_vendor_register' %}">List Your Venue</a></li>
                                         {% endif %}
                                     </ul>
                                 </div>

@@ -1,24 +1,14 @@
 {% extends "event/base.html" %}
-
 {% load static %}
-
 {% block slider %}
-
 {% endblock slider %}
-
 {% block content %}
 <!-- SECTION 1-->
 <section class="section-holder" style="margin-top: 120px;">
     <div class="container">
         <div class="row">
-            <div class="col-lg-6 margin-bm54 aligncm">
-                <div class="margin-r54">
-                    <h2 class="section-title margin-b32">Don't have an account?</h2>
-                    <p><a href="{% url 'register' %}"><input type="submit" value="Register" id="submit"/></a></p>
-                </div>
-            </div>
-            <!-- /col-lg-6 -->
-            <div class="col-lg-6">
+            <div class="col-lg-6 order-lg-2 order-1">
+                <h2 class="section-title margin-b32">Login</h2>
                 <div id="contact-form-holder">
                     <form method="post" id="contact-form" action="{% url 'login' %}">
                         {% csrf_token %}
@@ -32,6 +22,13 @@
                 <!-- contact-form-holder-->
                 <div id="output-contact"></div>
                 <p><a href="{% url 'reset_password' %}">Forgot Password?</a></p>
+            </div>
+            <!-- /col-lg-6 -->
+            <div class="col-lg-6 margin-bm54 aligncm order-lg-1 order-2">
+                <div class="margin-r54">
+                    <h3 class="section-title margin-b32" style="margin-top: 30px;">Don't have an account?</h3>
+                    <p><a href="{% url 'register' %}"><input type="submit" value="Register" id="submit"/></a></p>
+                </div>
             </div>
             <!-- /col-lg-6 -->
         </div>
