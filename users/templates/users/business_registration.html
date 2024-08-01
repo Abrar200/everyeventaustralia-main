@@ -12,9 +12,53 @@
                 <div id="contact-form-holder">
                     <form method="post" id="contact-form" action="{% url 'business_registration' %}" enctype="multipart/form-data">
                         {% csrf_token %}
+
+                        <!-- Introductory Section -->
+                        <div class="form-section text-center" data-section="0">
+                            <h2 class="mb-4">Create your vendor storefront</h2>
+                            <p class="mb-5"><em>(Available to Adelaide and Melbourne Vendors only at this time)</em></p>
+
+                            <div class="text-left mx-auto" style="max-width: 600px;">
+                                <h3>HOW IT WORKS</h3>
+                                <ul class="list-unstyled">
+                                    <li>✓ Create your free account</li>
+                                    <li>✓ Setup your e-commerce storefront</li>
+                                    <li>✓ Enhance your online presence</li>
+                                    <li>✓ Make sales directly with your target audience</li>
+                                    <li>✓ Benefit from automatic customer payments paid on time</li>
+                                    <li>✓ Fully manageable dashboard for order and storefront management</li>
+                                    <li>✓ Receive assistance with sales and customer service operations</li>
+                                    <li>✓ Receive complimentary advertising and marketing of your product offerings</li>
+                                    <li>✓ Join and be listed alongside reputable event vendors</li>
+                                    <li>✓ Chance to contribute to blog features</li>
+                                </ul>
+
+                                <h3 class="mt-5">VENDOR DASHBOARD AND PROFILE</h3>
+                                <ul>
+                                    <li>Have full control over your vendor dashboard and online profile.</li>
+                                    <li>Manage your product and services listings, business details and terms and conditions.</li>
+                                    <li>Setup your customer payment schedule however you like.</li>
+                                    <li>Manage your upcoming and past orders.</li>
+                                    <li>Respond to order requests and communicate with customers via our chat system.</li>
+                                </ul>
+
+                                <h3 class="mt-5">FEES</h3>
+                                <p>We withhold a 14% service fee from all sales however we do not charge subscription or listing fees for vendors, therefore having a vendor account with us is completely risk free!</p>
+
+                                <h3 class="mt-5">MAKE SALES DIRECTLY WITH CUSTOMERS</h3>
+                                <p>We are a transactional platform for our suppliers, not a directory, meaning our customers can view, select and add to cart your products and services. You will receive notification of the customer's order for you to respond to.</p>
+
+                                <h3 class="mt-5">AUTOMATIC PAYMENTS</h3>
+                                <p>We use a third party payment system (Stripe) that guarantees you will ALWAYS be paid without chasing up clients. You will be able to setup your payment terms in your dashboard however you like.</p>
+
+                                <h3 class="mt-5">COMPLIMENTARY ADVERTISING AND MARKETING</h3>
+                                <p style="margin-bottom: 20px;">We use a number of advertising and marketing techniques that put your vendor profile and listings in direct contact with your target demographic.</p>
+                            </div>
+                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(0)">Create your storefront</button>
+                        </div>
                         
                         <!-- Section 1: Personal Information -->
-                        <div class="form-section" data-section="1">
+                        <div class="form-section" data-section="1" style="display: none;">
                             <h3>Personal Information</h3>
                             <div class="row margin-b24">
                                 <div class="col-md-6 margin-bm24">
@@ -23,10 +67,7 @@
                                 <div class="col-md-6 margin-bm24">
                                     <input type="text" name="last_name" class="comm-field" placeholder="Last Name" required/>
                                 </div>
-                                <div class="col-md-6 margin-bm24 mt-3">
-                                    <input type="text" name="username" class="comm-field" placeholder="Username" required/>
-                                </div>
-                                <div class="col-md-6 margin-bm24 mt-3">
+                                <div class="col-md-12 margin-bm24 mt-3">
                                     <input type="email" name="email" class="comm-field" placeholder="Email" required/>
                                 </div>
                                 <div class="col-md-6 margin-bm24 mt-3">

@@ -27,7 +27,7 @@ def user_register_view(request):
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        username = request.POST.get('username')
+        username = request.POST.get('email')
         email = request.POST.get('email')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirmPassword')

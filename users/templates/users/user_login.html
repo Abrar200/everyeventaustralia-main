@@ -1,40 +1,35 @@
 {% extends "event/base.html" %}
 {% load static %}
-{% block slider %}
-{% endblock slider %}
 {% block content %}
-<!-- SECTION 1-->
-<section class="section-holder" style="margin-top: 120px;">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-6 order-lg-2 order-1">
-                <h2 class="section-title margin-b32">Login</h2>
-                <div id="contact-form-holder">
-                    <form method="post" id="contact-form" action="{% url 'login' %}">
-                        {% csrf_token %}
-                        <div class="row margin-b24">
-                            <div class="col-md-12 margin-bm24"><input type="text" name="username" class="comm-field" placeholder="Username" required/></div>
-                            <div class="col-md-12 mt-3"><input type="password" name="password" class="comm-field" placeholder="Password" required/> </div>
-                        </div>
-                        <p><input type="submit" value="Login" id="submit"/></p>
-                    </form>
-                </div>
-                <!-- contact-form-holder-->
-                <div id="output-contact"></div>
-                <p><a href="{% url 'reset_password' %}">Forgot Password?</a></p>
-            </div>
-            <!-- /col-lg-6 -->
-            <div class="col-lg-6 margin-bm54 aligncm order-lg-1 order-2">
-                <div class="margin-r54">
-                    <h3 class="section-title margin-b32" style="margin-top: 30px;">Don't have an account?</h3>
-                    <p><a href="{% url 'register' %}"><input type="submit" value="Register" id="submit"/></a></p>
-                </div>
-            </div>
-            <!-- /col-lg-6 -->
+<section style="max-width: 400px; margin: 50px auto 0; margin-top: 100px; font-family: Arial, sans-serif;">
+    <h1 style="text-align: center; font-size: 32px; margin-bottom: 5px; font-weight: normal;">Customer Login</h1>
+    <p style="text-align: center; font-size: 14px; color: #666; margin-bottom: 20px;">Create your customer account with Every Event Australia</p>
+    <form method="post" action="{% url 'login' %}" style="margin-bottom: 10px;">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <input type="text" name="username" placeholder="Email" required
+                   style="width: 100%; padding: 10px; border: 1px solid #ccc; font-size: 16px;">
         </div>
-        <!-- /row -->
+        <div style="margin-bottom: 15px;">
+            <input type="password" name="password" placeholder="Password" required
+                   style="width: 100%; padding: 10px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <div style="text-align: center;">
+            <button type="submit" 
+                    style="width: 100px; padding: 10px; background-color: #710919; color: white; border: none; font-size: 16px; cursor: pointer;">
+                Login
+            </button>
+        </div>
+    </form>
+    <p style="text-align: center; font-size: 14px; margin-bottom: 15px;">
+        <a href="{% url 'reset_password' %}" style="color: #666; text-decoration: none;">Forgot Password?</a>
+    </p>
+    <p style="text-align: center; font-size: 16px; margin-bottom: 10px;">Don't have an account?</p>
+    <div style="text-align: center;">
+        <a href="{% url 'register' %}" 
+           style="display: inline-block; width: 100px; padding: 10px; background-color: #710919; color: white; text-align: center; text-decoration: none; font-size: 16px;">
+            Signup
+        </a>
     </div>
-    <!-- /container -->
 </section>
-<!-- /SECTION 1-->
 {% endblock content %}

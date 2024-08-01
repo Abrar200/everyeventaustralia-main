@@ -27,63 +27,13 @@
     <div class="menu-mask"></div>
 
 
-    <style>
-        @media (min-width: 1025px) {
-            .logo-container img {
-                height: 90px;
-            }
-            .nav-button-holder {
-                display: none;
-            }
-        }
-    
-        @media (max-width: 1024px) {
-            .logo-container img {
-                height: 70px;
-            }
-        }
-    
-        @media (max-width: 768px) {
-            .mobile-nav-wrapper {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 20px;
-            }
-            .logo-container {
-                flex: 0 0 auto;
-            }
-            .logo-container img {
-                height: 65px;
-                margin-bottom: 0;
-                margin-left: -40px;
-                width: 180px !important;
-                max-width: 350px !important;
-            }
-            .nav-icons {
-                display: flex;
-                align-items: center;
-            }
-            .nav-icons a {
-                margin-left: 15px;
-                font-size: 20px;
-            }
-            .nav-items-to-hide, .nav-button-holder {
-                display: none;
-            }
-            .nav-button-holder {
-                display: block;
-            }
-        }
-    </style>
-
     <!-- AFTERPAY BLACK BAR -->
     <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 10px 0; font-family: Arial, sans-serif; font-size: 14px; letter-spacing: 0.5px; position: fixed; top: 0; left: 0; right: 0; z-index: 1001;">
         BUY NOW, PAY LATER WITH 
         <img src="{% static 'event/images/afterpay_white.png' %}" alt="Afterpay" style="height: 18px; vertical-align: middle; margin-left: 5px;">
     </div>
     <!-- /AFTERPAY BLACK BAR -->
-    
+
     <!-- MOBILE MENU HOLDER -->
     <div class="mobile-menu-holder" style="display: none;">
         <div class="modal-menu-container">
@@ -100,6 +50,7 @@
                 <li class="menu-item"><a href="{% url 'venues' %}">Blogs</a></li>
             </ul>
         </div>
+        <!-- /modal-menu-container -->
         <div class="menu-contact">
             <ul>
                 <li><i class="fas fa-map-marker-alt"></i><span>40 Park Ave, Brooklyn, New York</span></li>
@@ -115,156 +66,100 @@
     </div>
     <!-- /MOBILE MENU HOLDER -->
 
+    
     <!-- HEADER -->
     <header style="position: fixed; top: 40px; left: 0; right: 0; z-index: 1000; background-color: #ffffff; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-            <div class="mobile-nav-wrapper">
-                <div class="logo-container" style="display: flex; justify-content: center; margin-bottom: 15px;">
-                    <a href="{% url 'home' %}">
-                        <img src="{% static 'event/images/EEArebuildlogo.png' %}" style="margin-bottom: -20px;" alt="Every Event Australia">
+            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                <a href="{% url 'home' %}">
+                    <img src="{% static 'event/images/EEArebuildlogo.png' %}" style="height: 90px; margin-bottom: -20px;" alt="Every Event Australia">
+                </a>
+            </div>
+            <nav style="display: flex; justify-content: center; align-items: center;">
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-grow: 1; justify-content: center;">
+                    <li style="margin: 0 15px;"><a href="{% url 'about_us' %}" style="text-decoration: none; color: #000; font-weight: 500;">ABOUT US</a></li>
+                    <li style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=hire" style="text-decoration: none; color: #000; font-weight: 500;">HIRE</a></li>
+                    <li style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=services" style="text-decoration: none; color: #000; font-weight: 500;">SERVICES</a></li>
+                    <li style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">FIND A VENUE</a></li>
+                    <li style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">REAL EVENTS & ADVICE</a></li>
+                </ul>
+                <div style="display: flex; align-items: center;">
+                    <a href="#" onclick="openSearchModal()" style="color: #000; font-size: 18px; margin-left: 20px;">
+                        <i class="fas fa-search"></i>
                     </a>
-                </div>
-                <nav style="display: flex; justify-content: center; align-items: center;">
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-grow: 1; justify-content: center;">
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'about_us' %}" style="text-decoration: none; color: #000; font-weight: 500;">ABOUT US</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=hire" style="text-decoration: none; color: #000; font-weight: 500;">HIRE</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=services" style="text-decoration: none; color: #000; font-weight: 500;">SERVICES</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">FIND A VENUE</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">REAL EVENTS & ADVICE</a></li>
-                    </ul>
-                    <div class="nav-icons" style="display: flex; align-items: center;">
-                        <a href="#" onclick="openSearchModal()" style="color: #000; font-size: 18px; margin-left: 20px;">
-                            <i class="fas fa-search"></i>
+                    <div class="dropdown" style="position: relative; margin-left: 20px;">
+                        <a href="" class="dropdown-toggle" style="color: #000; text-decoration: none; font-size: 18px;">
+                            <i class="fas fa-user"></i>
                         </a>
-                        <div class="dropdown" style="position: relative; margin-left: 20px;">
-                            <a href="#" class="dropdown-toggle" style="color: #000; text-decoration: none; font-size: 18px;">
-                                <i class="fas fa-user"></i>
-                            </a>
-                            <ul class="dropdown-menu" style="display: none; position: absolute; background-color: #fff; list-style-type: none; padding: 0; margin: 10px 0 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; width: auto; z-index: 1001;">
-                                {% if user.is_authenticated %}
-                                    <li><a href="{% url 'profile' user.username %}">Profile</a></li>
-                                    <li><a href="{% url 'user_orders' %}">My Orders</a></li>
-                                    {% if user.is_seller %}
-                                        <li><a href="{% url 'business_detail' user.business.business_slug %}">My Business</a></li>
-                                    {% elif user.is_venue_vendor %}
-                                        <li><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
-                                        <li><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>
-                                    {% endif %}
-                                    <li><a href="{% url 'logout' %}">Logout</a></li>
-                                {% else %}
-                                    <li><a href="{% url 'login' %}">Login</a></li>
-                                    <li><a href="{% url 'register' %}">Customer Signup</a></li>
+                        <ul class="dropdown-menu" style="display: none; position: fixed; top: auto; left: 0; right: 0; background-color: #fff; list-style-type: none; padding: 0; margin: 10px 0 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; width: 100%; max-width: 300px; z-index: 1001; max-height: 80vh; overflow-y: auto;">
+                            {% if user.is_authenticated %}
+                                <li style="padding: 12px 20px;"><a href="{% url 'profile' user.username %}" style="color: #333; text-decoration: none; display: block;">Profile</a></li>
+                                <li style="padding: 12px 20px;"><a href="{% url 'user_orders' %}" style="color: #333; text-decoration: none; display: block;">My Orders</a></li>
+                                {% if user.is_seller %}
+                                    <li style="padding: 12px 20px;"><a href="{% url 'business_detail' user.business.business_slug %}" style="color: #333; text-decoration: none; display: block;">My Business</a></li>
+                                {% elif user.is_venue_vendor %}
+                                    <li style="padding: 12px 20px;"><a href="{% url 'venue_detail' user.venue.venue_slug %}" style="color: #333; text-decoration: none; display: block;">My Venue</a></li>
+                                    <li style="padding: 12px 20px;"><a href="{% url 'venue_analytics' user.venue.venue_slug %}" style="color: #333; text-decoration: none; display: block;">Venue Analytics</a></li>
                                 {% endif %}
-                            </ul>
-                        </div>
-                        {% if request.user.is_authenticated %}
-                            <a href="{% url 'cart' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
-                                <i class="fas fa-shopping-cart"></i>
-                                {% if cart_item_count > 0 %}
-                                    <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                        {{ cart_item_count }}
-                                    </span>
-                                {% endif %}
-                            </a>
-                        {% endif %}
-                        <a class="messages-icon" href="{% url 'user_messages' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
-                            <i class="fas fa-comment-alt"></i>
-                            {% if unread_message_count > 0 %}
+                                <li style="padding: 12px 20px;"><a href="{% url 'logout' %}" style="color: #333; text-decoration: none; display: block;">Logout</a></li>
+                            {% else %}
+                                <li style="padding: 12px 20px;"><a href="{% url 'login' %}" style="color: #333; text-decoration: none; display: block;">Login</a></li>
+                                <li style="padding: 12px 20px;"><a href="{% url 'register' %}" style="color: #333; text-decoration: none; display: block;">Customer Signup</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'cart' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
+                            <i class="fas fa-shopping-cart"></i>
+                            {% if cart_item_count > 0 %}
                                 <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    {{ unread_message_count }}
+                                    {{ cart_item_count }}
                                 </span>
                             {% endif %}
                         </a>
-                        <div class="nav-button-holder" style="margin-left: 20px;">
-                            <button type="button" class="nav-button"><span class="icon-bar"></span></button>
-                        </div>
+                    {% endif %}
+                    <a class="messages-icon" href="{% url 'user_messages' %}" style="color: #000; position: relative; font-size: 18px; margin-left: 20px;">
+                        <i class="fas fa-comment-alt"></i>
+                        {% if unread_message_count > 0 %}
+                            <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
+                                {{ unread_message_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+                    <div class="nav-button-holder" style="margin-left: 20px;">
+                        <button type="button" class="nav-button"><span class="icon-bar"></span></button>
                     </div>
-                </nav>
-            </div>
+                </div>
+            </nav>
         </div>
     </header>
-    
 
-    <script>
-        // Define toggleMobileMenu as a global function
-        document.querySelector('.nav-button').addEventListener('click', function() {
-            var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
-            mobileMenuHolder.style.display = mobileMenuHolder.style.display === 'block' ? 'none' : 'block';
-        });
-
-        document.querySelector('.exit-mobile').addEventListener('click', function() {
-            var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
-            mobileMenuHolder.style.display = 'none';
-        });
-    
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdownToggle = document.querySelector('.dropdown-toggle');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-    
-            if (dropdownToggle && dropdownMenu) {
-                dropdownToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
-    
-                    // Ensure the dropdown is within the viewport
-                    const rect = dropdownMenu.getBoundingClientRect();
-                    if (rect.right > window.innerWidth) {
-                        dropdownMenu.style.right = '10px';
-                        dropdownMenu.style.left = 'auto';
-                    }
-                    if (rect.left < 0) {
-                        dropdownMenu.style.left = '10px';
-                        dropdownMenu.style.right = 'auto';
-                    }
-                });
-    
-                document.addEventListener('click', function(e) {
-                    if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                        dropdownMenu.style.display = 'none';
-                    }
-                });
-            }
-    
-            window.openSearchModal = function() {
-                const searchModal = document.getElementById('searchModal');
-                const searchInput = document.getElementById('searchInput');
-                if (searchModal) searchModal.style.display = 'flex';
-                if (searchInput) searchInput.focus();
-            }
-    
-            window.closeSearchModal = function() {
-                const searchModal = document.getElementById('searchModal');
-                if (searchModal) searchModal.style.display = 'none';
-            }
-    
-            window.onclick = function(event) {
-                const modal = document.getElementById('searchModal');
-                if (event.target == modal) {
-                    closeSearchModal();
-                }
-            }
-    
-            // Check if elements exist before adding event listeners
-            const navButton = document.querySelector('.nav-button');
-            if (navButton) {
-                navButton.addEventListener('click', toggleMobileMenu);
-            }
-    
-            const exitMobile = document.querySelector('.exit-mobile');
-            if (exitMobile) {
-                exitMobile.addEventListener('click', function() {
-                    var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
-                    if (mobileMenuHolder) {
-                        mobileMenuHolder.style.display = 'none';
-                    }
-                });
-            }
-        });
-    </script>
-    
     <!-- Add this to create space for the fixed elements -->
-    <div style="height: 130px;"></div>
-    
+    <div style="height: 100px;"></div>
+
+    <style>
+        @media (max-width: 1024px) {
+            .nav-holder-1 {
+                display: none !important;
+            }
+            .header-actions {
+                margin-left: auto;
+            }
+            .nav-button {
+                display: block !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .logo img {
+                height: 30px !important;
+            }
+            .header-actions a, .header-actions .dropdown-toggle {
+                font-size: 16px !important;
+                margin-left: 15px !important;
+            }
+        }
+    </style>
+
     <!-- Search Modal -->
     <div id="searchModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(5px);">
         <div style="background-color: #fff; margin: 15% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
@@ -281,9 +176,76 @@
             </form>
         </div>
     </div>
-    <!-- /Search Modal -->
-    
-    
+
+    <style>
+        @media (max-width: 768px) {
+            #searchModal > div {
+                margin: 5% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown toggle
+            const dropdownToggle = document.querySelector('.dropdown-toggle');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+
+            dropdownToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+                
+                if (dropdownMenu.style.display === 'block') {
+                    const rect = dropdownToggle.getBoundingClientRect();
+                    dropdownMenu.style.top = (rect.bottom + window.scrollY) + 'px';
+                    dropdownMenu.style.left = 'auto';
+                    dropdownMenu.style.right = '10px'; // Adjust this value as needed
+                }
+            });
+
+            // Close the dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.style.display = 'none';
+                }
+            });
+
+            // Search modal
+            window.openSearchModal = function() {
+                document.getElementById('searchModal').style.display = 'flex';
+                document.getElementById('searchInput').focus();
+            }
+
+            window.closeSearchModal = function() {
+                document.getElementById('searchModal').style.display = 'none';
+            }
+
+            window.performSearch = function() {
+                document.getElementById('searchForm').submit();
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                var modal = document.getElementById('searchModal');
+                if (event.target == modal) {
+                    closeSearchModal();
+                }
+            }
+
+            // Mobile menu toggle
+            document.querySelector('.nav-button').addEventListener('click', function() {
+                var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
+                mobileMenuHolder.style.display = mobileMenuHolder.style.display === 'block' ? 'none' : 'block';
+            });
+
+            document.querySelector('.exit-mobile').addEventListener('click', function() {
+                var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
+                mobileMenuHolder.style.display = 'none';
+            });
+        });
+    </script>
+
     <!-- /HEADER -->
     {% block blackbar %}
     

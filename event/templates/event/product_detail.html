@@ -66,6 +66,7 @@
             <form class="variations_form cart" method="post" action="{% url 'add_to_cart' %}" id="add-to-cart-form">
                 {% csrf_token %}
                 <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="hire" id="hire" value="false">
                 <div class="variation-section" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                     {% if product.for_hire %}
                         <div class="purchase-hire-selection" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 20px;">
@@ -94,8 +95,7 @@
                     {% for variation in variations %}
                     <div class="variation" style="margin-bottom: 15px;">
                         <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">{{ variation.name|capfirst }}</h3>
-                        <p style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Select up to 1 from {{ variation.name|capfirst }}</p>
-                        <select name="{{ variation.name }}" id="selected-{{ variation.name }}" class="form-select variation-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;" data-base-price="{{ product.price }}">
+                        <select name="variations" class="form-select variation-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;" data-base-price="{{ product.price }}">
                             <option value="" data-price="0">Select an Option</option>
                             {% for value in variation.values.all %}
                             <option value="{{ value.id }}" data-price="{{ value.price|default:0 }}">{{ value.value }}</option>
@@ -105,7 +105,7 @@
                     {% endfor %}
                 </div>
                 {% if product.in_stock %}
-                    <button type="submit" id="add_to_cart_btn" class="btn-theme btn-black w-100" style="background-color: #000; color: #fff; border: none; padding: 15px 20px; border-radius: 4px; cursor: pointer; font-size: 18px;">Add to Cart</button>
+                    <button type="submit" class="btn-theme btn-black w-100" style="background-color: #000; color: #fff; border: none; padding: 15px 20px; border-radius: 4px; cursor: pointer; font-size: 18px;">Add to Cart</button>
                 {% endif %}
             </form>
             
@@ -244,7 +244,7 @@
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImage');
         const closeBtn = document.getElementsByClassName('close')[0];
-
+    
         thumbnails.forEach(thumb => {
             thumb.addEventListener('click', function() {
                 thumbnails.forEach(t => t.classList.remove('active'));
@@ -252,36 +252,36 @@
                 mainImage.src = this.dataset.imageUrl;
             });
         });
-
+    
         mainImage.addEventListener('click', function() {
             modal.style.display = 'block';
             modalImg.src = this.src;
             document.body.style.overflow = 'hidden';
         });
-
+    
         closeBtn.onclick = function() {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
-
+    
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         }
-
+    
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && modal.style.display === 'block') {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         });
-
+    
         const starContainer = document.querySelector('.star-rating');
         const starInputs = starContainer.querySelectorAll('input[type="radio"]');
         const starLabels = starContainer.querySelectorAll('label');
-
+    
         function updateStars(rating) {
             starLabels.forEach((label, index) => {
                 if (index < rating) {
@@ -291,19 +291,19 @@
                 }
             });
         }
-
+    
         starInputs.forEach((input, index) => {
             input.addEventListener('change', () => {
                 updateStars(index + 1);
             });
         });
-
+    
         starLabels.forEach((label, index) => {
             label.addEventListener('mouseenter', () => {
                 updateStars(index + 1);
             });
         });
-
+    
         starContainer.addEventListener('mouseleave', () => {
             const checkedInput = starContainer.querySelector('input:checked');
             if (checkedInput) {
@@ -312,116 +312,122 @@
                 updateStars(0);
             }
         });
-
+    
         const decreaseBtn = document.getElementById('decrease-quantity');
         const increaseBtn = document.getElementById('increase-quantity');
         const quantityInput = document.getElementById('quantity-input');
         const priceDisplay = document.getElementById('product-price');
-        const basePrice = parseFloat(priceDisplay.textContent);
-        const hirePrice = {{ product.hire_price|default_if_none:0 }};
-        const hireDuration = "{{ product.hire_duration }}";
+        const basePrice = parseFloat('{{ product.price }}');
+        const hirePrice = parseFloat('{{ product.hire_price }}');
         let currentPrice = basePrice;
-        let isHireMode = false;
-
+        const quickHireField = document.getElementById('hire');
+    
         function updatePrice() {
-            const quantity = parseInt(quantityInput.value);
-            const totalPrice = (currentPrice * quantity).toFixed(2);
-            priceDisplay.textContent = totalPrice;
-        }
-
-        const purchaseBtn = document.getElementById('purchase-btn');
-        const hireBtn = document.getElementById('hire-btn');
-        const quantityLabel = document.getElementById('quantity-label');
-        const durationLabel = document.getElementById('duration-label');
-
-        if (purchaseBtn && hireBtn) {
-            purchaseBtn.addEventListener('click', () => {
-                purchaseBtn.classList.add('active');
-                hireBtn.classList.remove('active');
-                quantityLabel.style.display = 'inline';
-                durationLabel.style.display = 'none';
-                currentPrice = basePrice;
-                isHireMode = false;
-                updatePrice();
+            let additionalPrice = 0;
+    
+            document.querySelectorAll('.variation-select').forEach(select => {
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption) {
+                    additionalPrice += parseFloat(selectedOption.dataset.price || 0);
+                }
             });
-
-            hireBtn.addEventListener('click', () => {
-                hireBtn.classList.add('active');
-                purchaseBtn.classList.remove('active');
-                quantityLabel.style.display = 'none';
-                durationLabel.style.display = 'inline';
-                currentPrice = hirePrice;
-                isHireMode = true;
-                updatePrice();
-            });
+    
+            const quantity = parseInt(quantityInput.value) || 1;
+            const currentBasePrice = quickHireField.value === 'true' ? hirePrice : basePrice;
+            currentPrice = (currentBasePrice + additionalPrice) * quantity;
+            priceDisplay.textContent = currentPrice.toFixed(2);
         }
-
+    
         decreaseBtn.addEventListener('click', () => {
             if (quantityInput.value > 1) {
                 quantityInput.value--;
                 updatePrice();
             }
         });
-
+    
         increaseBtn.addEventListener('click', () => {
             quantityInput.value++;
             updatePrice();
         });
-
+    
         quantityInput.addEventListener('change', () => {
             if (quantityInput.value < 1) {
                 quantityInput.value = 1;
             }
             updatePrice();
         });
-
-        const variationSelects = document.querySelectorAll('.variation-select');
-        variationSelects.forEach(select => {
+    
+        document.querySelectorAll('.variation-select').forEach(select => {
             select.addEventListener('change', () => {
-                const selectedOption = select.options[select.selectedIndex];
-                const additionalPrice = parseFloat(selectedOption.dataset.price);
-                const basePrice = parseFloat(select.dataset.basePrice);
-                const newPrice = basePrice + additionalPrice;
-                currentPrice = newPrice;
                 updatePrice();
             });
         });
-
-        updatePrice();
-
+    
+        updatePrice(); // Initial call to set the price based on the default selections
+    
         const afterpayInfoBtn = document.getElementById('afterpay-info');
         const afterpayModal = document.getElementById('afterpayModal');
         const afterpayContent = document.getElementById('afterpayContent');
         const closeAfterpayBtn = afterpayModal.getElementsByClassName('close')[0];
-
+    
         afterpayInfoBtn.addEventListener('click', function(event) {
             event.preventDefault();
             afterpayModal.style.display = 'block';
             afterpayContent.src = 'https://static.afterpay.com/modal/en_US.html';
             document.body.style.overflow = 'hidden';
         });
-
+    
         closeAfterpayBtn.onclick = function() {
             afterpayModal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
-
+    
         window.onclick = function(event) {
             if (event.target == afterpayModal) {
                 afterpayModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         }
-
+    
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && afterpayModal.style.display === 'block') {
                 afterpayModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         });
+    
+        const purchaseBtn = document.getElementById('purchase-btn');
+        const hireBtn = document.getElementById('hire-btn');
+        const quantityLabel = document.getElementById('quantity-label');
+        const durationLabel = document.getElementById('duration-label');
+    
+        purchaseBtn.addEventListener('click', () => {
+            purchaseBtn.classList.add('active');
+            hireBtn.classList.remove('active');
+            purchaseBtn.style.backgroundColor = '#710919';
+            purchaseBtn.style.color = '#fff';
+            hireBtn.style.backgroundColor = '#fff';
+            hireBtn.style.color = '#710919';
+            quantityLabel.style.display = 'inline';
+            durationLabel.style.display = 'none';
+            quickHireField.value = 'false';
+            updatePrice();
+        });
+    
+        hireBtn.addEventListener('click', () => {
+            hireBtn.classList.add('active');
+            purchaseBtn.classList.remove('active');
+            hireBtn.style.backgroundColor = '#710919';
+            hireBtn.style.color = '#fff';
+            purchaseBtn.style.backgroundColor = '#fff';
+            purchaseBtn.style.color = '#710919';
+            quantityLabel.style.display = 'none';
+            durationLabel.style.display = 'inline';
+            quickHireField.value = 'true';
+            updatePrice();
+        });
     });
-
-
+    
     function adjustLayout() {
         const imagesWrapper = document.querySelector('.product-images-wrapper');
         const detailsWrapper = document.querySelector('.product-details-wrapper');

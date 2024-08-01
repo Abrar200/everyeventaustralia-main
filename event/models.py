@@ -312,6 +312,7 @@ class ServiceVariationOption(models.Model):
         return f"{self.variation.service.name} - {self.variation.name} - {self.value} (${self.price})"
     
 
+
 class Cart(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='cart')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
@@ -321,16 +322,40 @@ class Cart(models.Model):
     variation_key = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    hire = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name if self.product else self.service.name}"
 
+    def calculate_total_price(self):
+        base_price = 0
+        if self.product:
+            base_price = self.product.hire_price if self.hire else self.product.price
+        elif self.service:
+            base_price = self.service.hire_price
+
+        variations_price = 0
+        for variation in self.variations.all():
+            if variation.product_variation and variation.product_variation.price:
+                variations_price += variation.product_variation.price
+            elif variation.service_variation and variation.service_variation.price:
+                variations_price += variation.service_variation.price
+
+        self.price = base_price + variations_price
+        self.save()
+
+    def save(self, *args, **kwargs):
+        print(f"Saving cart item. Hire: {self.hire}, Price: {self.price}")
+        super().save(*args, **kwargs)
+
+
 class CartItemVariation(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='variations')
-    product_variation = models.ForeignKey(ProductVariation, on_delete=models.CASCADE)
+    product_variation = models.ForeignKey(ProductVariation, on_delete=models.CASCADE, null=True, blank=True)
+    service_variation = models.ForeignKey(ServiceVariationOption, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.cart} - {self.product_variation}"
+        return f"{self.cart} - {self.product_variation if self.product_variation else self.service_variation}"
 
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [

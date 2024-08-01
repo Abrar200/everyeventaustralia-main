@@ -22,50 +22,43 @@
                 </thead>
                 <tbody>
                     {% for item in cart_items %}
-                    <tr style="border-bottom: 1px solid #e5e7eb;">
-                        <td style="padding: 15px;">
-                            <div class="cart-item">
-                                {% if item.product %}
-                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-image">
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 15px;">
+                                <div class="cart-item">
+                                    <img src="{{ item.image }}" alt="{{ item.name }}" class="cart-item-image">
                                     <div>
-                                        <h3 style="font-size: 18px; margin: 0;">{{ item.product.name }}</h3>
-                                        <p style="font-size: 14px; color: #6b7280; margin: 5px 0 0 0;">{{ item.product.business.business_name }}</p>
-                                        {% for variation in item.variations.all %}
-                                            <p style="font-size: 14px; margin: 5px 0 0 0;">{{ variation.product_variation.variation.get_name_display }}: {{ variation.product_variation.value }}</p>
+                                        <h3 style="font-size: 18px; margin: 0;">{{ item.name }}{% if item.hire %} (Hire){% endif %}</h3>
+                                        <p style="font-size: 14px; color: #6b7280; margin: 5px 0 0 0;">{{ item.business_name }}</p>
+                                        {% for variation in item.variations %}
+                                            <p style="font-size: 14px; margin: 5px 0 0 0;">{{ variation.name }}: {{ variation.value }} {% if variation.price %}(+${{ variation.price }}){% endif %}</p>
                                         {% endfor %}
                                     </div>
-                                {% else %}
-                                    <img src="{{ item.service.image.url }}" alt="{{ item.service.name }}" class="cart-item-image">
-                                    <div>
-                                        <h3 style="font-size: 18px; margin: 0;">{{ item.service.name }}</h3>
-                                        <p style="font-size: 14px; color: #6b7280; margin: 5px 0 0 0;">{{ item.service.business.business_name }}</p>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <span class="woocommerce-Price-amount amount">
-                                <span class="woocommerce-Price-currencySymbol">$</span>
-                                <span class="item-price" data-item-id="{{ item.id }}">{{ item.price }}</span>
-                            </span>
-                        </td>
-                        <td style="padding: 15px;">
-                            <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" style="width: 60px; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px;" class="quantity-input" data-item-id="{{ item.id }}">
-                        </td>
-                        <td style="padding: 15px;">
-                            <span class="woocommerce-Price-amount amount">
-                                <span class="woocommerce-Price-currencySymbol">$</span>
-                                <span class="item-total" data-item-id="{{ item.id }}">{{ item.total_price }}</span>
-                            </span>
-                        </td>
-                        <td style="padding: 15px;">
-                            <button type="button" class="delete-cart-item" data-item-id="{{ item.id }}" style="background: none; border: none; color: #dc2626; cursor: pointer; font-weight: bold;">×</button>
-                        </td>
-                    </tr>
+                                </div>
+                            </td>
+                            <td style="padding: 15px;">
+                                <span class="woocommerce-Price-amount amount">
+                                    <span class="woocommerce-Price-currencySymbol">$</span>
+                                    <span class="item-price" data-item-id="{{ item.id }}">{{ item.price }}</span>
+                                </span>
+                                <br><small>(Base hire price: ${{ item.base_price }})</small>
+                            </td>
+                            <td style="padding: 15px;">
+                                <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" style="width: 60px; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px;" class="quantity-input" data-item-id="{{ item.id }}">
+                            </td>
+                            <td style="padding: 15px;">
+                                <span class="woocommerce-Price-amount amount">
+                                    <span class="woocommerce-Price-currencySymbol">$</span>
+                                    <span class="item-total" data-item-id="{{ item.id }}">{{ item.total_price }}</span>
+                                </span>
+                            </td>
+                            <td style="padding: 15px;">
+                                <button type="button" class="delete-cart-item" data-item-id="{{ item.id }}" style="background: none; border: none; color: #dc2626; cursor: pointer; font-weight: bold;">×</button>
+                            </td>
+                        </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="5" style="padding: 15px; text-align: center;">Your cart is empty.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="5" style="padding: 15px; text-align: center;">Your cart is empty.</td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -156,13 +149,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    
     function updateCartDisplay(data) {
         data.items.forEach(item => {
             const priceElement = document.querySelector(`.item-price[data-item-id="${item.id}"]`);
             const totalElement = document.querySelector(`.item-total[data-item-id="${item.id}"]`);
             const quantityInput = document.querySelector(`.quantity-input[data-item-id="${item.id}"]`);
     
-            if (priceElement) priceElement.textContent = item.product ? item.product.price.toFixed(2) : item.price.toFixed(2);
+            if (priceElement) priceElement.textContent = item.price.toFixed(2);
             if (totalElement) totalElement.textContent = item.total.toFixed(2);
             if (quantityInput) quantityInput.value = item.quantity;
         });

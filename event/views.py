@@ -127,7 +127,7 @@ def all_events(request):
         items = [item for item in items if isinstance(item, Product) and item.main_colour_theme in color_filter]
 
     # Pagination
-    paginator = Paginator(items, 8)  # Show 8 items per page
+    paginator = Paginator(items, 9)  # Show 9 items per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -217,7 +217,7 @@ class BusinessRegistrationView(View):
             # User information
             first_name = request.POST.get('first_name')
             last_name = request.POST.get('last_name')
-            username = request.POST.get('username')
+            username = request.POST.get('email')
             email = request.POST.get('email')
             password = request.POST.get('password')
             confirm_password = request.POST.get('confirm_password')
@@ -590,6 +590,12 @@ class ProductDetailView(View):
             2: product.star_rating_percentage(2),
             1: product.star_rating_percentage(1),
         }
+
+        print("Form Data:", request.POST)
+        
+        # After processing the form data
+        hire = request.POST.get('hire') == 'true'
+        print("Hire value:", hire)
 
         context = {
             'product': product,
@@ -1213,30 +1219,64 @@ def delete_service_image(request, image_id):
         return JsonResponse({'success': False})
 
 
-class CartView(LoginRequiredMixin, View):
+class CartView(View):
     def get(self, request):
-        cart_items = Cart.objects.filter(user=request.user).prefetch_related('variations__product_variation')
+        cart_items = Cart.objects.filter(user=request.user).prefetch_related(
+            'variations__product_variation', 
+            'variations__service_variation',
+            'product',
+            'service'
+        )
+        
+        cart_data = []
         total_price = 0
         
         for item in cart_items:
-            if item.product:
-                item_price = item.product.price
-                for variation in item.variations.all():
-                    if variation.product_variation.price:
-                        item_price = variation.product_variation.price
-            else:  # It's a service
-                item_price = item.price
+            item.calculate_total_price()  # This ensures the price is up-to-date
+            item_data = {
+                'id': item.id,
+                'price': item.price,
+                'quantity': item.quantity,
+                'total_price': item.price * item.quantity,
+                'hire': item.hire,
+                'variations': [],
+            }
             
-            item.price = item_price
-            item.total_price = item_price * item.quantity
-            total_price += item.total_price
+            if item.product:
+                item_data['name'] = item.product.name
+                item_data['image'] = item.product.image.url
+                item_data['business_name'] = item.product.business.business_name
+                item_data['base_price'] = item.product.hire_price if item.hire else item.product.price
+            elif item.service:
+                item_data['name'] = item.service.name
+                item_data['image'] = item.service.image.url
+                item_data['business_name'] = item.service.business.business_name
+                item_data['base_price'] = item.service.hire_price
+            
+            for variation in item.variations.all():
+                if variation.product_variation:
+                    item_data['variations'].append({
+                        'name': variation.product_variation.variation.name,
+                        'value': variation.product_variation.value,
+                        'price': variation.product_variation.price or 0
+                    })
+                elif variation.service_variation:
+                    item_data['variations'].append({
+                        'name': variation.service_variation.variation.name,
+                        'value': variation.service_variation.value,
+                        'price': variation.service_variation.price or 0
+                    })
+            
+            cart_data.append(item_data)
+            total_price += item_data['total_price']
 
         context = {
-            'cart_items': cart_items,
+            'cart_items': cart_data,
             'cart_total': total_price
         }
         return render(request, 'event/cart.html', context)
 
+    @method_decorator(login_required)
     def post(self, request):
         if 'product_id' in request.POST:
             return self.add_product_to_cart(request)
@@ -1246,11 +1286,12 @@ class CartView(LoginRequiredMixin, View):
             messages.error(request, "Invalid request.")
             return self.handle_response(request, False, "Invalid request")
 
+    
     def add_product_to_cart(self, request):
         product_id = request.POST.get('product_id')
         quantity = int(request.POST.get('quantity', 1))
-        color = request.POST.get('color')
-        size = request.POST.get('size')
+        selected_variations = request.POST.getlist('variations')
+        hire = request.POST.get('hire') == 'true'
 
         if not product_id:
             messages.error(request, "No product selected.")
@@ -1258,55 +1299,49 @@ class CartView(LoginRequiredMixin, View):
 
         product = get_object_or_404(Product, id=product_id)
 
-        selected_variations = []
-        if color:
-            selected_variations.append(color)
-        if size:
-            selected_variations.append(size)
+        # Filter out empty strings from selected variations
+        selected_variations = [var for var in selected_variations if var]
 
         variation_categories = product.variations.count()
 
         if product.has_variations and len(selected_variations) != variation_categories:
             messages.error(request, f"Please select all {variation_categories} variations.")
-            return self.handle_response(request, False, f"Please select all {variation_categories} variations")
+            return redirect('product_detail', business_slug=product.business.business_slug, product_slug=product.product_slug)
 
         variation_key = "-".join(sorted(selected_variations))
 
-        # Calculate the price based on variations
-        price = product.price
-        if selected_variations:
-            for variation_id in selected_variations:
-                variation = get_object_or_404(ProductVariation, id=variation_id)
-                if variation.price:
-                    price = variation.price
-                    break
+        base_price = product.hire_price if hire and product.for_hire else product.price
+        price = base_price
+        for variation_id in selected_variations:
+            variation = get_object_or_404(ProductVariation, id=variation_id)
+            if variation.price:
+                price += variation.price
 
         cart_item, created = Cart.objects.get_or_create(
             user=request.user,
             product=product,
             variation_key=variation_key,
-            defaults={'quantity': quantity, 'price': price}
+            defaults={'quantity': quantity, 'price': price, 'hire': hire}
         )
 
         if not created:
             cart_item.quantity += quantity
-            cart_item.price = price  # Update price even if the item already exists
+            cart_item.price = price
+            cart_item.hire = hire
             cart_item.save()
 
-        if color:
-            color_variation = get_object_or_404(ProductVariation, id=color)
-            CartItemVariation.objects.get_or_create(cart=cart_item, product_variation=color_variation)
-        if size:
-            size_variation = get_object_or_404(ProductVariation, id=size)
-            CartItemVariation.objects.get_or_create(cart=cart_item, product_variation=size_variation)
+        CartItemVariation.objects.filter(cart=cart_item).delete()
+        for variation_id in selected_variations:
+            product_variation = get_object_or_404(ProductVariation, id=variation_id)
+            CartItemVariation.objects.create(cart=cart_item, product_variation=product_variation)
 
         messages.success(request, f"{product.name} has been added to your cart.")
         return self.handle_response(request, True, f"{product.name} has been added to your cart.")
 
     def add_service_to_cart(self, request):
         service_id = request.POST.get('service_id')
-        price = float(request.POST.get('price', 0))
-        quantity = int(request.POST.get('quantity', 1))
+        duration = int(request.POST.get('duration', 1))
+        selected_options = request.POST.getlist('options')
 
         if not service_id:
             messages.error(request, "No service selected.")
@@ -1314,16 +1349,42 @@ class CartView(LoginRequiredMixin, View):
 
         service = get_object_or_404(Service, id=service_id)
 
+        # Filter out empty strings from selected options
+        selected_options = [opt for opt in selected_options if opt]
+
+        variation_categories = service.variations.count()
+
+        if service.has_variations and len(selected_options) != variation_categories:
+            messages.error(request, f"Please select all {variation_categories} variations.")
+            return redirect('service_detail', business_slug=service.business.business_slug, service_slug=service.service_slug)
+
+        price = service.hire_price
+        variation_key = []
+
+        for option_id in selected_options:
+            option = get_object_or_404(ServiceVariationOption, id=option_id)
+            if option.price:
+                price += option.price
+            variation_key.append(str(option_id))
+
+        variation_key = "-".join(sorted(variation_key))
+
         cart_item, created = Cart.objects.get_or_create(
             user=request.user,
             service=service,
-            defaults={'quantity': quantity, 'price': price}
+            variation_key=variation_key,
+            defaults={'quantity': duration, 'price': price}
         )
 
         if not created:
-            cart_item.quantity += quantity
-            cart_item.price = price  # Update price even if the item already exists
+            cart_item.quantity += duration
+            cart_item.price = price
             cart_item.save()
+
+        CartItemVariation.objects.filter(cart=cart_item).delete()
+        for option_id in selected_options:
+            service_option = get_object_or_404(ServiceVariationOption, id=option_id)
+            CartItemVariation.objects.create(cart=cart_item, service_variation=service_option)
 
         messages.success(request, f"{service.name} has been added to your cart.")
         return self.handle_response(request, True, f"{service.name} has been added to your cart.")
@@ -1333,37 +1394,6 @@ class CartView(LoginRequiredMixin, View):
             return JsonResponse({'success': success, 'message': message})
         else:
             return redirect(request.META.get('HTTP_REFERER', reverse('home')))
-
-    def get_cart_data(self, request):
-        cart_items = Cart.objects.filter(user=request.user)
-        cart_data = []
-        for item in cart_items:
-            if item.product:
-                item_variations = [v.product_variation.value for v in item.variations.all()]
-                cart_data.append({
-                    'id': item.id,
-                    'product': {
-                        'id': item.product.id,
-                        'name': item.product.name,
-                        'price': float(item.product.price),
-                        'image': str(item.product.image.url) if item.product.image else None,
-                    },
-                    'variations': item_variations,
-                    'quantity': item.quantity,
-                })
-            else:  # It's a service
-                cart_data.append({
-                    'id': item.id,
-                    'service': {
-                        'id': item.service.id,
-                        'name': item.service.name,
-                        'price': float(item.price),
-                        'image': str(item.service.image.url) if item.service.image else None,
-                    },
-                    'quantity': item.quantity,
-                })
-        total_price = sum(item.price * item.quantity for item in cart_items)
-        return JsonResponse({'items': cart_data, 'subtotal': total_price})
 
     def update_quantity(self, request):
         try:
@@ -1386,49 +1416,46 @@ class CartView(LoginRequiredMixin, View):
 
         cart_item.save()
 
-        cart_items = Cart.objects.filter(user=request.user).prefetch_related('variations__product_variation')
+        cart_items = Cart.objects.filter(user=request.user).prefetch_related('variations__product_variation', 'variations__service_variation')
         cart_data = []
         total_price = 0
 
         for item in cart_items:
+            item.calculate_total_price()
+            item_data = {
+                'id': item.id,
+                'price': item.price,
+                'quantity': item.quantity,
+                'total_price': item.price * item.quantity,
+                'variations': [],
+            }
+
             if item.product:
-                item_price = item.product.price
-                for variation in item.variations.all():
-                    if variation.product_variation.price:
-                        item_price = variation.product_variation.price
-                item_total = item_price * item.quantity
-                total_price += item_total
+                item_data['name'] = item.product.name
+                item_data['image'] = item.product.image.url
+            elif item.service:
+                item_data['name'] = item.service.name
+                item_data['image'] = item.service.image.url
 
-                cart_data.append({
-                    'id': item.id,
-                    'product': {
-                        'id': item.product.id,
-                        'name': item.product.name,
-                        'price': float(item_price),
-                        'image': item.product.image.url if item.product.image else None,
-                    },
-                    'variations': [{'category': v.product_variation.variation.get_name_display(), 'value': v.product_variation.value} for v in item.variations.all()],
-                    'quantity': item.quantity,
-                    'total': float(item_total),
-                })
-            else:  # It's a service
-                item_total = item.price * item.quantity
-                total_price += item_total
+            for variation in item.variations.all():
+                if variation.product_variation:
+                    item_data['variations'].append({
+                        'name': variation.product_variation.variation.name,
+                        'value': variation.product_variation.value,
+                        'price': variation.product_variation.price or 0
+                    })
+                elif variation.service_variation:
+                    item_data['variations'].append({
+                        'name': variation.service_variation.variation.name,
+                        'value': variation.service_variation.value,
+                        'price': variation.service_variation.price or 0
+                    })
 
-                cart_data.append({
-                    'id': item.id,
-                    'service': {
-                        'id': item.service.id,
-                        'name': item.service.name,
-                        'price': float(item.price),
-                        'image': item.service.image.url if item.service.image else None,
-                    },
-                    'quantity': item.quantity,
-                    'total': float(item_total),
-                })
+            cart_data.append(item_data)
+            total_price += item_data['total_price']
 
         return JsonResponse({'success': True, 'items': cart_data, 'subtotal': float(total_price)})
-    
+
     def delete_cart_item(self, request, cart_item_id):
         cart_item = get_object_or_404(Cart, id=cart_item_id, user=request.user)
         cart_item.delete()
@@ -1452,10 +1479,7 @@ class CartView(LoginRequiredMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
 
-
-
 from collections import defaultdict
-
 
 class CreateCheckoutSessionView(LoginRequiredMixin, View):
     def get(self, request):
@@ -2252,7 +2276,7 @@ class VenueVendorRegistrationView(View):
 
     def post(self, request):
         try:
-            username = request.POST.get('username')
+            username = request.POST.get('venue_email')
             password1 = request.POST.get('password1')
             password2 = request.POST.get('password2')
             first_name = request.POST.get('first_name')

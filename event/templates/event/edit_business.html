@@ -43,12 +43,26 @@
                                 <h3>Terms and Conditions</h3>
                                 <textarea name="terms_and_conditions" class="comm-field" placeholder="Enter your business terms and conditions">{{ business.terms_and_conditions }}</textarea>
                                 <div style="text-align: center; margin: 10px 0;">OR</div>
-                                <input type="file" name="terms_and_conditions_pdf" class="comm-field" accept="application/pdf">
+                                <div class="custom-file">
+                                    <input type="file" name="terms_and_conditions_pdf" class="custom-file-input" id="terms_and_conditions_pdf" accept="application/pdf">
+                                    <label class="custom-file-label" for="terms_and_conditions_pdf">
+                                        {% if business.terms_and_conditions_pdf %}
+                                            {{ business.terms_and_conditions_pdf.name }}
+                                        {% else %}
+                                            Choose file
+                                        {% endif %}
+                                    </label>
+                                </div>
                             </div>
 
-                            <div class="col-md-12 margin-bm24 mt-3">
+                            <div class="col-md-6 margin-bm24 mt-3">
                                 <h3>Delivery Radius (in km)</h3>
                                 <input type="number" name="delivery_radius" class="comm-field" min="1" max="100" placeholder="Enter delivery radius in kilometers" value="{{ business.delivery_radius }}">
+                            </div>
+
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <h3>Price Per Way</h3>
+                                <input type="number" name="price_per_way" class="comm-field" min="0" placeholder="Enter price per way" value="{{ business.price_per_way }}">
                             </div>
 
                             <div class="col-md-12 margin-bm24 mt-3">
@@ -60,7 +74,10 @@
                                             <button type="button" onclick="removeAward({{ award.id }})" class="btn btn-danger btn-sm">Remove</button>
                                         </div>
                                     {% endfor %}
-                                    <input type="file" name="awards" class="comm-field">
+                                    <div class="custom-file">
+                                        <input type="file" name="awards" class="custom-file-input" id="awards-input">
+                                        <label class="custom-file-label" for="awards-input">Choose file</label>
+                                    </div>
                                 </div>
                                 <button type="button" onclick="addAwardField()" class="btn btn-secondary mt-3">Add Another Award</button>                                
                             </div>
@@ -70,8 +87,8 @@
                             </div>
                             <div class="col-md-12 margin-bm24 mt-3">
                                 <input type="text" id="address-input" name="address" class="comm-field" placeholder="Start typing your address" required value="{{ business.address }}"/>
-                                <input type="hidden" id="latitude" name="latitude">
-                                <input type="hidden" id="longitude" name="longitude">
+                                <input type="hidden" id="latitude" name="latitude" value="{{ business.latitude }}">
+                                <input type="hidden" id="longitude" name="longitude" value="{{ business.longitude }}">
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <input type="tel" name="phone" class="comm-field" placeholder="Phone" value="{{ business.phone }}" required/>
@@ -81,11 +98,29 @@
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="profile_picture">Profile Picture:</label>
-                                <input type="file" name="profile_picture" id="profile_picture" class="comm-field"/>
+                                <div class="custom-file">
+                                    <input type="file" name="profile_picture" id="profile_picture" class="custom-file-input"/>
+                                    <label class="custom-file-label" for="profile_picture">
+                                        {% if business.profile_picture %}
+                                            {{ business.profile_picture.name }}
+                                        {% else %}
+                                            Choose file
+                                        {% endif %}
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="banner_image">Banner Image:</label>
-                                <input type="file" name="banner_image" id="banner_image" class="comm-field"/>
+                                <div class="custom-file">
+                                    <input type="file" name="banner_image" id="banner_image" class="custom-file-input"/>
+                                    <label class="custom-file-label" for="banner_image">
+                                        {% if business.banner_image %}
+                                            {{ business.banner_image.name }}
+                                        {% else %}
+                                            Choose file
+                                        {% endif %}
+                                    </label>
+                                </div>
                             </div>
                             
                             <!-- Opening Hours -->
@@ -100,14 +135,12 @@
                                         <div class="col-md-3">
                                             <input type="time" name="opening_hours-{{ day }}-opening_time" id="opening_hours-{{ day }}-opening_time" class="comm-field" 
                                                 value="{% for hour in day_hours %}{% if hour.day == day %}{{ hour.opening_time|time:'H:i' }}{% endif %}{% endfor %}"
-                                                {% for hour in day_hours %}{% if hour.day == day and not hour.is_closed %}required{% endif %}{% endfor %}
                                                 {% for hour in day_hours %}{% if hour.day == day and hour.is_closed %}disabled{% endif %}{% endfor %}>
                                             <label for="opening_hours-{{ day }}-opening_time">Opening Time</label>
                                         </div>
                                         <div class="col-md-3">
                                             <input type="time" name="opening_hours-{{ day }}-closing_time" id="opening_hours-{{ day }}-closing_time" class="comm-field"
                                                 value="{% for hour in day_hours %}{% if hour.day == day %}{{ hour.closing_time|time:'H:i' }}{% endif %}{% endfor %}"
-                                                {% for hour in day_hours %}{% if hour.day == day and not hour.is_closed %}required{% endif %}{% endfor %}
                                                 {% for hour in day_hours %}{% if hour.day == day and hour.is_closed %}disabled{% endif %}{% endfor %}>
                                             <label for="opening_hours-{{ day }}-closing_time">Closing Time</label>
                                         </div>
@@ -138,20 +171,17 @@
 
 <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
 <script>
-    
     function toggleOpeningClosingFields(day) {
         const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
         const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
         const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
     
         if (isClosedCheckbox.checked) {
-            openingTimeField.required = false;
-            closingTimeField.required = false;
             openingTimeField.disabled = true;
             closingTimeField.disabled = true;
+            openingTimeField.value = '';
+            closingTimeField.value = '';
         } else {
-            openingTimeField.required = true;
-            closingTimeField.required = true;
             openingTimeField.disabled = false;
             closingTimeField.disabled = false;
         }
@@ -187,11 +217,13 @@
 
     function addAwardField() {
         const container = document.getElementById('awards-container');
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.name = 'awards';
-        input.className = 'comm-field';
-        container.appendChild(input);
+        const div = document.createElement('div');
+        div.className = 'custom-file mt-2';
+        div.innerHTML = `
+            <input type="file" name="awards" class="custom-file-input">
+            <label class="custom-file-label">Choose file</label>
+        `;
+        container.appendChild(div);
     }
 
     function removeAward(awardId) {
@@ -211,6 +243,36 @@
         }).catch(error => {
             console.error('Error:', error);
         });
-    }    
+    }
+
+    // Update file input labels
+    document.querySelectorAll('.custom-file-input').forEach(fileInput => {
+        fileInput.addEventListener('change', function (e) {
+            var fileName = e.target.files[0].name;
+            var nextSibling = e.target.nextElementSibling;
+            nextSibling.innerText = fileName;
+        });
+    });
+
+    // Form validation
+    document.getElementById('contact-form').addEventListener('submit', function(event) {
+        const days = {{ day_choices|safe }};
+        let isValid = true;
+
+        days.forEach(day => {
+            const openingTime = document.getElementById(`opening_hours-${day[0]}-opening_time`);
+            const closingTime = document.getElementById(`opening_hours-${day[0]}-closing_time`);
+            const isClosed = document.getElementById(`opening_hours-${day[0]}-is_closed`);
+
+            if (!isClosed.checked && (!openingTime.value || !closingTime.value)) {
+                isValid = false;
+                alert(`Please fill both opening and closing time for ${day[1]} or mark it as closed.`);
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
 </script>
 {% endblock content %}

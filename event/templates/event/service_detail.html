@@ -52,36 +52,36 @@
             </div>
             
             {% if not service.available_by_quotation_only %}
-                <form class="variations_form cart" method="post" action="{% url 'add_to_cart' %}" id="add-to-cart-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="service_id" value="{{ service.id }}">
-                    <div class="variation-section" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                        <div class="hire-duration-selection" id="duration-container" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
-                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 0;">
-                                {{ service.hire_duration|capfirst }}
-                            </h3>
-                            <div style="display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 999px; overflow: hidden;">
-                                <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="decrease-duration">-</button>
-                                <input type="number" name="duration" value="1" min="1" style="width: 40px; text-align: center; border: none; -moz-appearance: textfield;" id="duration-input">
-                                <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="increase-duration">+</button>
-                            </div>
+            <form class="variations_form cart" method="post" action="{% url 'add_to_cart' %}" id="add-to-cart-form">
+                {% csrf_token %}
+                <input type="hidden" name="service_id" value="{{ service.id }}">
+                <div class="variation-section" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <div class="hire-duration-selection" id="duration-container" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 0;">
+                            {{ service.hire_duration|capfirst }}
+                        </h3>
+                        <div style="display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 999px; overflow: hidden;">
+                            <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="decrease-duration">-</button>
+                            <input type="number" name="duration" value="1" min="1" style="width: 40px; text-align: center; border: none; -moz-appearance: textfield;" id="duration-input">
+                            <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="increase-duration">+</button>
                         </div>
-
-                        {% for variation in service.variations.all %}
-                        <div class="variation" style="margin-bottom: 15px;">
-                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">{{ variation.name|capfirst }}</h3>
-                            <p style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Select up to 1 from {{ variation.name|capfirst }}</p>
-                            <select name="{{ variation.name }}" id="selected-{{ variation.name }}" class="form-select variation-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;" data-base-price="{{ service.hire_price }}">
-                                <option value="" data-price="0">Select an Option</option>
-                                {% for option in variation.options.all %}
-                                <option value="{{ option.id }}" data-price="{{ option.price|default:0 }}">{{ option.value }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        {% endfor %}
                     </div>
-                    <button type="submit" id="add_to_cart_btn" class="btn-theme btn-black w-100" style="background-color: #000; color: #fff; border: none; padding: 15px 20px; border-radius: 4px; cursor: pointer; font-size: 18px;">Add to Cart</button>
-                </form>
+            
+                    {% for variation in service.variations.all %}
+                    <div class="variation" style="margin-bottom: 15px;">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">{{ variation.name|capfirst }}</h3>
+                        <p style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Select up to 1 from {{ variation.name|capfirst }}</p>
+                        <select name="options" id="selected-{{ variation.name }}" class="form-select variation-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;" data-base-price="{{ service.hire_price }}">
+                            <option value="" data-price="0">Select an Option</option>
+                            {% for option in variation.options.all %}
+                            <option value="{{ option.id }}" data-price="{{ option.price|default:0 }}">{{ option.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" id="add_to_cart_btn" class="btn-theme btn-black w-100" style="background-color: #000; color: #fff; border: none; padding: 15px 20px; border-radius: 4px; cursor: pointer; font-size: 18px;">Add to Cart</button>
+            </form>
             {% endif %}
             
             <p class="setup-info" style="text-align: center; font-weight: bold; margin-bottom: 20px;"><small>*Some services may involve setup/packdown times and charges</small></p>
@@ -214,7 +214,11 @@
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImage');
         const closeBtn = document.getElementsByClassName('close')[0];
-
+        const durationInput = document.getElementById('duration-input');
+        const priceDisplay = document.getElementById('service-hire-price');
+        const basePrice = parseFloat(priceDisplay.textContent);
+        let currentPrice = basePrice;
+    
         thumbnails.forEach(thumb => {
             thumb.addEventListener('click', function() {
                 thumbnails.forEach(t => t.classList.remove('active'));
@@ -222,37 +226,37 @@
                 mainImage.src = this.dataset.imageUrl;
             });
         });
-
+    
         mainImage.addEventListener('click', function() {
             modal.style.display = 'block';
             modalImg.src = this.src;
             document.body.style.overflow = 'hidden';
         });
-
+    
         closeBtn.onclick = function() {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
-
+    
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         }
-
+    
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && modal.style.display === 'block') {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         });
-
+    
         const starContainer = document.querySelector('.star-rating');
         if (starContainer) {
             const starInputs = starContainer.querySelectorAll('input[type="radio"]');
             const starLabels = starContainer.querySelectorAll('label');
-
+    
             function updateStars(rating) {
                 starLabels.forEach((label, index) => {
                     if (index < rating) {
@@ -262,19 +266,19 @@
                     }
                 });
             }
-
+    
             starInputs.forEach((input, index) => {
                 input.addEventListener('change', () => {
                     updateStars(index + 1);
                 });
             });
-
+    
             starLabels.forEach((label, index) => {
                 label.addEventListener('mouseenter', () => {
                     updateStars(index + 1);
                 });
             });
-
+    
             starContainer.addEventListener('mouseleave', () => {
                 const checkedInput = starContainer.querySelector('input:checked');
                 if (checkedInput) {
@@ -284,83 +288,72 @@
                 }
             });
         }
-
+    
+        function updatePrice() {
+            let additionalPrice = 0;
+    
+            document.querySelectorAll('.variation-select').forEach(select => {
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption) {
+                    additionalPrice += parseFloat(selectedOption.dataset.price || 0);
+                }
+            });
+    
+            const duration = parseInt(durationInput.value) || 1;
+            currentPrice = (basePrice + additionalPrice) * duration;
+            priceDisplay.textContent = currentPrice.toFixed(2);
+        }
+    
         const decreaseBtn = document.getElementById('decrease-duration');
         const increaseBtn = document.getElementById('increase-duration');
-        const durationInput = document.getElementById('duration-input');
-        const priceDisplay = document.getElementById('service-hire-price');
-        const basePrice = parseFloat(priceDisplay.textContent);
-        let currentPrice = basePrice;
-
-        function updatePrice() {
-            const duration = parseInt(durationInput.value);
-            const totalPrice = (currentPrice * duration).toFixed(2);
-            priceDisplay.textContent = totalPrice;
-        }
-
+    
         decreaseBtn.addEventListener('click', () => {
             if (durationInput.value > 1) {
                 durationInput.value--;
                 updatePrice();
             }
         });
-
+    
         increaseBtn.addEventListener('click', () => {
             durationInput.value++;
             updatePrice();
         });
-
+    
         durationInput.addEventListener('change', () => {
             if (durationInput.value < 1) {
                 durationInput.value = 1;
             }
             updatePrice();
         });
-
-        const variationSelects = document.querySelectorAll('.variation-select');
-        variationSelects.forEach(select => {
+    
+        document.querySelectorAll('.variation-select').forEach(select => {
             select.addEventListener('change', () => {
-                const selectedOption = select.options[select.selectedIndex];
-                const additionalPrice = parseFloat(selectedOption.dataset.price);
-                const basePrice = parseFloat(select.dataset.basePrice);
-                const newPrice = basePrice + additionalPrice;
-                currentPrice = newPrice;
                 updatePrice();
             });
         });
-
-        updatePrice();
-
-        // Adjust layout
+    
+        updatePrice(); // Initial call to set the price based on the default selections
+    
         function adjustLayout() {
-            console.log("Adjusting layout...");  // Debug log to ensure function is called
             const imagesWrapper = document.querySelector('.service-images-wrapper');
             const detailsWrapper = document.querySelector('.service-details-wrapper');
             
             if (window.innerWidth >= 768) {
-                console.log("Setting width to 50%");  // Debug log
                 imagesWrapper.style.setProperty('width', '50%', 'important');
                 detailsWrapper.style.setProperty('width', '50%', 'important');
             } else {
-                console.log("Setting width to 100%");  // Debug log
                 imagesWrapper.style.setProperty('width', '100%', 'important');
                 detailsWrapper.style.setProperty('width', '100%', 'important');
             }
         }
-
-        window.addEventListener('load', () => {
-            console.log("Window loaded");  // Debug log
-            adjustLayout();
-        });
-        window.addEventListener('resize', () => {
-            console.log("Window resized");  // Debug log
-            adjustLayout();
-        });
+    
+        window.addEventListener('load', adjustLayout);
+        window.addEventListener('resize', adjustLayout);
         
-        // Call it once to set initial layout
         adjustLayout();
     });
 </script>
+
 
 
 {% endblock content %}
