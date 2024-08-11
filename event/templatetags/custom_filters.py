@@ -24,3 +24,7 @@ def get_is_closed(opening_hours, day):
 @register.filter(name='endswith')
 def endswith(value, suffix):
     return str(value).lower().endswith(suffix.lower())
+
+@register.filter
+def subtract(value, arg):
+    return value - arg

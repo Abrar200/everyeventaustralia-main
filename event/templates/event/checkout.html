@@ -1,8 +1,8 @@
 {% extends "event/base.html" %}
+{% load custom_filters %}
 {% load static %}
 
 {% block slider %}
-
 {% endblock slider %}
 
 {% block content %}
@@ -12,8 +12,16 @@
             <div style="width: 48%;">
                 <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Billing Details</h3>
                 <div style="margin-bottom: 15px;">
-                    <label for="address" style="display: block; margin-bottom: 5px;">Address</label>
+                    <label for="address" style="display: block; margin-bottom: 5px;">Delivery/Event Address</label>
                     <input type="text" id="address" name="address" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="event_date" style="display: block; margin-bottom: 5px;">Event Date</label>
+                    <input type="date" id="event_date" name="event_date" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="event_time" style="display: block; margin-bottom: 5px;">Event Time</label>
+                    <input type="time" id="event_time" name="event_time" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label for="city" style="display: block; margin-bottom: 5px;">City</label>
@@ -32,43 +40,63 @@
                     <textarea id="note" name="note" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"></textarea>
                 </div>
             </div>
+            
             <div style="width: 48%;">
                 <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Your Order</h3>
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                     <thead>
                         <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-                            <th style="padding: 15px; text-align: left;">Product</th>
+                            <th style="padding: 15px; text-align: left;">Item</th>
                             <th style="padding: 15px; text-align: right;">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in cart_items %}
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 15px;">
-                                {% if item.product %}
-                                    {{ item.product.name }}
-                                {% else %}
-                                    {{ item.service.name }}
-                                {% endif %}
-                                <br>
-                                <small style="color: #6b7280;">Quantity: {{ item.quantity }}</small>
-                                {% if item.variations.all %}
-                                    <br>
-                                    <small style="color: #6b7280;">
-                                        {% for variation in item.variations.all %}
-                                            {{ variation.product_variation.variation.get_name_display }}: {{ variation.product_variation.value }}{% if not forloop.last %}, {% endif %}
-                                        {% endfor %}
-                                    </small>
-                                {% endif %}
-                            </td>
-                            <td style="padding: 15px; text-align: right;">${{ item.total_price }}</td>
-                        </tr>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td style="padding: 15px;">
+                                    <div class="cart-item">
+                                        <h3 style="font-size: 18px; margin: 0;">
+                                            {{ item.name }}
+                                            {% if item.hire %} (Hire){% endif %}
+                                        </h3>
+                                        <p style="font-size: 14px; color: #6b7280; margin: 5px 0 0 0;">
+                                            {{ item.business_name }}
+                                        </p>
+                                        {% if item.hire %}
+                                            <p style="font-size: 14px; margin: 5px 0 0 0;">
+                                                {% if item.hire_duration == 'hour' %}Hours{% elif item.hire_duration == 'day' %}Days{% else %}Weeks{% endif %}: {{ item.quantity }}
+                                            </p>
+                                        {% else %}
+                                            <p style="font-size: 14px; margin: 5px 0 0 0;">Quantity: {{ item.quantity }}</p>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td style="padding: 15px; text-align: right;">${{ item.item_total_price }}</td>
+                            </tr>
                         {% endfor %}
+                        {% if delivery_fee > 0 %}
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 15px;">Delivery Fee</td>
+                            <td id="delivery-fee" style="padding: 15px; text-align: right;">${{ delivery_fee }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if setup_packdown_fee > 0 %}
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 15px;">Setup/Packdown Fee</td>
+                            <td style="padding: 15px; text-align: right;">${{ setup_packdown_fee }}</td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                     <tfoot>
                         <tr>
                             <th style="padding: 15px; text-align: left;">Total</th>
-                            <td style="padding: 15px; text-align: right;"><strong>${{ total_price }}</strong></td>
+                            <td id="total-price" 
+                                data-subtotal="{{ total_price|subtract:delivery_fee|subtract:setup_packdown_fee }}" 
+                                data-setup-packdown-fee="{{ setup_packdown_fee }}" 
+                                data-total="{{ total_price }}" 
+                                style="padding: 15px; text-align: right;">
+                                <strong>${{ total_price }}</strong>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -79,19 +107,97 @@
                         <option value="afterpay_clearpay" id="afterpay_option">Afterpay</option>
                     </select>
                 </div>
-                <button id="checkout-button" style="display: block; width: 100%; background-color: #2563eb; color: white; text-align: center; text-decoration: none; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Place Order</button>
+                <div style="margin-bottom: 15px;">
+                    <label for="delivery_method" style="display: block; margin-bottom: 5px;">Delivery/Pickup Method</label>
+                    {% for method in delivery_methods %}
+                        <div>
+                            <strong>{{ method.name }} ({{ method.business_name }})</strong>
+                            {% if method.method == 'both' %}
+                                <select name="delivery_method_{{ method.id }}" class="delivery-method" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" 
+                                    data-id="{{ method.id }}" 
+                                    data-business-id="{{ method.business_id }}" 
+                                    data-price-per-way="{{ method.price_per_way }}" 
+                                    data-item-type="{{ method.item_type }}"
+                                    data-item-name="{{ method.name }}"
+                                    data-business-name="{{ method.business_name }}"
+                                    required>
+                                    <option value="delivery">Delivery</option>
+                                    <option value="pickup">Pickup</option>
+                                </select>
+                                <p id="pickup-location-{{ method.id }}" style="display: none;">Pickup Location: {{ method.pickup_location }}</p>
+                            {% elif method.method == 'delivery' or method.item_type == 'service' %}
+                                <p>Delivery</p>
+                                <input type="hidden" name="delivery_method_{{ method.id }}" class="delivery-method" value="delivery" 
+                                    data-id="{{ method.id }}" 
+                                    data-business-id="{{ method.business_id }}" 
+                                    data-price-per-way="{{ method.price_per_way }}" 
+                                    data-item-type="{{ method.item_type }}"
+                                    data-item-name="{{ method.name }}"
+                                    data-business-name="{{ method.business_name }}">
+                            {% else %}
+                                <p>Pickup Location: {{ method.pickup_location }}</p>
+                                <input type="hidden" name="delivery_method_{{ method.id }}" class="delivery-method" value="pickup" 
+                                    data-id="{{ method.id }}" 
+                                    data-business-id="{{ method.business_id }}" 
+                                    data-price-per-way="{{ method.price_per_way }}" 
+                                    data-item-type="{{ method.item_type }}"
+                                    data-item-name="{{ method.name }}"
+                                    data-business-name="{{ method.business_name }}">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="width: 100%; margin-top: 20px;">
+                <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Terms and Conditions</h3>
+                {% for business_id, terms in businesses_terms.items %}
+                    <div class="business-terms" data-business-id="{{ business_id }}" style="margin-bottom: 30px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                        <h4 style="font-size: 20px; margin-bottom: 10px;">{{ terms.name }}</h4>
+                        {% if terms.terms_pdf %}
+                            <p>PDF URL: {{ terms.terms_pdf }}</p>
+                            <p>
+                                <a href="{{ terms.terms_pdf }}" download>Download Terms and Conditions PDF</a>
+                            </p>
+                            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                                Please download and review the Terms and Conditions PDF above.
+                            </div>
+                        {% else %}
+                            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                                {{ terms.terms|linebreaks }}
+                            </div>
+                        {% endif %}
+                        <div class="signature-pad" style="border: 1px solid #000; width: 300px; height: 150px; margin-bottom: 10px;">
+                            <canvas width="300" height="150"></canvas>
+                        </div>
+                        <button type="button" class="clear-signature" style="padding: 5px 10px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer;">Clear Signature</button>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="width: 100%; margin-top: 20px;">
+                <button id="checkout-button" style="display: block; width: 100%; background-color: #2563eb; color: white; text-align: center; text-decoration: none; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;" disabled>Place Order</button>
             </div>
         </form>
     </div>
 </div>
 
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
 <script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <script>
     var stripe = Stripe('{{ stripe_public_key }}');
     var checkoutButton = document.getElementById('checkout-button');
     var paymentMethodSelect = document.getElementById('payment_method');
     var afterpayOption = document.getElementById('afterpay_option');
     var totalAmount = {{ total_price }};
+    const addressInput = document.getElementById('address');
+
+    let autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'AU' }
+    });
 
     // Function to check Afterpay eligibility
     function checkAfterpayEligibility() {
@@ -107,6 +213,110 @@
     // Check eligibility on page load
     checkAfterpayEligibility();
 
+    document.querySelectorAll('.delivery-method').forEach(function(select) {
+        select.addEventListener('change', function() {
+            updateDeliveryFee();
+        });
+    });
+
+    function updateDeliveryFee() {
+        let deliveryFee = 0;
+        const deliveryMethods = document.querySelectorAll('.delivery-method');
+        const businessDeliveryFees = {};
+    
+        console.log("--- Updating Delivery Fee ---");
+    
+        deliveryMethods.forEach(function(select) {
+            const method = select.value;
+            const businessId = select.dataset.businessId;
+            const pricePerWay = parseFloat(select.dataset.pricePerWay);
+            const itemType = select.dataset.itemType;
+            const itemName = select.dataset.itemName;
+            const businessName = select.dataset.businessName;
+    
+            console.log(`Item: ${itemName}, Business: ${businessName}, Type: ${itemType}, Method: ${method}, Price per way: ${pricePerWay}`);
+    
+            if (itemType === 'service' || method === 'delivery') {
+                if (!businessDeliveryFees[businessId] || pricePerWay > businessDeliveryFees[businessId]) {
+                    businessDeliveryFees[businessId] = pricePerWay * 2;
+                }
+                console.log(`${itemType === 'service' ? 'Service' : 'Product'} '${itemName}' from ${businessName}: Delivery - $${businessDeliveryFees[businessId].toFixed(2)}`);
+            } else {
+                console.log(`Product '${itemName}' from ${businessName}: Pickup - No fee`);
+            }
+        });
+    
+        deliveryFee = Object.values(businessDeliveryFees).reduce((sum, fee) => sum + fee, 0);
+    
+        console.log(`Total Delivery Fee: $${deliveryFee.toFixed(2)}`);
+    
+        const deliveryFeeElement = document.getElementById('delivery-fee');
+        if (deliveryFeeElement) {
+            deliveryFeeElement.textContent = `$${deliveryFee.toFixed(2)}`;
+        } else {
+            console.error("Delivery fee element not found");
+        }
+        
+        // Update total price
+        const totalPriceElement = document.getElementById('total-price');
+        if (totalPriceElement) {
+            const subtotal = parseFloat(totalPriceElement.dataset.subtotal);
+            const setupPackdownFee = parseFloat(totalPriceElement.dataset.setupPackdownFee);
+            
+            console.log(`Subtotal: $${subtotal}`);
+            console.log(`Setup/Packdown Fee: $${setupPackdownFee}`);
+            
+            if (isNaN(subtotal)) {
+                console.error("Subtotal is NaN");
+            }
+            if (isNaN(setupPackdownFee)) {
+                console.error("Setup/Packdown Fee is NaN");
+            }
+            
+            const totalPrice = subtotal + deliveryFee + setupPackdownFee;
+            
+            console.log(`Calculated Total Price: $${totalPrice.toFixed(2)}`);
+            
+            totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
+            totalPriceElement.dataset.total = totalPrice.toFixed(2);
+        } else {
+            console.error("Total price element not found");
+        }
+    
+        console.log("--- End of Delivery Fee Update ---");
+    }
+    
+    // Initial call to set delivery fee on page load
+    updateDeliveryFee();
+
+    // Initialize signature pads
+    const signaturePads = {};
+    document.querySelectorAll('.signature-pad').forEach(container => {
+        const canvas = container.querySelector('canvas');
+        const businessId = container.closest('.business-terms').dataset.businessId;
+        signaturePads[businessId] = new SignaturePad(canvas);
+    });
+
+    // Clear signature buttons
+    document.querySelectorAll('.clear-signature').forEach(button => {
+        button.addEventListener('click', function() {
+            const businessId = this.closest('.business-terms').dataset.businessId;
+            signaturePads[businessId].clear();
+            checkAllSignatures();
+        });
+    });
+
+    // Function to check if all signatures are completed
+    function checkAllSignatures() {
+        const allSigned = Object.values(signaturePads).every(pad => !pad.isEmpty());
+        checkoutButton.disabled = !allSigned;
+    }
+
+    // Add event listeners to signature pads
+    Object.values(signaturePads).forEach(pad => {
+        pad.addEventListener('endStroke', checkAllSignatures);
+    });
+
     checkoutButton.addEventListener('click', function(e) {
         e.preventDefault();
 
@@ -118,10 +328,25 @@
             state: formData.get('state'),
             postal_code: formData.get('postal_code'),
             note: formData.get('note'),
-            payment_method: formData.get('payment_method')
+            event_date: formData.get('event_date'),
+            event_time: formData.get('event_time'),
+            payment_method: formData.get('payment_method'),
+            delivery_methods: {},
+            signatures: {}
         };
 
-        // Check if Afterpay is selected for orders over $2000
+        document.querySelectorAll('.delivery-method').forEach(function(select) {
+            data.delivery_methods[select.dataset.id] = select.value;
+        });
+
+        // Collect signatures
+        Object.entries(signaturePads).forEach(([businessId, pad]) => {
+            data.signatures[businessId] = pad.toDataURL();
+        });
+
+        // Debug statement to print selected delivery methods
+        console.log("Selected delivery methods:", data.delivery_methods);
+
         if (data.payment_method === 'afterpay_clearpay' && totalAmount > 2000) {
             alert('Afterpay is not available for orders over $2000. Please select a different payment method.');
             return;
@@ -136,22 +361,22 @@
             body: JSON.stringify(data)
         })
         .then(function(response) {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
             return response.json();
         })
         .then(function(session) {
-            if (session.error) {
-                alert(session.error);
-            } else {
-                return stripe.redirectToCheckout({ sessionId: session.id });
-            }
+            return stripe.redirectToCheckout({ sessionId: session.id });
         })
         .then(function(result) {
-            if (result && result.error) {
+            if (result.error) {
                 alert(result.error.message);
             }
         })
         .catch(function(error) {
             console.error('Error:', error);
+            alert(error.error || 'An error occurred. Please try again.');
         });
     });
 </script>

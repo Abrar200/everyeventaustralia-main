@@ -4,6 +4,16 @@ from django.db.models import Sum
 from django.contrib.messages import get_messages
 import logging
 from django.db.models import Q
+from django.contrib.sites.models import Site
+from django.conf import settings
+
+def static_urls(request):
+    current_site = Site.objects.get_current()
+    protocol = 'http'
+    domain = current_site.domain
+    return {
+        'STATIC_URL': f"{protocol}://{domain}{settings.STATIC_URL}",
+    }
 
 def cart_data(request):
     if request.user.is_authenticated:

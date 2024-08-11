@@ -1,0 +1,96 @@
+{% extends "event/base.html" %}
+
+{% block content %}
+<div class="container" style="margin-top: 120px; max-width: 800px; padding: 20px; background-color: #FFFFFF; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h1 style="font-size: 36px; color: #000000; margin-bottom: 20px;">Order #{{ order.ref_code }}</h1>
+    
+    <h2 style="font-size: 28px; color: #000000; margin-bottom: 20px;">Order Information</h2>
+    <ul style="list-style-type: none; padding: 0;">
+        {% for item in order.items.all %}
+            <li style="margin-bottom: 20px; padding: 15px; background-color: #f8f8f8; border-radius: 4px;">
+                <strong style="font-size: 20px; color: #000000;">
+                    {% if item.product %}
+                        {{ item.product.name }} 
+                        {% if item.hire %}(Hire) - {{ item.hire_duration|title }}: {{ item.quantity }}{% else %}- Quantity: {{ item.quantity }}{% endif %}
+                    {% elif item.service %}
+                        {{ item.service.name }} 
+                        (Hire) - {{ item.service.hire_duration|title }}s: {{ item.quantity }}{% else %}- Quantity: {{ item.quantity }}
+                    {% endif %}
+                </strong>
+                <p style="font-size: 16px; color: #000000; margin-top: 5px;">Price: ${{ item.price }}</p>
+                
+                {% if item.variations %}
+                    <p style="font-size: 16px; color: #000000; margin-top: 10px;">Variations:</p>
+                    <ul style="list-style-type: none; padding-left: 15px;">
+                        {% for variation in item.variations %}
+                            <li style="font-size: 16px; color: #000000;">{{ variation.variation_name }}: {{ variation.variation_value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2 style="font-size: 28px; color: #000000; margin-bottom: 20px;">Order Summary</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Subtotal: ${{ order.total_amount|floatformat:2 }}</p>
+    {% if order.delivery_fee %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Delivery: ${{ order.delivery_fee|floatformat:2 }}</p>
+    {% endif %}
+    {% if order.setup_packdown_fee %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Setup/Packdown Fee: ${{ order.setup_packdown_fee|floatformat:2 }}</p>
+    {% endif %}
+    
+    {% with total=order.total_amount %}
+        {% if order.delivery_fee %}
+            {% with total=total|add:order.delivery_fee %}
+                {% if order.setup_packdown_fee %}
+                    {% with total=total|add:order.setup_packdown_fee %}
+                        <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+                    {% endwith %}
+                {% else %}
+                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            {% if order.setup_packdown_fee %}
+                {% with total=total|add:order.setup_packdown_fee %}
+                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+                {% endwith %}
+            {% else %}
+                <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+            {% endif %}
+        {% endif %}
+    {% endwith %}
+
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Customer Information</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Email: {{ order.user.email }}</p>
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Event Details</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Date: {{ order.event_date }}</p>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Time: {{ order.event_time|time:"g:i A" }}</p>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}</p>
+    
+    {% if order.note %}
+        <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Order Notes</h2>
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">{{ order.note }}</p>
+    {% endif %}
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Delivery/Pickup Method</h2>
+    <ul style="list-style-type: none; padding-left: 0;">
+        {% for item in order.items.all %}
+            {% if item.product %}
+                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">{{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.product.name }}</li>
+            {% elif item.service %}
+                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">{{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.service.name }}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Payment Method</h2>
+    {% if order.payment_method == 'afterpay_clearpay' %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Afterpay</p>
+    {% else %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Card</p>
+    {% endif %}
+</div>
+{% endblock %}

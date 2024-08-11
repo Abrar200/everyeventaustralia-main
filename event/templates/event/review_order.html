@@ -1,0 +1,122 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="margin-top: 120px; max-width: 800px; padding: 20px; background-color: #FFFFFF; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    {% if order.status == 'pending' %}
+        <h1 style="font-size: 36px; color: #000000; margin-bottom: 20px;">Approve or Reject Order #{{ order.ref_code }}</h1>
+    {% else %}
+        <h1 style="font-size: 36px; color: #000000; margin-bottom: 20px;">View Order #{{ order.ref_code }}</h1>
+    {% endif %}
+    
+    <h2 style="font-size: 28px; color: #000000; margin-bottom: 20px;">Order Items for {{ business.business_name }}</h2>
+    
+    <ul style="list-style-type: none; padding: 0;">
+    {% for item in order.items.all %}
+        {% if item.product.business == business or item.service.business == business %}
+            <li style="margin-bottom: 20px; padding: 15px; background-color: #f8f8f8; border-radius: 4px;">
+                <strong style="font-size: 20px; color: #000000;">
+                    {% if item.product %}
+                        {{ item.product.name }}
+                        {% if item.hire %}
+                            (Hire) - {{ item.hire_duration|title }}s: {{ item.quantity }}
+                        {% else %}
+                            - Quantity: {{ item.quantity }}
+                        {% endif %}
+                    {% elif item.service %}
+                        {{ item.service.name }} - {{ item.service.hire_duration|title }}s: {{ item.quantity }}
+                    {% endif %}
+                </strong>
+                <p style="font-size: 16px; color: #000000; margin-top: 5px;">Price: ${{ item.price }}</p>
+                
+                {% if item.variations %}
+                    <p style="font-size: 16px; color: #000000; margin-top: 10px;">Variations:</p>
+                    <ul style="list-style-type: none; padding-left: 15px;">
+                        {% for variation in item.variations %}
+                            <li style="font-size: 16px; color: #000000;">{{ variation.variation_name }}: {{ variation.variation_value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Order Summary</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Subtotal: ${{ order.total_amount|floatformat:2 }}</p>
+    {% if order.delivery_fee %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Delivery Fee: ${{ order.delivery_fee }}</p>
+    {% endif %}
+    {% if order.setup_packdown_fee %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Setup/Packdown Fee: ${{ order.setup_packdown_fee }}</p>
+    {% endif %}
+    
+    {% with total=order.total_amount %}
+        {% if order.delivery_fee %}
+            {% with total=total|add:order.delivery_fee %}
+                {% if order.setup_packdown_fee %}
+                    {% with total=total|add:order.setup_packdown_fee %}
+                        <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+                    {% endwith %}
+                {% else %}
+                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            {% if order.setup_packdown_fee %}
+                {% with total=total|add:order.setup_packdown_fee %}
+                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+                {% endwith %}
+            {% else %}
+                <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+            {% endif %}
+        {% endif %}
+    {% endwith %}
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Customer Details</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Name: {{ order.user.get_full_name }}</p>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Email: {{ order.user.email }}</p>
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Event Details</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Date: {{ order.event_date }}</p>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Time: {{ order.event_time|time:"g:i A" }}</p>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}</p>
+    
+    {% if order.note %}
+        <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Order Notes</h2>
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">{{ order.note }}</p>
+    {% endif %}
+    
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Delivery/Pickup Method</h2>
+    <ul style="list-style-type: none; padding-left: 0;">
+        {% for item in order.items.all %}
+            {% if item.product and item.product.business == business or item.service and item.service.business == business %}
+                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">
+                    {% if item.product %}
+                        {{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.product.name }}
+                    {% else %}
+                        {{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.service.name }}
+                    {% endif %}
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Payment Method</h2>
+    {% if order.payment_method == 'afterpay_clearpay' %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Afterpay</p>
+    {% else %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Card</p>
+    {% endif %}
+    
+    {% if order.status == 'pending' %}
+        <form method="post" style="margin-top: 30px; text-align: center;">
+            {% csrf_token %}
+            <button type="submit" name="action" value="approve" style="background-color: #710919; color: #FFFFFF; padding: 10px 20px; border-radius: 4px; font-size: 16px; border: none; cursor: pointer; margin-right: 20px;">Approve</button>
+            <button type="submit" name="action" value="reject" style="background-color: #808080; color: #FFFFFF; padding: 10px 20px; border-radius: 4px; font-size: 16px; border: none; cursor: pointer;">Reject</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

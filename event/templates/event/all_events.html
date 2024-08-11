@@ -146,6 +146,8 @@
                         <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #710919;">
                             {% if item.hire_price %}
                                 ${{ item.hire_price }}/{{ item.get_hire_duration_display }}
+                            {% elif item.available_by_quotation_only %}
+                                Available By Quotation
                             {% else %}
                                 ${{ item.price }}
                             {% endif %}

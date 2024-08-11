@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Product, Business, OpeningHour, Cart, Message, State, Variation, ProductVariation, CartItemVariation, ProductReview, Order, OrderItem, Refund, Service, ProductCategory, ServiceCategory, ServiceImage, ServiceReview, Quote, EventCategory, Award, ServiceVariation, ServiceVariationOption, Venue, VenueImage, VenueOpeningHour, Amenity, VenueReview, VenueView, VenueInquiry
+from .models import Product, Business, OpeningHour, Cart, Message, State, Variation, ProductVariation, CartItemVariation, ProductReview, Order, OrderItem, Refund, Service, ProductCategory, ServiceCategory, ServiceImage, ServiceReview, Quote, EventCategory, Award, ServiceVariation, ServiceVariationOption, Venue, VenueImage, VenueOpeningHour, Amenity, VenueReview, VenueView, VenueInquiry, OrderApproval, OrderTermsSignature
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -41,6 +41,18 @@ from .forms import VenueVendorRegistrationForm, VenueVendorLoginForm
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.db.models import F
+from geopy.distance import geodesic
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.views.generic import ListView
+from django.utils import timezone
+from django.contrib.sites.models import Site
+from django.db import models
+from django.utils.dateparse import parse_time
+from django.utils.formats import time_format
+from datetime import datetime
+from django.core.files.storage import default_storage
+import base64
+from django.core.files.base import ContentFile
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -451,80 +463,6 @@ class BusinessDeleteView(View):
         return redirect('home')  # Redirect to the home page or any other page after deletion
 
 
-
-class BusinessOrdersView(LoginRequiredMixin, View):
-    def get(self, request, business_slug):
-        business = Business.objects.get(business_slug=business_slug)
-        if request.user != business.seller:
-            return JsonResponse({'error': 'Unauthorized access'}, status=403)
-
-        # Fetch orders related to this business
-        orders = Order.objects.filter(items__product__business=business).distinct().order_by('-created_at')
-        order_data = []
-        for order in orders:
-            items = order.items.filter(product__business=business)
-            order_data.append({
-                'order': order,
-                'items': items
-            })
-
-        return render(request, 'event/business_orders.html', {'business': business, 'orders': order_data})
-
-    def post(self, request, business_slug):
-        business = Business.objects.get(business_slug=business_slug)
-        if request.user != business.seller:
-            return JsonResponse({'error': 'Unauthorized access'}, status=403)
-
-        order_id = request.POST.get('order_id')
-        new_status = request.POST.get('status')
-        order = Order.objects.get(id=order_id)
-
-        # Update the order status
-        order.order_status = new_status
-        order.save()
-
-        # Send email to the user based on the new status
-        self.send_status_update_email(order, business, new_status)
-
-        # Add a success message
-        messages.success(request, f'Order status updated to {new_status} and email sent to the customer.')
-
-        return redirect('business_orders', business_slug=business_slug)
-
-    def send_status_update_email(self, order, business, status):
-        user = order.user
-        item_details = [
-            f"{item.quantity} x {item.product.name} ({', '.join([f'{k}: {v}' for k, v in item.variations.items()]) if item.variations else ''})"
-            for item in order.items.filter(product__business=business)
-        ]
-
-        if status == 'shipped':
-            email_subject = f"Your order {order.ref_code} has been shipped"
-            email_template = 'event/order_shipped_email.html'
-        elif status == 'delivered':
-            email_subject = f"Your order {order.ref_code} has been delivered"
-            email_template = 'event/order_delivered_email.html'
-        else:
-            return
-
-        email_body = render_to_string(email_template, {
-            'user': user,
-            'business': business,
-            'order': order,
-            'item_details': item_details
-        })
-
-        email = EmailMultiAlternatives(
-            subject=email_subject,
-            body=email_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email],
-        )
-        email.attach_alternative(email_body, "text/html")
-        email.send(fail_silently=False)
-
-
-
 class ProductDetailView(View):
     def get(self, request, business_slug=None, product_slug=None):
         business = get_object_or_404(Business, business_slug=business_slug)
@@ -912,6 +850,7 @@ def delete_variation(request, variation_id):
         return JsonResponse({'success': False, 'error': 'Variation not found'}, status=404)
 
 
+
 class ServiceCreateView(LoginRequiredMixin, View):
     def get(self, request, business_slug):
         business = get_object_or_404(Business, business_slug=business_slug, seller=request.user)
@@ -1217,6 +1156,7 @@ def delete_service_image(request, image_id):
         return JsonResponse({'success': True, 'image_url': image_url})
     else:
         return JsonResponse({'success': False})
+    
 
 
 class CartView(View):
@@ -1272,7 +1212,8 @@ class CartView(View):
 
         context = {
             'cart_items': cart_data,
-            'cart_total': total_price
+            'cart_total': total_price,
+            'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY,
         }
         return render(request, 'event/cart.html', context)
 
@@ -1338,16 +1279,31 @@ class CartView(View):
         messages.success(request, f"{product.name} has been added to your cart.")
         return self.handle_response(request, True, f"{product.name} has been added to your cart.")
 
+    
     def add_service_to_cart(self, request):
         service_id = request.POST.get('service_id')
         duration = int(request.POST.get('duration', 1))
         selected_options = request.POST.getlist('options')
+        price = request.POST.get('price')
 
         if not service_id:
             messages.error(request, "No service selected.")
             return self.handle_response(request, False, "No service selected")
 
         service = get_object_or_404(Service, id=service_id)
+
+        # If the service is available by quotation only, use the provided price
+        if service.available_by_quotation_only:
+            if not price:
+                messages.error(request, "Price is required for this service.")
+                return self.handle_response(request, False, "Price is required")
+            try:
+                price = Decimal(price)
+            except InvalidOperation:
+                messages.error(request, "Invalid price format.")
+                return self.handle_response(request, False, "Invalid price format")
+        else:
+            price = service.hire_price or Decimal('0')
 
         # Filter out empty strings from selected options
         selected_options = [opt for opt in selected_options if opt]
@@ -1356,18 +1312,14 @@ class CartView(View):
 
         if service.has_variations and len(selected_options) != variation_categories:
             messages.error(request, f"Please select all {variation_categories} variations.")
-            return redirect('service_detail', business_slug=service.business.business_slug, service_slug=service.service_slug)
+            return self.handle_response(request, False, f"Please select all {variation_categories} variations")
 
-        price = service.hire_price
-        variation_key = []
+        variation_key = "-".join(sorted(selected_options))
 
         for option_id in selected_options:
             option = get_object_or_404(ServiceVariationOption, id=option_id)
             if option.price:
                 price += option.price
-            variation_key.append(str(option_id))
-
-        variation_key = "-".join(sorted(variation_key))
 
         cart_item, created = Cart.objects.get_or_create(
             user=request.user,
@@ -1461,11 +1413,68 @@ class CartView(View):
         cart_item.delete()
         messages.success(request, "Item removed from cart.")
         return JsonResponse({'success': True})
+    
+    
+    @method_decorator(require_POST)
+    def validate_delivery(self, request):
+        data = json.loads(request.body)
+        customer_lat = data.get('lat')
+        customer_lng = data.get('lng')
+        
+        print(f"Validating delivery for coordinates: Lat {customer_lat}, Lng {customer_lng}")
+        
+        cart_items = Cart.objects.filter(user=request.user).select_related('product__business', 'service__business')
+        
+        print(f"Number of items in cart: {cart_items.count()}")
+        
+        invalid_items = []
+        
+        for item in cart_items:
+            if item.product:
+                business = item.product.business
+                item_name = item.product.name
+                can_deliver = item.product.can_deliver
+            else:  # It's a service
+                business = item.service.business
+                item_name = item.service.name
+                can_deliver = True  # Assuming all services can be delivered
+            
+            print(f"\nChecking item: {item_name}")
+            print(f"Business: {business.business_name}")
+            print(f"Can deliver: {can_deliver}")
+            print(f"Delivery radius: {business.delivery_radius} km")
+            print(f"Business coordinates: Lat {business.latitude}, Lng {business.longitude}")
+            
+            if can_deliver and business.delivery_radius:
+                business_coords = (business.latitude, business.longitude)
+                customer_coords = (customer_lat, customer_lng)
+                distance = geodesic(business_coords, customer_coords).km
+                
+                print(f"Distance to customer: {distance:.2f} km")
+                print(f"Within radius: {distance <= business.delivery_radius}")
+                
+                if distance > business.delivery_radius:
+                    invalid_items.append(f"{item_name} by {business.business_name}")
+            else:
+                print("Distance: N/A (delivery not available)")
+        
+        if invalid_items:
+            message = "The following items exceed the delivery radius limit: " + ", ".join(invalid_items)
+            print(f"\nValidation result: Invalid")
+            print(f"Message: {message}")
+            return JsonResponse({'valid': False, 'message': message})
+        else:
+            print(f"\nValidation result: Valid")
+            print("Message: All items are within delivery radius")
+            return JsonResponse({'valid': True})
+        
 
     def dispatch(self, request, *args, **kwargs):
         if request.method == 'POST':
             if request.path == '/cart/update_quantity/':
                 return self.update_quantity(request, *args, **kwargs)
+            elif request.path == '/cart/validate-delivery/':
+                return self.validate_delivery(request, *args, **kwargs)
             else:
                 return self.post(request, *args, **kwargs)
         elif request.method == 'DELETE':
@@ -1479,35 +1488,246 @@ class CartView(View):
         return super().dispatch(request, *args, **kwargs)
 
 
+
 from collections import defaultdict
+from django.db.models import Prefetch
+import traceback
+
+def calculate_delivery_fee(order_items):
+    businesses = {}
+    total_delivery_fee = Decimal('0.00')
+    
+    print("\n--- Calculating Delivery Fee ---")
+    
+    for item in order_items:
+        business = item.product.business if item.product else item.service.business
+        business_id = business.id
+        
+        if business_id not in businesses:
+            businesses[business_id] = {
+                'delivery_required': False,
+                'price_per_way': business.price_per_way,
+                'name': business.business_name
+            }
+        
+        if item.service:
+            businesses[business_id]['delivery_required'] = True
+            print(f"Service '{item.service.name}' from {business.business_name} requires delivery.")
+        elif item.product:
+            if item.delivery_method == 'delivery':
+                businesses[business_id]['delivery_required'] = True
+                print(f"Product '{item.product.name}' from {business.business_name} has delivery method: {item.delivery_method}")
+            else:
+                print(f"Product '{item.product.name}' from {business.business_name} has pickup method: {item.delivery_method}")
+
+    for business_id, business_data in businesses.items():
+        if business_data['delivery_required']:
+            business_fee = business_data['price_per_way'] * 2
+            total_delivery_fee += business_fee
+            print(f"Delivery fee for {business_data['name']}: ${business_fee}")
+        else:
+            print(f"No delivery fee for {business_data['name']}")
+
+    print(f"Total delivery fee: ${total_delivery_fee}")
+    print("--- End of Delivery Fee Calculation ---\n")
+    
+    return total_delivery_fee
+
+def calculate_setup_packdown_fee(cart_items):
+    businesses = {}
+    for item in cart_items:
+        if item.product:
+            business = item.product.business
+            if item.product.setup_packdown_fee:
+                if business.id not in businesses or item.product.setup_packdown_fee_amount > businesses[business.id]:
+                    businesses[business.id] = item.product.setup_packdown_fee_amount
+        elif item.service:
+            business = item.service.business
+            if item.service.setup_packdown_fee:
+                if business.id not in businesses or item.service.setup_packdown_fee_amount > businesses[business.id]:
+                    businesses[business.id] = item.service.setup_packdown_fee_amount
+
+    return sum(businesses.values())
 
 class CreateCheckoutSessionView(LoginRequiredMixin, View):
     def get(self, request):
-        cart_items = Cart.objects.filter(user=request.user).prefetch_related('variations__product_variation')
-        total_price = sum(item.price * item.quantity for item in cart_items)
+        print("CreateCheckoutSessionView GET: Entered get method")
+        cart_items = Cart.objects.filter(user=request.user).select_related(
+            'product', 'service', 'product__business', 'service__business'
+        ).prefetch_related(
+            'variations__product_variation__variation',
+            'variations__service_variation__variation'
+        )
+
+        total_price = Decimal('0.00')
+        domain = settings.SITE_URL  # Get the site URL
+
+        delivery_fee = calculate_delivery_fee(cart_items)
+        setup_packdown_fee = calculate_setup_packdown_fee(cart_items)
+
+        cart_items_data = []
+        delivery_methods = []
+
+        businesses_terms = {}
+
+        for item in cart_items:
+            item_total_price = item.price * item.quantity
+            total_price += item_total_price
+
+            if item.product:
+                product = item.product
+                business = product.business
+                if product.can_deliver and product.for_pickup:
+                    delivery_methods.append({
+                        'id': item.id,
+                        'name': product.name,
+                        'business_name': business.business_name,
+                        'method': 'both',
+                        'pickup_location': product.pickup_location,
+                        'delivery_radius': business.delivery_radius,
+                        'business_id': business.id,
+                        'price_per_way': business.price_per_way,
+                        'item_type': 'product',
+                    })
+                elif product.can_deliver:
+                    delivery_methods.append({
+                        'id': item.id,
+                        'name': product.name,
+                        'business_name': business.business_name,
+                        'method': 'delivery',
+                        'pickup_location': None,
+                        'delivery_radius': business.delivery_radius,
+                        'business_id': business.id,
+                        'price_per_way': business.price_per_way,
+                        'item_type': 'product',
+                    })
+                elif product.for_pickup:
+                    delivery_methods.append({
+                        'id': item.id,
+                        'name': product.name,
+                        'business_name': business.business_name,
+                        'method': 'pickup',
+                        'pickup_location': product.pickup_location,
+                        'delivery_radius': None,
+                        'business_id': business.id,
+                        'price_per_way': business.price_per_way,
+                        'item_type': 'product',
+                    })
+            elif item.service:
+                service = item.service
+                business = service.business
+                delivery_methods.append({
+                    'id': item.id,
+                    'name': service.name,
+                    'business_name': business.business_name,
+                    'method': 'delivery',
+                    'pickup_location': None,
+                    'delivery_radius': business.delivery_radius,
+                    'business_id': business.id,
+                    'price_per_way': business.price_per_way,
+                    'item_type': 'service',
+                })
+
+            if business.id not in businesses_terms:
+                businesses_terms[business.id] = {
+                    'name': business.business_name,
+                    'terms': business.terms_and_conditions,
+                    'terms_pdf': business.terms_and_conditions_pdf.url if business.terms_and_conditions_pdf else None
+                }
+
+            variations = []
+            for variation in item.variations.all():
+                if variation.product_variation:
+                    variations.append({
+                        'variation_name': variation.product_variation.variation.name,
+                        'variation_value': variation.product_variation.value
+                    })
+                elif variation.service_variation:
+                    variations.append({
+                        'variation_name': variation.service_variation.variation.name,
+                        'variation_value': variation.service_variation.value
+                    })
+
+            cart_items_data.append({
+                'id': item.id,
+                'name': item.product.name if item.product else item.service.name,
+                'business_name': item.product.business.business_name if item.product else item.service.business.business_name,
+                'quantity': item.quantity,
+                'price': float(item.price),
+                'item_total_price': float(item_total_price),
+                'variations': variations,
+                'hire': item.hire,
+                'hire_duration': item.product.hire_duration if item.product and item.hire else (item.service.hire_duration if item.service else None),
+                'image': f"{domain}{item.product.image.url}" if item.product and item.product.image else (f"{domain}{item.service.image.url}" if item.service and item.service.image else None),
+                'item_type': 'product' if item.product else 'service',
+                'delivery_method': item.delivery_method,
+            })
+
+            print(f"Cart item: {cart_items_data[-1]}")  # Debug: Cart item data
+
+        total_price += delivery_fee + setup_packdown_fee
+
         return render(request, 'event/checkout.html', {
-            'cart_items': cart_items,
-            'total_price': total_price,
-            'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+            'cart_items': cart_items_data,
+            'total_price': float(total_price),
+            'delivery_fee': float(delivery_fee),
+            'setup_packdown_fee': float(setup_packdown_fee),
+            'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+            'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY,
+            'delivery_methods': delivery_methods,
+            'businesses_terms': businesses_terms,
         })
 
     def post(self, request, *args, **kwargs):
+        print("CreateCheckoutSessionView POST: Entered post method")
         cart_items = Cart.objects.filter(user=request.user).prefetch_related('variations__product_variation')
         current_domain = request.get_host()
         protocol = 'https' if request.is_secure() else 'http'
         YOUR_DOMAIN = f"{protocol}://{current_domain}"
 
         line_items = []
-        total_amount = 0
+        total_amount = Decimal('0.00')
+        setup_packdown_fee = Decimal('0.00')
+
+        request_data = json.loads(request.body)
+        delivery_methods = request_data.get('delivery_methods', {})
+        payment_method = request_data.get('payment_method', 'card')
+        signatures = request_data.get('signatures', {})
+
+        print(f"Received delivery methods: {delivery_methods}")  # Debug: Delivery methods
+        print(f"Received signatures: {signatures}")  # Debug: Signatures
+
+        businesses = {}
+
+        if len(signatures) != len(set(item.product.business.id if item.product else item.service.business.id for item in cart_items)):
+            return JsonResponse({'error': 'Please sign all terms and conditions before proceeding.'}, status=400)
+
         for item in cart_items:
             if item.product:
+                business = item.product.business
                 name = item.product.name
                 image = item.product.image.url if item.product.image else None
                 price = item.price
+                if item.product.setup_packdown_fee:
+                    setup_packdown_fee += item.product.setup_packdown_fee_amount
             else:
+                business = item.service.business
                 name = item.service.name
                 image = item.service.image.url if item.service.image else None
                 price = item.price
+                if item.service.setup_packdown_fee:
+                    setup_packdown_fee += item.service.setup_packdown_fee_amount
+
+            delivery_method = delivery_methods.get(str(item.id))
+            if delivery_method == 'delivery' or item.service:
+                if business.id not in businesses:
+                    businesses[business.id] = {
+                        'business': business,
+                        'delivery_required': True,
+                        'price_per_way': business.price_per_way
+                    }
+                else:
+                    businesses[business.id]['delivery_required'] = True
 
             amount = int(float(price) * 100)
             total_amount += amount * item.quantity
@@ -1524,18 +1744,54 @@ class CreateCheckoutSessionView(LoginRequiredMixin, View):
                 'quantity': item.quantity,
             })
 
-        # Collect user address details from the request body
-        request_data = json.loads(request.body)
+            print(f"Line item added: {line_items[-1]}")  # Debug: Line item data
+
+        delivery_fee = sum(business['price_per_way'] * 2 for business in businesses.values() if business['delivery_required'])
+
+        if delivery_fee > 0:
+            line_items.append({
+                'price_data': {
+                    'currency': 'aud',
+                    'product_data': {
+                        'name': 'Delivery Fee',
+                    },
+                    'unit_amount': int(delivery_fee * 100),
+                },
+                'quantity': 1,
+            })
+            total_amount += int(delivery_fee * 100)
+
+            print(f"Delivery fee added: {delivery_fee}")  # Debug: Delivery fee
+
+        if setup_packdown_fee > 0:
+            line_items.append({
+                'price_data': {
+                    'currency': 'aud',
+                    'product_data': {
+                        'name': 'Setup/Packdown Fee',
+                    },
+                    'unit_amount': int(setup_packdown_fee * 100),
+                },
+                'quantity': 1,
+            })
+            total_amount += int(setup_packdown_fee * 100)
+
+            print(f"Setup/Packdown fee added: {setup_packdown_fee}")  # Debug: Setup/Packdown fee
+
         address = request_data.get('address', '')
         city = request_data.get('city', '')
         state = request_data.get('state', '')
         postal_code = request_data.get('postal_code', '')
         note = request_data.get('note', '')
+        event_date = request_data.get('event_date', '')
+        event_time = request_data.get('event_time', '')
+        formatted_event_time = datetime.strptime(event_time, '%H:%M').strftime('%I:%M %p') if event_time else ''
         name = request_data.get('name', 'Customer')
         payment_method = request_data.get('payment_method', 'card')
 
+        print(f"Final total amount: {total_amount}")  # Debug: Final total amount
+
         try:
-            # Create a Checkout Session
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=[payment_method],
                 line_items=line_items,
@@ -1550,74 +1806,110 @@ class CreateCheckoutSessionView(LoginRequiredMixin, View):
                             'city': city,
                             'state': state,
                             'postal_code': postal_code,
-                            'country': 'AU',  # assuming country as AU
+                            'country': 'AU',
                         },
                     },
                 },
             )
 
-            # Save the session ID and other relevant details
             request.session['checkout_session_id'] = checkout_session.id
-            request.session['business_items'] = self.get_business_items(cart_items)
-            request.session['address'] = address
-            request.session['city'] = city
-            request.session['state'] = state
-            request.session['postal_code'] = postal_code
-            request.session['note'] = note
-            request.session['cart_items'] = self.get_cart_items(cart_items)
+            request.session['business_items'] = self.get_business_items(cart_items, delivery_methods)
+            request.session['address'] = request_data.get('address')
+            request.session['city'] = request_data.get('city')
+            request.session['state'] = request_data.get('state')
+            request.session['postal_code'] = request_data.get('postal_code')
+            request.session['note'] = request_data.get('note')
+            request.session['event_date'] = request_data.get('event_date')
+            request.session['event_time'] = request_data.get('event_time')
+            request.session['cart_items'] = self.get_cart_items(cart_items, delivery_methods)
+            request.session['delivery_fee'] = float(delivery_fee)
+            request.session['setup_packdown_fee'] = float(setup_packdown_fee)
+            request.session['delivery_methods'] = delivery_methods
+            request.session['payment_method'] = payment_method
+            request.session['signatures'] = signatures
+            request.session['payment_intent_id'] = checkout_session.payment_intent
+
+            print(f"Checkout session created: {checkout_session.id}")  # Debug: Checkout session ID
 
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
-            return JsonResponse({'error': str(e)})
+            print(f"Error in creating checkout session: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
 
-    def get_business_items(self, cart_items):
+    def get_business_items(self, cart_items, delivery_methods):
+        print("CreateCheckoutSessionView: Entered get_business_items method")
         business_items = defaultdict(list)
+        domain = settings.SITE_URL  # Get the site URL
+
         for item in cart_items:
             business = item.product.business if item.product else item.service.business
+            total_price = float(item.price * item.quantity)
+            variations = [
+                {
+                    'variation_name': cv.product_variation.variation.name if cv.product_variation else cv.service_variation.variation.name,
+                    'variation_value': cv.product_variation.value if cv.product_variation else cv.service_variation.value
+                }
+                for cv in item.variations.all()
+            ]
             business_items[str(business.id)].append({
                 'amount': int(float(item.price) * 100 * item.quantity),
                 'business': business.stripe_account_id,
                 'item_id': item.product.id if item.product else item.service.id,
                 'item_type': 'product' if item.product else 'service',
                 'quantity': item.quantity,
-                'variations': [
-                    {
-                        'variation_name': cv.product_variation.variation.name,
-                        'variation_value': cv.product_variation.value
-                    }
-                    for cv in item.variations.all()
-                ] if item.product else []
+                'total_price': total_price,
+                'variations': variations,
+                'price': float(item.price),
+                'hire': item.hire,
+                'hire_duration': item.product.hire_duration if item.product and item.hire else (item.service.hire_duration if item.service else None),
+                'delivery_method': delivery_methods.get(str(item.id), 'delivery'),
+                'image': f"{domain}{item.product.image.url}" if item.product and item.product.image else (f"{domain}{item.service.image.url}" if item.service and item.service.image else None)
             })
+
+            print(f"Business item: {business_items[str(business.id)]}")  # Debug: Business item data
         return dict(business_items)
 
-    def get_cart_items(self, cart_items):
-        return [
-            {
-                'item_id': item.product.id if item.product else item.service.id,
-                'item_type': 'product' if item.product else 'service',
+    def get_cart_items(self, cart_items, delivery_methods):
+        print("CreateCheckoutSessionView: Entered get_cart_items method")
+        cart_items_data = []
+        domain = settings.SITE_URL  # Get the site URL
+
+        for item in cart_items:
+            is_product = bool(item.product)
+            is_service = bool(item.service)
+
+            item_data = {
+                'id': item.id,
+                'item_id': item.product.id if is_product else item.service.id,
+                'item_type': 'product' if is_product else 'service',
+                'hire': item.hire if is_product else True,
+                'hire_duration': item.product.hire_duration if is_product and item.hire else (item.service.hire_duration if is_service else None),
+                'name': item.product.name if is_product else item.service.name,
+                'business_name': item.product.business.business_name if is_product else item.service.business.business_name,
                 'quantity': item.quantity,
                 'price': float(item.price),
+                'item_total_price': float(item.price * item.quantity),
                 'variations': [
                     {
-                        'variation_name': cv.product_variation.variation.name,
-                        'variation_value': cv.product_variation.value
+                        'variation_name': cv.product_variation.variation.name if cv.product_variation else cv.service_variation.variation.name,
+                        'variation_value': cv.product_variation.value if cv.product_variation else cv.service_variation.value
                     }
                     for cv in item.variations.all()
-                ] if item.product else []
+                ],
+                'delivery_method': delivery_methods.get(str(item.id), 'delivery'),
+                'pickup_location': item.product.pickup_location if is_product and item.product.for_pickup else None,
+                'image': f"{domain}{item.product.image.url}" if is_product and item.product.image else (f"{domain}{item.service.image.url}" if is_service and item.service.image else None),
             }
-            for item in cart_items
-        ]
+            cart_items_data.append(item_data)
 
-    def group_items_by_business(self, cart_items):
-        business_items = defaultdict(list)
-        for item in cart_items:
-            business = item.product.business if item.product else item.service.business
-            business_items[business].append(item)
-        return business_items
+            print(f"Cart item data: {cart_items_data[-1]}")  # Debug: Cart item data
+        return cart_items_data
 
 class PaymentSuccessView(LoginRequiredMixin, View):
     def get(self, request):
+        print("PaymentSuccessView GET: Entered get method")
         checkout_session_id = request.session.get('checkout_session_id')
+        payment_intent_id = request.session.get('payment_intent_id')
         business_items = request.session.get('business_items')
         cart_items = request.session.get('cart_items')
         address = request.session.get('address')
@@ -1625,31 +1917,27 @@ class PaymentSuccessView(LoginRequiredMixin, View):
         state = request.session.get('state')
         postal_code = request.session.get('postal_code')
         note = request.session.get('note')
+        event_date = request.session.get('event_date')
+        event_time = request.session.get('event_time')
+        delivery_fee = request.session.get('delivery_fee')
+        setup_packdown_fee = request.session.get('setup_packdown_fee')
+        payment_method = request.session.get('payment_method', 'card')
+        delivery_methods = request.session.get('delivery_methods', {})
+        signatures = request.session.get('signatures', {})
 
-        if not checkout_session_id or not business_items or not cart_items:
-            return JsonResponse({'error': 'Session data not found'}, status=400)
+        print(f"Session data: checkout_session_id={checkout_session_id}, payment_intent_id={payment_intent_id}, business_items={business_items}, cart_items={cart_items}")  # Debug: Session data
 
         try:
-            # Retrieve the checkout session
             session = stripe.checkout.Session.retrieve(checkout_session_id)
             payment_intent_id = session.payment_intent
 
-            # Create transfers for each business
-            for business_id, items in business_items.items():
-                total_amount = sum(item['amount'] for item in items)
-                stripe.Transfer.create(
-                    amount=int(total_amount * 0.86),  # 86% of the total amount
-                    currency='aud',
-                    destination=items[0]['business'],
-                    transfer_group=payment_intent_id,
-                )
-
-            # Generate a unique reference code with strings and digits
             characters = string.ascii_letters + string.digits
             ref_code = ''.join(random.choice(characters) for _ in range(10))
 
             total_price = sum(item['quantity'] * item['price'] for item in cart_items)
-            
+
+            formatted_event_time = datetime.strptime(event_time, '%H:%M').time() if event_time else None
+
             with transaction.atomic():
                 order = Order.objects.create(
                     user=request.user,
@@ -1659,91 +1947,471 @@ class PaymentSuccessView(LoginRequiredMixin, View):
                     city=city,
                     state=state,
                     postal_code=postal_code,
-                    note=note
+                    note=note,
+                    event_date=event_date,
+                    event_time=formatted_event_time,
+                    status='pending',
+                    delivery_fee=delivery_fee,
+                    setup_packdown_fee=setup_packdown_fee,
+                    payment_method=payment_method,
+                    payment_intent=payment_intent_id,
                 )
+
+                print(f"Order created: {order}")  # Debug: Order created
 
                 for item in cart_items:
-                    if item['item_type'] == 'product':
-                        product = Product.objects.get(id=item['item_id'])
-                        service = None
-                    else:
-                        service = Service.objects.get(id=item['item_id'])
-                        product = None
+                    try:
+                        if item['item_type'] == 'product':
+                            try:
+                                product = Product.objects.get(id=item['item_id'])
+                                service = None
+                                business = product.business
+                            except Product.DoesNotExist:
+                                service = Service.objects.get(id=item['item_id'])
+                                product = None
+                                business = service.business
+                        else:
+                            service = Service.objects.get(id=item['item_id'])
+                            product = None
+                            business = service.business
 
-                    OrderItem.objects.create(
+                        order_item = OrderItem.objects.create(
+                            order=order,
+                            product=product,
+                            service=service,
+                            quantity=item['quantity'],
+                            price=item['price'],
+                            variations=item['variations'],
+                            hire=item['hire'],
+                            hire_duration=item['hire_duration'],
+                            delivery_method=delivery_methods.get(str(item['id']), 'delivery')
+                        )
+
+                        OrderApproval.objects.get_or_create(order=order, business=business)
+
+                        print(f"Order item created: {order_item}")  # Debug: Order item created
+                    except (Product.DoesNotExist, Service.DoesNotExist) as e:
+                        print(f"Error processing item: {item}. Error: {str(e)}")
+                        continue
+
+                # Save signatures
+                for business_id, signature_data in signatures.items():
+                    OrderTermsSignature.objects.create(
                         order=order,
-                        product=product,
-                        service=service,
-                        quantity=item['quantity'],
-                        price=item['price'],
-                        variations=item['variations']
+                        business_id=business_id,
+                        signature=self.base64_to_image(signature_data)
                     )
+                    print(f"Signature saved for business {business_id}")  # Debug: Signature saved
 
-            # Clear the cart
+            cart_items = self.get_cart_items(order.items.all())
+
             Cart.objects.filter(user=request.user).delete()
 
-            # Send email to businesses
-            self.send_order_emails(order, business_items)
+            self.send_order_emails(order, business_items, cart_items)
 
-            # Clear the session data
-            del request.session['checkout_session_id']
-            del request.session['business_items']
-            del request.session['cart_items']
-            del request.session['address']
-            del request.session['city']
-            del request.session['state']
-            del request.session['postal_code']
-            del request.session['note']
+            for key in ['checkout_session_id', 'business_items', 'cart_items', 'address', 'city', 'state', 'postal_code', 'note', 'event_date', 'event_time', 'delivery_methods', 'signatures']:
+                if key in request.session:
+                    del request.session[key]
 
-            return render(request, 'event/success.html')
+            print(f"Order processed successfully: {order.ref_code}")  # Debug: Order processed
+            return render(request, 'event/success.html', {'order': order})
         except Exception as e:
+            print(f"Error in PaymentSuccessView: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
 
-    def send_order_emails(self, order, business_items):
-        for business_id, items in business_items.items():
-            business = Business.objects.get(id=business_id)
-            business_total = sum(item['amount'] for item in items) / 100  # Convert cents to dollars
-
-            item_details = []
-            for item in items:
-                if item['item_type'] == 'product':
-                    product = Product.objects.get(id=item['item_id'])
-                    name = product.name
-                else:
-                    service = Service.objects.get(id=item['item_id'])
-                    name = service.name
-
-                variations_str = ', '.join([f"{v['variation_name']}: {v['variation_value']}" for v in item['variations']])
-                item_detail = (
-                    f"{item['quantity']} x {name} "
-                    f"({variations_str}) - "
-                    f"${item['amount'] / 100}"  # Convert cents to dollars
-                )
-                item_details.append(item_detail)
-
-            email_subject = f"New Order Received - {order.ref_code}"
-            email_body = render_to_string('event/new_order_email.html', {
-                'business': business,
+    def base64_to_image(self, base64_string):
+        format, imgstr = base64_string.split(';base64,')
+        ext = format.split('/')[-1]
+        print(f"Converting base64 to image: format={format}, ext={ext}")  # Debug: base64 conversion
+        return ContentFile(base64.b64decode(imgstr), name=f'signature.{ext}')
+    
+    def send_order_emails(self, order, business_items, cart_items):
+        print("PaymentSuccessView: Entered send_order_emails method")
+        try:
+            cart_items = self.get_cart_items(order.items.all())
+            domain = settings.SITE_URL  # Get the site URL
+            
+            subtotal = sum(item['item_total_price'] for item in cart_items)
+            total_price = subtotal + order.delivery_fee + order.setup_packdown_fee
+            
+            customer_subject = f"Order Received - Pending Approval - {order.ref_code}"
+            customer_message = render_to_string('event/customer_checkout_email.html', {
                 'order': order,
-                'business_total': business_total,
-                'item_details': item_details
+                'cart_items': cart_items,
+                'total_price': total_price,
+                'delivery_fee': order.delivery_fee,
+                'setup_packdown_fee': order.setup_packdown_fee,
+                'subtotal': subtotal,
+                'domain': domain
             })
 
-            email = EmailMultiAlternatives(
-                subject=email_subject,
-                body=email_body,
+            customer_email = EmailMultiAlternatives(
+                subject=customer_subject,
+                body="Your order has been placed.",
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[business.email],
+                to=[order.user.email]
             )
-            email.attach_alternative(email_body, "text/html")
-            email.send(fail_silently=False)
+            customer_email.attach_alternative(customer_message, "text/html")
+            customer_email.send()
+
+            print(f"Customer email sent to {order.user.email}")  # Debug: Customer email sent
+
+            for business_id, items in business_items.items():
+                business = Business.objects.get(id=business_id)
+                business_cart_items = [item for item in cart_items if item['business_name'] == business.business_name]
+                business_subtotal = sum(item['item_total_price'] for item in business_cart_items)
+                
+                business_setup_packdown_fee = sum(
+                    item['setup_packdown_fee_amount'] if item.get('setup_packdown_fee', False) else 0
+                    for item in business_cart_items
+                )
+                
+                business_delivery_fee = business.price_per_way * 2 if any(item['delivery_method'] == 'delivery' for item in business_cart_items) else 0
+                
+                business_total = business_subtotal + business_setup_packdown_fee + business_delivery_fee
+                
+                review_url = f'{settings.SITE_URL}{reverse("review_order", args=[order.id, business.id])}'
+                
+                business_subject = f"New Order Received - Approval Required - {order.ref_code}"
+                business_message = render_to_string('event/business_checkout_email.html', {
+                    'order': order,
+                    'business': business,
+                    'cart_items': business_cart_items,
+                    'business_subtotal': business_subtotal,
+                    'business_setup_packdown_fee': business_setup_packdown_fee,
+                    'business_delivery_fee': business_delivery_fee,
+                    'business_total': business_total,
+                    'review_url': review_url,
+                    'domain': domain
+                })
+                
+                business_email = EmailMultiAlternatives(
+                    subject=business_subject,
+                    body="You have received a new order.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[business.email]
+                )
+                business_email.attach_alternative(business_message, "text/html")
+                business_email.send()
+
+                print(f"Business email sent to {business.email}")  # Debug: Business email sent
+        except Exception as e:
+            print(f"Error in send_order_emails: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
+
+    def get_cart_items(self, order_items):
+        print("PaymentSuccessView: Entered get_cart_items method")
+        cart_items_data = []
+        domain = settings.SITE_URL  # Get the site URL
+
+        for item in order_items:
+            is_product = bool(item.product)
+            is_service = bool(item.service)
+
+            if is_product:
+                setup_packdown_fee = item.product.setup_packdown_fee
+                setup_packdown_fee_amount = item.product.setup_packdown_fee_amount if setup_packdown_fee else 0
+            elif is_service:
+                setup_packdown_fee = item.service.setup_packdown_fee
+                setup_packdown_fee_amount = item.service.setup_packdown_fee_amount if setup_packdown_fee else 0
+            else:
+                setup_packdown_fee = False
+                setup_packdown_fee_amount = 0
+
+            item_data = {
+                'id': item.id,
+                'item_id': item.product.id if is_product else item.service.id,
+                'name': item.product.name if is_product else item.service.name,
+                'business_name': item.product.business.business_name if is_product else item.service.business.business_name,
+                'quantity': item.quantity,
+                'price': float(item.price),
+                'item_total_price': float(item.price * item.quantity),
+                'variations': item.variations or [],
+                'item_type': 'product' if is_product else 'service',
+                'hire': item.hire,
+                'hire_duration': item.hire_duration,
+                'delivery_method': item.delivery_method,
+                'pickup_location': item.product.pickup_location if is_product and item.product.for_pickup else None,
+                'image': f"{domain}{item.product.image.url}" if is_product and item.product.image else (f"{domain}{item.service.image.url}" if is_service and item.service.image else None),
+                'setup_packdown_fee': setup_packdown_fee,
+                'setup_packdown_fee_amount': float(setup_packdown_fee_amount),
+                'payment_method': item.order.payment_method,
+            }
+
+            cart_items_data.append(item_data)
+            print(f"Order item data: {cart_items_data[-1]}")  # Debug: Order item data
+        return cart_items_data
+
+
+class ReviewOrderView(UserPassesTestMixin, View):
+    def test_func(self):
+        order = get_object_or_404(Order, id=self.kwargs['order_id'])
+        business = get_object_or_404(Business, id=self.kwargs['business_id'])
+        return self.request.user == business.seller
+
+    def get(self, request, order_id, business_id):
+        order = get_object_or_404(Order, id=order_id)
+        business = get_object_or_404(Business, id=business_id)
+        order_items = order.items.filter(
+            models.Q(product__business=business) |
+            models.Q(service__business=business)
+        )
+
+        items_data = []
+        for item in order_items:
+            item_data = {
+                'product': item.product,
+                'service': item.service,
+                'quantity': item.quantity,
+                'price': item.price,
+                'variations': item.variations,
+                'hire': item.product.for_hire if item.product else True,
+                'hire_duration': item.product.hire_duration if item.product and item.product.for_hire else (item.service.hire_duration if item.service else None),
+            }
+            items_data.append(item_data)
+
+        return render(request, 'event/review_order.html', {
+            'order': order,
+            'business': business,
+            'order_items': items_data
+        })
+
+    def post(self, request, order_id, business_id):
+        order = get_object_or_404(Order, id=order_id)
+        business = get_object_or_404(Business, id=business_id)
+        action = request.POST.get('action')
+
+        if action == 'approve':
+            approval, created = OrderApproval.objects.get_or_create(order=order, business=business)
+            if not approval.approved:
+                approval.approved = True
+                approval.approval_date = timezone.now()
+                approval.save()
+
+                if order.all_businesses_approved():
+                    order.status = 'approved'
+                    order.save()
+
+                    self.process_payment(order)
+                    self.send_confirmation_emails(order)
+
+                    messages.success(request, "Order has been approved. Payments have been processed.")
+                else:
+                    messages.success(request, "Order has been approved by you, waiting for other businesses in the order to approve to process payment.")
+            else:
+                messages.info(request, "Order was already approved by you.")
+
+        elif action == 'reject':
+            approval, created = OrderApproval.objects.get_or_create(order=order, business=business)
+            approval.approved = False
+            approval.approval_date = timezone.now()
+            approval.save()
+            order.status = 'rejected'
+            order.save()
+            self.process_refund(order)
+            self.send_rejection_emails(order)
+            messages.success(request, "Order has been rejected and payment has been refunded.")
+
+        return redirect('business_orders')
+
+    def process_payment(self, order):
+        for item in order.items.all():
+            business = item.product.business if item.product else item.service.business
+            amount = int(item.price * item.quantity * Decimal('100') * Decimal('0.85'))
+            stripe.Transfer.create(
+                amount=amount,
+                currency='aud',
+                destination=business.stripe_account_id,
+                transfer_group=order.ref_code,
+            )
+
+    def process_refund(self, order):
+        if not order.payment_intent:
+            raise ValueError("No payment intent found for this order.")
+        
+        stripe.Refund.create(payment_intent=order.payment_intent)
+
+    def send_confirmation_emails(self, order):
+        cart_items = self.get_cart_items(order.items.all())
+        subtotal = sum(item['item_total_price'] for item in cart_items)
+
+        subtotal = Decimal(str(subtotal))
+        delivery_fee = order.delivery_fee or Decimal('0')
+        setup_packdown_fee = order.setup_packdown_fee or Decimal('0')
+
+        total_price = subtotal + delivery_fee + setup_packdown_fee
+        
+        customer_subject = f"Order Confirmed - {order.ref_code}"
+        customer_message = render_to_string('event/customer_order_confirmed_email.html', {
+            'order': order,
+            'cart_items': cart_items,
+            'subtotal': subtotal,
+            'delivery_fee': delivery_fee,
+            'setup_packdown_fee': setup_packdown_fee,
+            'total_price': total_price
+        })
+        customer_email = EmailMultiAlternatives(
+            subject=customer_subject,
+            body="Your order has been confirmed.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[order.user.email]
+        )
+        customer_email.attach_alternative(customer_message, "text/html")
+        customer_email.send()
+
+        for item in order.items.all():
+            business = item.product.business if item.product else item.service.business
+            business_cart_items = [item for item in cart_items if item['business_name'] == business.business_name]
+            business_subtotal = sum(item['item_total_price'] for item in business_cart_items)
+            
+            business_setup_packdown_fee = sum(
+                item['setup_packdown_fee_amount'] if item.get('setup_packdown_fee', False) else 0
+                for item in business_cart_items
+            )
+            
+            business_delivery_fee = business.price_per_way * 2 if any(item['delivery_method'] == 'delivery' for item in business_cart_items) else 0
+            
+            business_total = business_subtotal + business_setup_packdown_fee + business_delivery_fee
+            
+            business_subject = f"Order Confirmed - {order.ref_code}"
+            business_message = render_to_string('event/business_order_confirmed_email.html', {
+                'order': order,
+                'business': business,
+                'cart_items': business_cart_items,
+                'business_subtotal': business_subtotal,
+                'business_setup_packdown_fee': business_setup_packdown_fee,
+                'business_delivery_fee': business_delivery_fee,
+                'business_total': business_total
+            })
+            business_email = EmailMultiAlternatives(
+                subject=business_subject,
+                body="An order has been confirmed.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[business.email]
+            )
+            business_email.attach_alternative(business_message, "text/html")
+            business_email.send()
+
+
+    def send_rejection_emails(self, order):
+        cart_items = self.get_cart_items(order.items.all())
+        subtotal = sum(item['item_total_price'] for item in cart_items)
+
+        # Convert all values to Decimal for consistent calculation
+        subtotal = Decimal(str(subtotal))
+        delivery_fee = order.delivery_fee or Decimal('0')
+        setup_packdown_fee = order.setup_packdown_fee or Decimal('0')
+
+        # Calculate the correct total price
+        total_price = subtotal + delivery_fee + setup_packdown_fee
+        
+        customer_subject = f"Order Rejected - {order.ref_code}"
+        customer_message = render_to_string('event/customer_order_rejected_email.html', {
+            'order': order,
+            'cart_items': cart_items,
+            'subtotal': subtotal,
+            'delivery_fee': delivery_fee,
+            'setup_packdown_fee': setup_packdown_fee,
+            'total_price': total_price
+        })
+        customer_email = EmailMultiAlternatives(
+            subject=customer_subject,
+            body="Your order has been rejected.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[order.user.email]
+        )
+        customer_email.attach_alternative(customer_message, "text/html")
+        customer_email.send()
+
+        for item in order.items.all():
+            business = item.product.business if item.product else item.service.business
+            business_cart_items = [item for item in cart_items if item['business_name'] == business.business_name]
+            business_subtotal = sum(item['item_total_price'] for item in business_cart_items)
+            
+            business_setup_packdown_fee = sum(
+                item['setup_packdown_fee_amount'] if item.get('setup_packdown_fee', False) else 0
+                for item in business_cart_items
+            )
+            
+            business_delivery_fee = business.price_per_way * 2 if any(item['delivery_method'] == 'delivery' for item in business_cart_items) else 0
+            
+            business_total = business_subtotal + business_setup_packdown_fee + business_delivery_fee
+            
+            business_subject = f"Order Rejected - {order.ref_code}"
+            business_message = render_to_string('event/business_order_rejected_email.html', {
+                'order': order,
+                'business': business,
+                'cart_items': business_cart_items,
+                'business_subtotal': business_subtotal,
+                'business_setup_packdown_fee': business_setup_packdown_fee,
+                'business_delivery_fee': business_delivery_fee,
+                'business_total': business_total
+            })
+            business_email = EmailMultiAlternatives(
+                subject=business_subject,
+                body="An order has been rejected.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[business.email]
+            )
+            business_email.attach_alternative(business_message, "text/html")
+            business_email.send()
+
+    def calculate_total_for_business(self, order, business):
+        total = Decimal('0.00')
+        for item in order.items.filter(
+                models.Q(product__business=business) |
+                models.Q(service__business=business)):
+            total += item.price * item.quantity
+        return total
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['business'] = self.request.user.business
+        return context
+
+class BusinessOrdersView(UserPassesTestMixin, ListView):
+    model = Order
+    template_name = 'event/business_orders.html'
+    context_object_name = 'orders'
+
+    def test_func(self):
+        return hasattr(self.request.user, 'business')
+
+    def get_queryset(self):
+        status_filter = self.request.GET.get('status', '')
+        queryset = Order.objects.filter(approvals__business=self.request.user.business).prefetch_related(
+            'items__product', 'items__service', 'items__product__business', 'items__service__business'
+        ).order_by('-created_at')  # Ordering by most recent
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['business'] = self.request.user.business
+        context['status_choices'] = Order.STATUS_CHOICES
+        context['current_status'] = self.request.GET.get('status', '')
+        return context
 
 
 class UserOrdersView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         orders = Order.objects.filter(user=request.user).order_by('-created_at')
         return render(request, 'event/user_orders.html', {'orders': orders})
-    
+
+
+class UserOrderDetailsView(LoginRequiredMixin, View):
+    def get(self, request, order_id, *args, **kwargs):
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        order_items = order.items.all()
+        return render(request, 'event/user_order_detail.html', {
+            'order': order,
+            'order_items': order_items,
+        })
 
 
 class RequestRefundView(LoginRequiredMixin, View):

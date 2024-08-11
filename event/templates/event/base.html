@@ -146,6 +146,7 @@
                                     <li><a href="{% url 'user_orders' %}">My Orders</a></li>
                                     {% if user.is_seller %}
                                         <li><a href="{% url 'business_detail' user.business.business_slug %}">My Business</a></li>
+                                        <li><a href="{% url 'business_orders' %}">My Business Orders</a></li>
                                     {% elif user.is_venue_vendor %}
                                         <li><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
                                         <li><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>

@@ -8,8 +8,8 @@ from django.db.models import Avg, Count
 from django.db.models import JSONField
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
 
-    
 
 class State(models.Model):
     name = models.CharField(max_length=100)
@@ -314,6 +314,10 @@ class ServiceVariationOption(models.Model):
 
 
 class Cart(models.Model):
+    DELIVERY_METHOD_CHOICES = [
+        ('pickup', 'Pickup'),
+        ('delivery', 'Delivery'),
+    ]
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='cart')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=True, blank=True)
@@ -323,24 +327,26 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     hire = models.BooleanField(default=False)
+    delivery_method = models.CharField(max_length=10, choices=DELIVERY_METHOD_CHOICES, default='delivery')
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name if self.product else self.service.name}"
 
     def calculate_total_price(self):
-        base_price = 0
         if self.product:
             base_price = self.product.hire_price if self.hire else self.product.price
         elif self.service:
-            base_price = self.service.hire_price
+            base_price = self.service.hire_price if not self.service.available_by_quotation_only else self.price
+        else:
+            base_price = Decimal('0')
 
-        variations_price = 0
+        variations_price = Decimal('0')
         for variation in self.variations.all():
             if variation.product_variation and variation.product_variation.price:
                 variations_price += variation.product_variation.price
             elif variation.service_variation and variation.service_variation.price:
                 variations_price += variation.service_variation.price
-
+        
         self.price = base_price + variations_price
         self.save()
 
@@ -360,9 +366,14 @@ class CartItemVariation(models.Model):
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [
         ('ordered', 'ordered'),
-        ('shipped', 'shipped'),
         ('delivered', 'delivered'),
     ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
     ref_code = models.CharField(max_length=20, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -377,22 +388,68 @@ class Order(models.Model):
     refund_requested = models.BooleanField(default=False)
     refund_granted = models.BooleanField(default=False)
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default="ordered")
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    setup_packdown_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    event_date = models.DateField(null=True, blank=True)
+    event_time = models.TimeField(null=True, blank=True)
+    payment_method = models.CharField(max_length=20, choices=[('card', 'Credit Card'), ('afterpay_clearpay', 'Afterpay')], default='card')  # New field
+    payment_intent = models.CharField(max_length=255, null=True, blank=True)
     
     def __str__(self):
-        return f"Order #{self.id} by {self.user.username}"
+        return f"Order #{self.id} by {self.user.username} #{self.ref_code}"
+    
+
+    def all_businesses_approved(self):
+        return all(approval.approved for approval in self.approvals.all())
+
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    ORDER_ITEM_DELIVERY_METHOD_CHOICES = [
+        ('pickup', 'Pickup'),
+        ('delivery', 'Delivery')
+    ]
+
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     variations = JSONField(null=True, blank=True)
+    hire = models.BooleanField(default=False)
+    hire_duration = models.CharField(max_length=10, choices=[('hour', 'Hour'), ('day', 'Day'), ('week', 'Week')], null=True, blank=True)
+    delivery_method = models.CharField(max_length=10, choices=ORDER_ITEM_DELIVERY_METHOD_CHOICES, default='delivery')
 
     def __str__(self):
         item_name = self.product.name if self.product else self.service.name
-        variations_str = ', '.join([f'{k}: {v}' for k, v in self.variations.items()]) if self.variations else ''
+        if isinstance(self.variations, dict):
+            variations_str = ', '.join([f'{k}: {v}' for k, v in self.variations.items()]) if self.variations else ''
+        elif isinstance(self.variations, list):
+            variations_str = ', '.join([f'{v["variation_name"]}: {v["variation_value"]}' for v in self.variations]) if self.variations else ''
+        else:
+            variations_str = ''
         return f"{self.quantity} of {item_name} ({variations_str})"
+
+class OrderApproval(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='approvals')
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    approved = models.BooleanField(default=False)
+    approval_date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('order', 'business')
+
+    def __str__(self):
+        return f"Order {self.order.ref_code} - {self.business.business_name} - {'Approved' if self.approved else 'Pending'}"
+    
+
+class OrderTermsSignature(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='signatures')
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    signature = models.ImageField(upload_to='order_signatures/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Signature for {self.order.ref_code} - {self.business.business_name}"
     
 
 class Refund(models.Model):
@@ -427,8 +484,6 @@ class Message(models.Model):
         return self.recipient.business.exists()
 
 
-
-# models.py
 class Quote(models.Model):
     sender = models.ForeignKey(CustomUser, related_name='sent_quotes', on_delete=models.CASCADE)
     recipient = models.ForeignKey(CustomUser, related_name='received_quotes', on_delete=models.CASCADE)
@@ -443,13 +498,13 @@ class Quote(models.Model):
         return f"Quote from {self.sender} to {self.recipient} for {self.service.name}"
 
 
-
 class Amenity(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='amenity_images/')
 
     def __str__(self):
         return self.name
+
 
 class Venue(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='venue')
@@ -497,6 +552,7 @@ class Venue(models.Model):
             return 0
         star_count = self.reviews.filter(rating=star).count()
         return round((star_count / total_reviews) * 100)
+
 
 class VenueOpeningHour(models.Model):
     DAY_CHOICES = [

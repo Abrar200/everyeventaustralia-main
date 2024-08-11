@@ -16,7 +16,7 @@
                 </div>
                 <div class="thumbnail-container" style="display: flex; gap: 10px; overflow-x: auto;">
                     {% for image in service.images.all %}
-                    <img src="{{ image.image.url }}" alt="{{ service.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; cursor: pointer;" class="thumbnail {% if forloop.first %}active{% endif %}" data-image-url="{{ image.image.url }}">
+                        <img src="{{ image.image.url }}" alt="{{ service.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; cursor: pointer;" class="thumbnail {% if forloop.first %}active{% endif %}" data-image-url="{{ image.image.url }}">
                     {% endfor %}
                 </div>
             </div>
@@ -121,6 +121,14 @@
                 </div>
             </div>
 
+            <!-- Afterpay Info Modal -->
+            <div id="afterpayModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.9); overflow: auto;">
+                <span class="close" style="position: fixed; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; z-index: 10000;">&times;</span>
+                <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
+                    <iframe id="afterpayContent" style="width: 90vw; height: 90vh; border: none; border-radius: 8px;"></iframe>
+                </div>
+            </div>
+
             <h2 style="font-size: 24px; font-weight: bold; margin-top: 20px;">Details</h2>
 
             <div class="service-description">
@@ -183,7 +191,11 @@
                         <img src="{{ similar_service.image.url }}" alt="{{ similar_service.name }}" style="width: 100%; height: 200px; object-fit: cover;">
                         <div style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
                             <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #333;">{{ similar_service.name }}</h3>
-                            <p style="font-size: 16px; font-weight: bold; color: #710919; margin-bottom: 10px;">${{ similar_service.hire_price }}</p>
+                            {% if similar_service.available_by_quotation_only %}
+                                <p style="font-size: 16px; font-weight: bold; color: #710919; margin-bottom: 10px;">Available By Quotation</p>
+                            {% else %}
+                                <p style="font-size: 16px; font-weight: bold; color: #710919; margin-bottom: 10px;">${{ similar_service.hire_price }}</p>
+                            {% endif %}
                             <div style="display: flex; align-items: center; margin-top: auto;">
                                 <img src="{{ similar_service.business.profile_picture.url }}" alt="{{ similar_service.business.business_name }}" style="width: 30px; height: 30px; border-radius: 15px; margin-right: 10px;">
                                 <div style="display: flex; flex-direction: column;">
@@ -213,45 +225,75 @@
         const thumbnails = document.querySelectorAll('.thumbnail');
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImage');
-        const closeBtn = document.getElementsByClassName('close')[0];
-        const durationInput = document.getElementById('duration-input');
-        const priceDisplay = document.getElementById('service-hire-price');
-        const basePrice = parseFloat(priceDisplay.textContent);
-        let currentPrice = basePrice;
-    
-        thumbnails.forEach(thumb => {
-            thumb.addEventListener('click', function() {
-                thumbnails.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                mainImage.src = this.dataset.imageUrl;
+        const closeBtn = modal.querySelector('.close');
+        
+        // Image gallery functionality
+        if (mainImage && thumbnails.length > 0) {
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    mainImage.src = this.dataset.imageUrl;
+                });
             });
+    
+            mainImage.addEventListener('click', function() {
+                openModal(this.src);
+            });
+        }
+    
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+    
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
         });
     
-        mainImage.addEventListener('click', function() {
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'block') {
+                closeModal();
+            }
+        });
+    
+        function openModal(src) {
             modal.style.display = 'block';
-            modalImg.src = this.src;
+            modalImg.src = src;
+            document.body.style.overflow = 'hidden';
+        }
+    
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        const afterpayInfoBtn = document.getElementById('afterpay-info');
+        const afterpayModal = document.getElementById('afterpayModal');
+        const afterpayContent = document.getElementById('afterpayContent');
+        const closeAfterpayBtn = afterpayModal.getElementsByClassName('close')[0];
+    
+        afterpayInfoBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            afterpayModal.style.display = 'block';
+            afterpayContent.src = 'https://static.afterpay.com/modal/en_US.html';
             document.body.style.overflow = 'hidden';
         });
     
-        closeBtn.onclick = function() {
-            modal.style.display = 'none';
+        closeAfterpayBtn.onclick = function() {
+            afterpayModal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
     
         window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
+            if (event.target == afterpayModal) {
+                afterpayModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
         }
     
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && modal.style.display === 'block') {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        });
-    
+        // Star rating functionality
         const starContainer = document.querySelector('.star-rating');
         if (starContainer) {
             const starInputs = starContainer.querySelectorAll('input[type="radio"]');
@@ -289,61 +331,75 @@
             });
         }
     
-        function updatePrice() {
-            let additionalPrice = 0;
+        // Price update functionality
+        const durationInput = document.getElementById('duration-input');
+        const priceDisplay = document.getElementById('service-hire-price');
+        
+        if (durationInput && priceDisplay) {
+            const basePrice = parseFloat(priceDisplay.textContent);
+            let currentPrice = basePrice;
+    
+            function updatePrice() {
+                let additionalPrice = 0;
+    
+                document.querySelectorAll('.variation-select').forEach(select => {
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (selectedOption) {
+                        additionalPrice += parseFloat(selectedOption.dataset.price || 0);
+                    }
+                });
+    
+                const duration = parseInt(durationInput.value) || 1;
+                currentPrice = (basePrice + additionalPrice) * duration;
+                priceDisplay.textContent = currentPrice.toFixed(2);
+            }
+    
+            const decreaseBtn = document.getElementById('decrease-duration');
+            const increaseBtn = document.getElementById('increase-duration');
+    
+            if (decreaseBtn && increaseBtn) {
+                decreaseBtn.addEventListener('click', () => {
+                    if (durationInput.value > 1) {
+                        durationInput.value--;
+                        updatePrice();
+                    }
+                });
+    
+                increaseBtn.addEventListener('click', () => {
+                    durationInput.value++;
+                    updatePrice();
+                });
+            }
+    
+            durationInput.addEventListener('change', () => {
+                if (durationInput.value < 1) {
+                    durationInput.value = 1;
+                }
+                updatePrice();
+            });
     
             document.querySelectorAll('.variation-select').forEach(select => {
-                const selectedOption = select.options[select.selectedIndex];
-                if (selectedOption) {
-                    additionalPrice += parseFloat(selectedOption.dataset.price || 0);
-                }
+                select.addEventListener('change', () => {
+                    updatePrice();
+                });
             });
     
-            const duration = parseInt(durationInput.value) || 1;
-            currentPrice = (basePrice + additionalPrice) * duration;
-            priceDisplay.textContent = currentPrice.toFixed(2);
+            updatePrice(); // Initial call to set the price based on the default selections
         }
     
-        const decreaseBtn = document.getElementById('decrease-duration');
-        const increaseBtn = document.getElementById('increase-duration');
-    
-        decreaseBtn.addEventListener('click', () => {
-            if (durationInput.value > 1) {
-                durationInput.value--;
-                updatePrice();
-            }
-        });
-    
-        increaseBtn.addEventListener('click', () => {
-            durationInput.value++;
-            updatePrice();
-        });
-    
-        durationInput.addEventListener('change', () => {
-            if (durationInput.value < 1) {
-                durationInput.value = 1;
-            }
-            updatePrice();
-        });
-    
-        document.querySelectorAll('.variation-select').forEach(select => {
-            select.addEventListener('change', () => {
-                updatePrice();
-            });
-        });
-    
-        updatePrice(); // Initial call to set the price based on the default selections
-    
+        // Layout adjustment
         function adjustLayout() {
             const imagesWrapper = document.querySelector('.service-images-wrapper');
             const detailsWrapper = document.querySelector('.service-details-wrapper');
             
-            if (window.innerWidth >= 768) {
-                imagesWrapper.style.setProperty('width', '50%', 'important');
-                detailsWrapper.style.setProperty('width', '50%', 'important');
-            } else {
-                imagesWrapper.style.setProperty('width', '100%', 'important');
-                detailsWrapper.style.setProperty('width', '100%', 'important');
+            if (imagesWrapper && detailsWrapper) {
+                if (window.innerWidth >= 768) {
+                    imagesWrapper.style.setProperty('width', '50%', 'important');
+                    detailsWrapper.style.setProperty('width', '50%', 'important');
+                } else {
+                    imagesWrapper.style.setProperty('width', '100%', 'important');
+                    detailsWrapper.style.setProperty('width', '100%', 'important');
+                }
             }
         }
     
@@ -353,7 +409,6 @@
         adjustLayout();
     });
 </script>
-
 
 
 {% endblock content %}

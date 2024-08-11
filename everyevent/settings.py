@@ -26,7 +26,12 @@ SECRET_KEY = 'django-insecure--r+d=%#uqt_x$^wqcxjd*x(+rb9y!6$rji1im)e#ed1fh$hjt7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com', 'localhost', '127.0.0.1']
+
+# Ensure SITE_URL is correctly set
+SITE_URL = 'http://127.0.0.1:8000/'
+
+SITE_ID = 1
 
 
 # Application definition
@@ -40,7 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'event.apps.EventConfig',
     'users.apps.UsersConfig',
+    'django.contrib.sites',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -69,6 +76,7 @@ TEMPLATES = [
                 'event.context_processors.unread_message_count',
                 'event.context_processors.business_order_count',
                 'event.context_processors.popular_products',
+                'event.context_processors.static_urls',
             ],
         },
     },
@@ -157,12 +165,13 @@ LOGGING = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = ''
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyBOTcaeAABR8NtYCcepFLddJWfcwXH3hmo'
+GOOGLE_MAPS_API_KEY = 'AIzaSyD_jODWQ-KDeU65Sr4xOALQsZ7mwI3q7h4'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRs = [
     os.path.join(BASE_DIR, 'static'),

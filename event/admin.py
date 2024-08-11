@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Business, Service, Product, OpeningHour, Cart, Message, State, Variation, ProductVariation, CartItemVariation, Order, OrderItem, ProductCategory, ServiceCategory, ServiceReview, Quote, EventCategory, Award, ServiceVariation, ServiceVariationOption, Venue, VenueOpeningHour, Amenity, VenueReview, VenueView, VenueInquiry
+from .models import Business, Service, Product, OpeningHour, Cart, Message, State, Variation, ProductVariation, CartItemVariation, Order, OrderItem, ProductCategory, ServiceCategory, ServiceReview, Quote, EventCategory, Award, ServiceVariation, ServiceVariationOption, Venue, VenueOpeningHour, Amenity, VenueReview, VenueView, VenueInquiry, OrderApproval, OrderTermsSignature
 
 admin.site.register(Business)
 admin.site.register(Service)
@@ -27,3 +27,5 @@ admin.site.register(Amenity)
 admin.site.register(VenueReview)
 admin.site.register(VenueView)
 admin.site.register(VenueInquiry)
+admin.site.register(OrderApproval)
+admin.site.register(OrderTermsSignature)

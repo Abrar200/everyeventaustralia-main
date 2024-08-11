@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>Order Placed - Pending Approval</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #f5f5f5;">
+    <div style="background-color: white; padding: 20px; border: 1px solid #ddd;">
+        <header style="margin-bottom: 20px;">
+            <!-- Debug: Logo URL -->
+            <img src="{{ domain }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
+        </header>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <!-- Debug: Order Status Image URL -->
+            <img src="{{ domain }}{% static 'event/images/order_received.png' %}" alt="Order Status" style="width: 80%; max-width: 400px;">
+        </div>
+        
+        <h1 style="font-size: 24px; margin-bottom: 5px;">Thanks for your order!</h1>
+        <p style="margin-bottom: 20px;">Order number: #{{ order.ref_code }}</p>
+        
+        <p style="margin-bottom: 20px;">Hi {{ order.user.first_name }},<br>
+        Your order has been sent to the vendor(s) to confirm. You will receive another email very soon confirming your booking. If you have any questions, please email us at info@everyeventaus.com.au or you can message the vendor(s) directly via your dashboard.</p>
+        
+        <a href="#" style="display: block; background-color: #8B0000; color: white; text-align: center; padding: 10px; text-decoration: none; margin-bottom: 20px;">Log into account</a>
+        
+        <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 18px;">Order Information</h2>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white;">
+            <tbody>
+                {% for item in cart_items %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px;">
+                        <!-- Debug: Product Image URL -->
+                        <img src="{{ item.image }}" alt="{{ item.name }}" style="width: 50px; height: 50px; object-fit: cover;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <strong>{{ item.name }}</strong>
+                        {% if item.item_type == 'service' or item.hire %}
+                            (Hire)
+                        {% endif %}
+                        <br>
+                        {% if item.item_type == 'service' %}
+                            {{ item.hire_duration|title }}s: {{ item.quantity }}
+                        {% elif item.hire %}
+                            {{ item.hire_duration|title }}s: {{ item.quantity }}
+                        {% else %}
+                            Quantity: {{ item.quantity }}
+                        {% endif %}
+                        {% for variation in item.variations %}
+                            <br>{{ variation.variation_name }}: {{ variation.variation_value }}
+                        {% endfor %}
+                    </td>
+                    <td style="padding: 10px; text-align: right;">${{ item.item_total_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="padding: 10px; text-align: right;"><strong>Subtotal:</strong></td>
+                    <td style="padding: 10px; text-align: right;">${{ subtotal|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 10px; text-align: right;"><strong>Delivery:</strong></td>
+                    <td style="padding: 10px; text-align: right;">${{ delivery_fee|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 10px; text-align: right;"><strong>Setup/Packdown Fee:</strong></td>
+                    <td style="padding: 10px; text-align: right;">${{ setup_packdown_fee|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 10px; text-align: right;"><strong>Total:</strong></td>
+                    <td style="padding: 10px; text-align: right;"><strong>${{ total_price|floatformat:2 }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 18px;">Customer Information</h2>
+        </div>
+        
+        <div style="background-color: white; padding: 10px; margin-bottom: 20px;">
+            <h3 style="margin-bottom: 5px;">Customer details</h3>
+            <p style="margin: 0;">{{ order.user.name }}<br>
+            {{ order.user.email }}<br>
+            {{ order.user.phone }}</p>
+            
+            <h3 style="margin: 15px 0 5px;">Event details</h3>
+            <p style="margin: 0;">
+                Date: {{ order.event_date }}<br>
+                Time: {{ order.event_time|time:"h:i A" }}<br>
+                Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}
+            </p>
+
+
+            {% if order.note %}
+                <h3 style="margin: 15px 0 5px;">Order Notes</h3>
+                <p style="margin: 0;">{{ order.note }}</p>
+            {% endif %}
+
+            
+            <h3 style="margin: 15px 0 5px;">Delivery/pickup method</h3>
+            <p style="margin: 0;">
+                {% for item in cart_items %}
+                    {% if item.delivery_method == 'delivery' %}
+                        Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {{ item.name }}<br>
+                    {% else %}
+                        Pickup at {{ item.pickup_location }} for {{ item.name }}<br>
+                    {% endif %}
+                {% endfor %}
+            </p>
+
+            <h3 style="margin: 15px 0 5px;">Payment method</h3>
+            <p style="margin: 0;">
+                {% if order.payment_method == 'afterpay_clearpay' %}
+                    Afterpay
+                {% else %}
+                    Card
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <p style="text-align: center; margin: 20px 0;">Got a question? Email us at info@everyeventaus.com.au</p>
+    
+    <p style="text-align: center; font-weight: bold; margin-bottom: 10px;">DON'T FORGET TO FOLLOW US</p>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <!-- Social media links can be added here -->
+    </div>
+    
+    <div style="text-align: center; font-size: 12px;">
+        <a href="{% url 'privacy_policy' %}" style="color: #333; text-decoration: none; margin: 0 10px;">PRIVACY POLICY</a>
+        <a href="{% url 'home' %}" style="color: #333; text-decoration: none; margin: 0 10px;">VISIT US</a>
+        <a href="{% url 'terms_and_conditions' %}" style="color: #333; text-decoration: none; margin: 0 10px;">TERMS OF USE</a>
+    </div>
+</body>
+</html>

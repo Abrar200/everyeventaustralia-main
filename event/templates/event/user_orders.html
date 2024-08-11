@@ -1,0 +1,51 @@
+{% extends "event/base.html" %}
+
+{% block content %}
+<div class="container service-main-content" style="max-width: 1200px; margin: 0 auto; padding: 20px; margin-top: 120px;">
+    <h1>Hello {{ request.user.first_name }} {{ request.user.last_name }}</h1>
+
+    {% if orders %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            {% for order in orders %}
+                <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+                    <h2>Order #{{ order.ref_code }}</h2>
+                    <p>{{ order.created_at|date:"F d, Y H:i" }}</p>
+                    <p>Status: {{ order.get_status_display }}</p>
+                    
+                    <h3>Order Items</h3>
+                    <ul>
+                        {% for item in order.items.all %}
+                            <li>
+                                {% if item.product %}
+                                    <strong>{{ item.product.name }}</strong>
+                                    {% if item.hire %}
+                                        <p>{{ item.hire_duration|capfirst }}s: {{ item.quantity }}</p>
+                                    {% else %}
+                                        <p>Quantity: {{ item.quantity }}</p>
+                                    {% endif %}
+                                {% elif item.service %}
+                                    <strong>{{ item.service.name }} (Hire)</strong>
+                                    <p>{{ item.hire_duration|capfirst }}s: {{ item.quantity }}</p>
+                                {% endif %}
+                                <p>Price: ${{ item.price }}</p>
+
+                                {% if item.variations %}
+                                    <p>Variations:</p>
+                                    <ul>
+                                        {% for variation in item.variations %}
+                                            <li>{{ variation.variation_name }}: {{ variation.variation_value }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'user_order_details' order.id %}" style="margin-right: 10px; background-color: #710919; color: #FFFFFF; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.3s; border: none; cursor: pointer;">View Order</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No orders found.</p>
+    {% endif %}
+</div>
+{% endblock content %}
