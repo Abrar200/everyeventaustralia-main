@@ -30,9 +30,13 @@
                 {% endfor %}
                 <span style="color: #666; font-size: 14px;">{{ overall_review }} out of 5 ({{ venue.reviews.count }} reviews)</span>
             </div>
+            
             {% if user == venue.user %}
                 <a href="{% url 'edit_venue' venue.venue_slug %}" class="btn-theme btn-black">
                     <span class="material-icons-outlined me-2">Edit Venue</span>
+                </a>
+                <a href="{% url 'cancel_subscription' venue.venue_slug %}" class="btn-theme btn-danger">
+                    <span class="material-icons-outlined me-2">Cancel Subscription</span>
                 </a>
             {% endif %}
             <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">{{ venue.description|split_paragraphs }}</p>

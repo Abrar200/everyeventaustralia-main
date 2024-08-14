@@ -53,7 +53,8 @@ from datetime import datetime
 from django.core.files.storage import default_storage
 import base64
 from django.core.files.base import ContentFile
-
+from dateutil.relativedelta import relativedelta
+from celery import shared_task
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -2926,7 +2927,6 @@ def add_quote_to_cart(request, quote_id):
 
     return JsonResponse({'success': True})
 
-
 class VenueVendorRegistrationView(View):
     def get(self, request):
         day_choices = VenueOpeningHour.DAY_CHOICES
@@ -2944,129 +2944,114 @@ class VenueVendorRegistrationView(View):
 
     def post(self, request):
         try:
-            username = request.POST.get('venue_email')
-            password1 = request.POST.get('password1')
-            password2 = request.POST.get('password2')
-            first_name = request.POST.get('first_name')
-            last_name = request.POST.get('last_name')
-            venue_email = request.POST.get('venue_email')
-            venue_contact_number = request.POST.get('venue_contact_number')
-            venue_name = request.POST.get('venue_name')
-            venue_address = request.POST.get('venue_address')
-            description = request.POST.get('description')
-            price_per_event = request.POST.get('price_per_event')
-            min_reception_guests = request.POST.get('min_reception_guests')
-            max_reception_guests = request.POST.get('max_reception_guests')
-            low_price_per_head = request.POST.get('low_price_per_head')
-            high_price_per_head = request.POST.get('high_price_per_head')
-            ceremony_indoors = request.POST.get('ceremony_indoors') == 'on'
-            ceremony_outdoors = request.POST.get('ceremony_outdoors') == 'on'
-            in_house_catering = request.POST.get('in_house_catering') == 'on'
-            profile_picture = request.FILES.get('profile_picture')
-            cover_photo = request.FILES.get('cover_photo')
-            venue_image = request.FILES.get('venue_image')
-            amenities_ids = request.POST.getlist('amenities')
-            states_ids = request.POST.getlist('states')
-            event_category_ids = request.POST.getlist('event_category')
-            video_url = request.POST.get('video_url')
+            with transaction.atomic():
+                # Create user and venue
+                user = CustomUser.objects.create_user(
+                    username=request.POST['venue_email'],
+                    password=request.POST['password1'],
+                    email=request.POST['venue_email'],
+                    first_name=request.POST['first_name'],
+                    last_name=request.POST['last_name'],
+                    is_venue_vendor=True
+                )
 
-            if password1 != password2:
-                messages.error(request, 'Passwords do not match.')
-                return redirect('venue_vendor_register')
+                venue = Venue.objects.create(
+                    user=user,
+                    first_name=request.POST['first_name'],
+                    last_name=request.POST['last_name'],
+                    venue_email=request.POST['venue_email'],
+                    venue_contact_number=request.POST['venue_contact_number'],
+                    venue_name=request.POST['venue_name'],
+                    venue_address=request.POST['venue_address'],
+                    description=request.POST['description'],
+                    price_per_event=request.POST['price_per_event'],
+                    min_reception_guests=request.POST['min_reception_guests'],
+                    max_reception_guests=request.POST['max_reception_guests'],
+                    low_price_per_head=request.POST['low_price_per_head'],
+                    high_price_per_head=request.POST['high_price_per_head'],
+                    ceremony_indoors=request.POST.get('ceremony_indoors') == 'on',
+                    ceremony_outdoors=request.POST.get('ceremony_outdoors') == 'on',
+                    in_house_catering=request.POST.get('in_house_catering') == 'on',
+                    profile_picture=request.FILES.get('profile_picture'),
+                    cover_photo=request.FILES.get('cover_photo'),
+                    venue_image=request.FILES['venue_image'],
+                    video_url=request.POST.get('video_url'),
+                    subscription_start_date=timezone.now()
+                )
 
-            try:
-                user = CustomUser.objects.create_user(username=username, password=password1, first_name=first_name, last_name=last_name, email=venue_email)
-            except IntegrityError:
-                messages.error(request, 'Username already exists.')
-                return redirect('venue_vendor_register')
+                venue.states.set(request.POST.getlist('states'))
+                venue.event_category.set(request.POST.getlist('event_category'))
+                venue.amenities.set(request.POST.getlist('amenities'))
 
-            user.is_venue_vendor = True
-            user.save()
+                # Create opening hours
+                for day, _ in VenueOpeningHour.DAY_CHOICES:
+                    is_closed = request.POST.get(f'opening_hours-{day}-is_closed') == 'on'
+                    opening_time = request.POST.get(f'opening_hours-{day}-opening_time')
+                    closing_time = request.POST.get(f'opening_hours-{day}-closing_time')
 
-            venue = Venue.objects.create(
-                user=user,
-                first_name=first_name,
-                last_name=last_name,
-                venue_email=venue_email,
-                venue_contact_number=venue_contact_number,
-                venue_name=venue_name,
-                venue_address=venue_address,
-                description=description,
-                price_per_event=price_per_event,
-                min_reception_guests=min_reception_guests,
-                max_reception_guests=max_reception_guests,
-                low_price_per_head=low_price_per_head,
-                high_price_per_head=high_price_per_head,
-                ceremony_indoors=ceremony_indoors,
-                ceremony_outdoors=ceremony_outdoors,
-                in_house_catering=in_house_catering,
-                profile_picture=profile_picture,
-                cover_photo=cover_photo,
-                venue_image=venue_image,
-                video_url=video_url
-            )
-
-            venue.states.set(states_ids)
-            venue.event_category.set(event_category_ids)
-            amenities = Amenity.objects.filter(id__in=amenities_ids)
-            venue.amenities.set(amenities)
-
-            venue.save()
-
-            for day, day_display in VenueOpeningHour.DAY_CHOICES:
-                is_closed = request.POST.get(f'opening_hours-{day}-is_closed') == 'on'
-                opening_time = request.POST.get(f'opening_hours-{day}-opening_time')
-                closing_time = request.POST.get(f'opening_hours-{day}-closing_time')
-
-                if is_closed:
                     VenueOpeningHour.objects.create(
                         venue=venue,
                         day=day,
-                        is_closed=True
-                    )
-                elif opening_time and closing_time:
-                    VenueOpeningHour.objects.create(
-                        venue=venue,
-                        day=day,
-                        opening_time=opening_time,
-                        closing_time=closing_time
+                        is_closed=is_closed,
+                        opening_time=opening_time if not is_closed else None,
+                        closing_time=closing_time if not is_closed else None
                     )
 
-            for image in request.FILES.getlist('venue_images'):
-                VenueImage.objects.create(venue=venue, image=image)
+                # Create venue images
+                for image in request.FILES.getlist('venue_images'):
+                    VenueImage.objects.create(venue=venue, image=image)
 
-            messages.success(request, 'Registration successful. You can now log in as a venue vendor.')
-            return redirect('login')
+                # Create Stripe Connect account for the venue
+                print("Creating Stripe Connect account...")
+                print(f"Venue email: {venue.venue_email}")
+                print(f"Business profile URL: {settings.DEFAULT_VENUE_URL}")
+
+                account = stripe.Account.create(
+                    type='express',
+                    country='AU',
+                    email=venue.venue_email,
+                    business_type='individual',
+                    capabilities={
+                        'card_payments': {'requested': True},
+                        'transfers': {'requested': True},
+                    },
+                    business_profile={
+                        'name': venue.venue_name,
+                        'url': settings.DEFAULT_VENUE_URL,
+                    },
+                )
+                venue.stripe_account_id = account.id
+                venue.save()
+
+                # Redirect to Stripe's onboarding flow
+                refresh_url = request.build_absolute_uri(reverse('venue_vendor_register'))
+                return_url = request.build_absolute_uri(reverse('venue_detail', kwargs={'venue_slug': venue.venue_slug}))
+
+                print(f"Refresh URL: {refresh_url}")
+                print(f"Return URL: {return_url}")
+
+                account_link = stripe.AccountLink.create(
+                    account=venue.stripe_account_id,
+                    refresh_url=refresh_url,
+                    return_url=return_url,
+                    type='account_onboarding',
+                )
+
+                print(f"Account link URL: {account_link.url}")
+
+                return redirect(account_link.url)
+
         except Exception as e:
+            print(f"Error occurred: {str(e)}")  # Log the actual exception message
             messages.error(request, f"An error occurred: {str(e)}")
             return redirect('venue_vendor_register')
 
-class VenueVendorLoginView(View):
-    def get(self, request):
-        return render(request, 'event/venue_vendor_login.html')
 
-    def post(self, request):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None and user.is_venue_vendor:
-            login(request, user)
-            messages.success(request, 'Login successful.')
-            return redirect('home')
-        else:
-            messages.error(request, 'Invalid username or password.')
-            return redirect('venue_vendor_login')
-        
 class VenueDetailView(View):
     def get(self, request, venue_slug):
         venue = get_object_or_404(Venue, venue_slug=venue_slug)
-
-        # Increment view count and create a VenueView record
         venue.views_count = F('views_count') + 1
-        venue.save(update_fields=['views_count'])  # Efficient update
-        VenueView.objects.create(venue=venue)  # Log the view
+        venue.save(update_fields=['views_count'])
 
         opening_hours = venue.venue_opening_hours.all()
         reviews = venue.reviews.all()
@@ -3089,12 +3074,11 @@ class VenueDetailView(View):
             rating = request.POST.get('rating')
 
             if review_text and rating:
-                rating = int(rating)
                 VenueReview.objects.create(
                     venue=venue,
                     user=request.user,
                     review_text=review_text,
-                    rating=rating
+                    rating=int(rating)
                 )
                 messages.success(request, 'Thank you for your review!')
                 return redirect('venue_detail', venue_slug=venue_slug)
@@ -3108,17 +3092,8 @@ class VenueDetailView(View):
         comments = request.POST.get('comments')
 
         if name and email and phone and event_date and guests:
-            subject = f"Enquiry about {venue.venue_name}"
-            message = (f"Name: {name}\n"
-                       f"Email: {email}\n"
-                       f"Phone: {phone}\n"
-                       f"Event Date: {event_date}\n"
-                       f"Number of Guests: {guests}\n"
-                       f"Comments: {comments}\n")
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [venue.venue_email])
             VenueInquiry.objects.create(
                 venue=venue,
-                user=request.user,
                 name=name,
                 email=email,
                 phone=phone,
@@ -3131,8 +3106,76 @@ class VenueDetailView(View):
 
         messages.error(request, 'All fields are required for enquiry.')
         return render(request, 'event/venue_detail.html', {'venue': venue})
-    
 
+
+@method_decorator(login_required, name='dispatch')
+class SubscriptionCancelView(View):
+    def get(self, request, venue_slug):
+        venue = get_object_or_404(Venue, venue_slug=venue_slug, user=request.user)
+        return render(request, 'event/cancel_subscription_confirm.html', {'venue': venue})
+
+    def post(self, request, venue_slug):
+        venue = get_object_or_404(Venue, venue_slug=venue_slug, user=request.user)
+        try:
+            # Cancel the Stripe account if it exists
+            if venue.stripe_account_id:
+                stripe.Account.delete(venue.stripe_account_id)
+
+            # Delete the venue and related data
+            venue.delete()
+            messages.success(request, 'Your subscription has been cancelled and your venue has been removed.')
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f"An error occurred while cancelling your subscription: {str(e)}")
+            return redirect('venue_detail', venue_slug=venue_slug)
+
+
+def charge_annual_subscription(venue):
+    try:
+        # Create a payment intent for the annual subscription
+        payment_intent = stripe.PaymentIntent.create(
+            amount=27500,  # $275 in cents
+            currency='aud',
+            customer=venue.stripe_account_id,
+            description=f"Annual subscription for {venue.venue_name}",
+            confirm=True,
+        )
+
+        if payment_intent.status == 'succeeded':
+            venue.subscription_start_date = timezone.now()
+            venue.save()
+
+            # Notify the venue via email
+            subject = "Subscription Charge Successful"
+            message = render_to_string('business/subscription_successful_email.html', {'venue': venue})
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [venue.venue_email])
+            return True
+        else:
+            return False
+    except stripe.error.StripeError as e:
+        # Log or notify about the error
+        print(f"Stripe error for venue {venue.id}: {str(e)}")
+        return False
+
+
+def check_and_charge_subscriptions():
+    today = timezone.now().date()
+    venues_to_charge = Venue.objects.filter(
+        subscription_start_date__lte=today - relativedelta(years=1),
+        stripe_account_id__isnull=False
+    )
+
+    for venue in venues_to_charge:
+        success = charge_annual_subscription(venue)
+        if success:
+            print(f"Successfully charged annual subscription for venue {venue.id}")
+        else:
+            print(f"Failed to charge annual subscription for venue {venue.id}")
+
+
+@shared_task
+def daily_subscription_check():
+    check_and_charge_subscriptions()
 
 @login_required
 def edit_venue(request, venue_slug):

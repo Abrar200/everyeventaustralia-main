@@ -33,6 +33,7 @@ SITE_URL = 'http://127.0.0.1:8000/'
 
 SITE_ID = 1
 
+DEFAULT_VENUE_URL = 'http://127.0.0.1:8000/'
 
 # Application definition
 
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'event.apps.EventConfig',
     'users.apps.UsersConfig',
     'django.contrib.sites',
+    'celery',
 ]
 
 
@@ -126,14 +128,13 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp-mail.outlook.com'
-EMAIL_HOST_USER = "dukaniethnicstore@outlook.com"
-EMAIL_HOST_PASSWORD = "dukaniemail123)"
-DEFAULT_FROM_EMAIL = "dukaniethnicstore@outlook.com"
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = "missamaniaesthetics@gmail.com"
+EMAIL_HOST_PASSWORD = "htvqrrnevbcyccku"
+DEFAULT_FROM_EMAIL = "missamaniaesthetics@gmail.com"
 
 
 # Static files (CSS, JavaScript, Images)

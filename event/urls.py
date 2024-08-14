@@ -44,7 +44,6 @@ urlpatterns = [
     path('create_quote/<str:username>/', views.create_quote, name='create_quote'),
     path('add_quote_to_cart/<int:quote_id>/', views.add_quote_to_cart, name='add_quote_to_cart'),
     path('venue-vendor/register/', views.VenueVendorRegistrationView.as_view(), name='venue_vendor_register'),
-    path('venue-vendor/login/', views.VenueVendorLoginView.as_view(), name='venue_vendor_login'),
     path('venues/<slug:venue_slug>/', views.VenueDetailView.as_view(), name='venue_detail'),
     path('venue/edit/<slug:venue_slug>/', views.edit_venue, name='edit_venue'),
     path('delete-venue-image/<int:image_id>/', views.delete_venue_image, name='delete_venue_image'),
@@ -61,4 +60,5 @@ urlpatterns = [
     path('user-orders/', views.UserOrdersView.as_view(), name='user_orders'),
     path('approve-reject-order/<int:order_id>/<int:business_id>/', views.ReviewOrderView.as_view(), name='review_order'),
     path('my-orders/<int:order_id>/', views.UserOrderDetailsView.as_view(), name='user_order_details'),
+    path('venue/<slug:venue_slug>/cancel-subscription/', views.SubscriptionCancelView.as_view(), name='cancel_subscription'),
 ]

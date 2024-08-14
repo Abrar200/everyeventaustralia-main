@@ -505,7 +505,6 @@ class Amenity(models.Model):
     def __str__(self):
         return self.name
 
-
 class Venue(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='venue')
     first_name = models.CharField(max_length=30)
@@ -515,7 +514,7 @@ class Venue(models.Model):
     venue_contact_number = models.CharField(max_length=20)
     venue_name = models.CharField(max_length=100)
     venue_address = models.CharField(max_length=255)
-    event_category = models.ManyToManyField(EventCategory)
+    event_category = models.ManyToManyField('EventCategory')
     description = models.TextField()
     price_per_event = models.DecimalField(max_digits=10, decimal_places=2)
     profile_picture = models.ImageField(upload_to='venue_profiles/', blank=True, null=True)
@@ -530,8 +529,10 @@ class Venue(models.Model):
     in_house_catering = models.BooleanField(default=False)
     amenities = models.ManyToManyField(Amenity)
     video_url = models.CharField(max_length=255, blank=True, null=True)
-    states = models.ManyToManyField(State)
+    states = models.ManyToManyField('State')
     views_count = models.IntegerField(default=0)
+    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
+    subscription_start_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.venue_name
