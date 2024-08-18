@@ -463,7 +463,6 @@ class Refund(models.Model):
         return f"{self.pk}"
 
 
-
 class Message(models.Model):
     sender = models.ForeignKey(CustomUser, related_name='sent_messages', on_delete=models.CASCADE)
     recipient = models.ForeignKey(CustomUser, related_name='received_messages', on_delete=models.CASCADE)

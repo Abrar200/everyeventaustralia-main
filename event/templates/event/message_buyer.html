@@ -16,11 +16,15 @@
         </button>
     </div>
 
+    
     <!-- Messages -->
     <div id="messageContainer" style="flex-grow: 1; overflow-y: auto; padding: 16px;">
         {% for message in conversation_messages %}
         <div style="margin-bottom: 16px; display: flex; {% if message.sender == request.user %}justify-content: flex-end;{% endif %}">
             <div style="max-width: 70%; padding: 12px; border-radius: 18px; {% if message.sender == request.user %}background-color: #0084ff; color: white;{% else %}background-color: #e4e6eb; color: black;{% endif %}">
+                <small style="display: block; color: black; margin-bottom: 5px;">
+                    {{ message.timestamp|date:"jS F g:i A" }}
+                </small>
                 {{ message.content }}
                 {% if message.quotes.exists %}
                     {% for quote in message.quotes.all %}
@@ -29,17 +33,19 @@
                             <div class="quote-details">
                                 <a href="{% url 'service_detail' quote.service.business.business_slug quote.service.service_slug %}" class="quote-title">{{ quote.service.name }}</a>
                                 <p style="margin: 5px 0;">Price: ${{ quote.price }}</p>
-                                {% if not quote.is_accepted and message.recipient == request.user %}
-                                    <button class="btn btn-success accept-quote" data-quote-id="{{ quote.id }}" style="margin-top: 5px;">Accept</button>
-                                {% endif %}
                                 <button class="btn btn-primary add-to-cart" data-service-id="{{ quote.service.id }}" data-price="{{ quote.price }}" style="margin-top: 5px;">Add to Cart</button>
                             </div>
                         </div>
                     {% endfor %}
                 {% endif %}
+                {% if message.is_read and message.sender == request.user %}
+                    <div style="font-size: 12px; color: black; margin-top: 5px;">
+                        Read
+                    </div>
+                {% endif %}
             </div>
         </div>
-    {% endfor %}
+        {% endfor %}
     </div>
 
     <!-- Message input -->
@@ -70,14 +76,14 @@
                     <div class="form-group">
                         <label for="service">Service</label>
                         <select name="service" id="service" class="form-control">
-                            {% for service in business.services.all %}
+                            {% for service in business_services %}
                             <option value="{{ service.id }}">{{ service.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="price">Price</label>
-                        <input type="number" name="price" id="price" class="form-control" min="0" required>
+                        <input type="number" name="price" id="price" class="form-control" min="0" step="0.01" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Send Quote</button>
                 </form>
@@ -90,6 +96,12 @@
     document.getElementById('quote-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
+        
+        // Add these lines for debugging
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+        
         fetch("{% url 'create_quote' user.username %}", {
             method: 'POST',
             body: formData,
@@ -103,29 +115,11 @@
                 alert('Quote sent successfully.');
                 window.location.reload();
             } else {
-                alert('Error sending quote.');
+                alert('Error sending quote: ' + (data.error || 'Unknown error'));
             }
-        });
-    });
-
-    document.querySelectorAll('.accept-quote').forEach(button => {
-        button.addEventListener('click', function() {
-            const quoteId = this.dataset.quoteId;
-            fetch(`/accept_quote/${quoteId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Quote accepted.');
-                    window.location.reload();
-                } else {
-                    alert('Error accepting quote.');
-                }
-            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
     });
 
@@ -155,6 +149,7 @@
         });
     });
 </script>
+
 
 <style>
     .quote-card {

@@ -6,114 +6,314 @@
 {% endblock slider %}
 
 {% block content %}
-<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px; margin-top: 120px;">
+<style>
+    /* General Styles (unchanged from your original code) */
+
+    .checkout-container {
+        max-width: 1200px;
+        margin: 120px auto 0;
+        padding: 20px;
+    }
+
+    .checkout-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .form-section {
+        width: 48%;
+    }
+
+    .form-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+    }
+
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .order-table th, .order-table td {
+        padding: 15px;
+        text-align: left;
+    }
+
+    .order-table thead {
+        background-color: #f3f4f6;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .order-table tbody tr {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .cart-item h3 {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .cart-item p {
+        font-size: 14px;
+        color: #6b7280;
+        margin: 5px 0 0 0;
+    }
+
+    .terms-container {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .business-terms {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+    }
+
+    .terms-content {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .signature-pad {
+        border: 1px solid #000;
+        width: 300px;
+        height: 150px;
+        margin-bottom: 10px;
+    }
+
+    .clear-signature {
+        padding: 5px 10px;
+        background-color: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .checkout-button {
+        display: block;
+        width: 100%;
+        background-color: #710919;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    /* Existing Media Query */
+    @media (max-width: 768px) {
+        .form-section {
+            width: 100%;
+        }
+        .order-table {
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+        .signature-pad {
+            width: 100%;
+            max-width: 300px;
+        }
+        .checkout-button {
+            padding: 8px 15px;
+        }
+    }
+
+    /* New Breakpoint for Small Screens (480px) */
+    @media (max-width: 480px) {
+        .checkout-container {
+            padding: 10px;
+            margin: 20px auto 0;
+        }
+        .form-title {
+            font-size: 20px;
+        }
+        .form-input {
+            padding: 6px;
+            font-size: 14px;
+        }
+        .order-table th, .order-table td {
+            padding: 10px;
+            font-size: 12px;
+        }
+        .cart-item h3 {
+            font-size: 16px;
+        }
+        .cart-item p {
+            font-size: 12px;
+        }
+        .checkout-button {
+            padding: 8px 12px;
+        }
+        .signature-pad {
+            width: 100%;
+            height: 120px;
+        }
+    }
+
+    /* New Breakpoint for Extra Small Screens (320px) */
+    @media (max-width: 320px) {
+        .checkout-container {
+            padding: 5px;
+            margin: 10px auto 0;
+        }
+        .form-title {
+            font-size: 18px;
+        }
+        .form-input {
+            padding: 5px;
+            font-size: 12px;
+        }
+        .order-table th, .order-table td {
+            padding: 8px;
+            font-size: 10px;
+        }
+        .cart-item h3 {
+            font-size: 14px;
+        }
+        .cart-item p {
+            font-size: 10px;
+        }
+        .checkout-button {
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+        .signature-pad {
+            width: 100%;
+            height: 100px;
+        }
+    }
+</style>
+
+<div class="checkout-container" style="margin-top: 30px;">
     <div class="woocommerce">
-        <form id="checkout-form" style="display: flex; flex-wrap: wrap; justify-content: space-between;">
-            <div style="width: 48%;">
-                <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Billing Details</h3>
-                <div style="margin-bottom: 15px;">
-                    <label for="address" style="display: block; margin-bottom: 5px;">Delivery/Event Address</label>
-                    <input type="text" id="address" name="address" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <form id="checkout-form" class="checkout-form">
+            <div class="form-section">
+                <h3 class="form-title">Billing Details</h3>
+                <div class="form-group">
+                    <label for="address" class="form-label">Delivery/Event Address</label>
+                    <input type="text" id="address" name="address" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="event_date" style="display: block; margin-bottom: 5px;">Event Date</label>
-                    <input type="date" id="event_date" name="event_date" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <div class="form-group">
+                    <label for="event_date" class="form-label">Event Date</label>
+                    <input type="date" id="event_date" name="event_date" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="event_time" style="display: block; margin-bottom: 5px;">Event Time</label>
-                    <input type="time" id="event_time" name="event_time" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <div class="form-group">
+                    <label for="event_time" class="form-label">Event Time</label>
+                    <input type="time" id="event_time" name="event_time" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="city" style="display: block; margin-bottom: 5px;">City</label>
-                    <input type="text" id="city" name="city" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <div class="form-group">
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" id="city" name="city" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="state" style="display: block; margin-bottom: 5px;">State</label>
-                    <input type="text" id="state" name="state" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <div class="form-group">
+                    <label for="state" class="form-label">State</label>
+                    <input type="text" id="state" name="state" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="postal_code" style="display: block; margin-bottom: 5px;">Postal Code</label>
-                    <input type="text" id="postal_code" name="postal_code" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <div class="form-group">
+                    <label for="postal_code" class="form-label">Postal Code</label>
+                    <input type="text" id="postal_code" name="postal_code" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="note" style="display: block; margin-bottom: 5px;">Order Notes (optional)</label>
-                    <textarea id="note" name="note" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"></textarea>
+                <div class="form-group">
+                    <label for="note" class="form-label">Order Notes (optional)</label>
+                    <textarea id="note" name="note" class="form-input"></textarea>
                 </div>
             </div>
             
-            <div style="width: 48%;">
-                <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Your Order</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <div class="form-section">
+                <h3 class="form-title">Your Order</h3>
+                <table class="order-table">
                     <thead>
-                        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-                            <th style="padding: 15px; text-align: left;">Item</th>
-                            <th style="padding: 15px; text-align: right;">Total</th>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align: right;">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in cart_items %}
-                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                <td style="padding: 15px;">
+                            <tr>
+                                <td>
                                     <div class="cart-item">
-                                        <h3 style="font-size: 18px; margin: 0;">
+                                        <h3>
                                             {{ item.name }}
-                                            {% if item.hire %} (Hire){% endif %}
+                                            {% if item.hire or item.service %} (Hire){% endif %}
                                         </h3>
-                                        <p style="font-size: 14px; color: #6b7280; margin: 5px 0 0 0;">
-                                            {{ item.business_name }}
-                                        </p>
+                                        <p>{{ item.business_name }}</p>
                                         {% if item.hire %}
-                                            <p style="font-size: 14px; margin: 5px 0 0 0;">
-                                                {% if item.hire_duration == 'hour' %}Hours{% elif item.hire_duration == 'day' %}Days{% else %}Weeks{% endif %}: {{ item.quantity }}
-                                            </p>
+                                            <p>{% if item.hire_duration == 'hour' %}Hours{% elif item.hire_duration == 'day' %}Days{% else %}Weeks{% endif %}: {{ item.quantity }}</p>
                                         {% else %}
-                                            <p style="font-size: 14px; margin: 5px 0 0 0;">Quantity: {{ item.quantity }}</p>
+                                            <p>Quantity: {{ item.quantity }}</p>
                                         {% endif %}
                                     </div>
                                 </td>
-                                <td style="padding: 15px; text-align: right;">${{ item.item_total_price }}</td>
+                                <td style="text-align: right;">${{ item.item_total_price }}</td>
                             </tr>
                         {% endfor %}
                         {% if delivery_fee > 0 %}
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 15px;">Delivery Fee</td>
-                            <td id="delivery-fee" style="padding: 15px; text-align: right;">${{ delivery_fee }}</td>
+                        <tr>
+                            <td>Delivery Fee</td>
+                            <td id="delivery-fee" style="text-align: right;">${{ delivery_fee }}</td>
                         </tr>
                         {% endif %}
                         {% if setup_packdown_fee > 0 %}
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 15px;">Setup/Packdown Fee</td>
-                            <td style="padding: 15px; text-align: right;">${{ setup_packdown_fee }}</td>
+                        <tr>
+                            <td>Setup/Packdown Fee</td>
+                            <td style="text-align: right;">${{ setup_packdown_fee }}</td>
                         </tr>
                         {% endif %}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th style="padding: 15px; text-align: left;">Total</th>
+                            <th>Total</th>
                             <td id="total-price" 
                                 data-subtotal="{{ total_price|subtract:delivery_fee|subtract:setup_packdown_fee }}" 
                                 data-setup-packdown-fee="{{ setup_packdown_fee }}" 
                                 data-total="{{ total_price }}" 
-                                style="padding: 15px; text-align: right;">
+                                style="text-align: right;">
                                 <strong>${{ total_price }}</strong>
                             </td>
                         </tr>
                     </tfoot>
                 </table>
-                <div style="margin-bottom: 15px;">
-                    <label for="payment_method" style="display: block; margin-bottom: 5px;">Payment Method</label>
-                    <select id="payment_method" name="payment_method" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                <div class="form-group">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select id="payment_method" name="payment_method" required class="form-input">
                         <option value="card">Credit Card</option>
                         <option value="afterpay_clearpay" id="afterpay_option">Afterpay</option>
                     </select>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="delivery_method" style="display: block; margin-bottom: 5px;">Delivery/Pickup Method</label>
+                <div class="form-group">
+                    <label for="delivery_method" class="form-label">Delivery/Pickup Method</label>
                     {% for method in delivery_methods %}
                         <div>
                             <strong>{{ method.name }} ({{ method.business_name }})</strong>
                             {% if method.method == 'both' %}
-                                <select name="delivery_method_{{ method.id }}" class="delivery-method" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;" 
+                                <select name="delivery_method_{{ method.id }}" class="delivery-method form-input" 
                                     data-id="{{ method.id }}" 
                                     data-business-id="{{ method.business_id }}" 
                                     data-price-per-way="{{ method.price_per_way }}" 
@@ -149,34 +349,33 @@
                 </div>
             </div>
 
-            <div style="width: 100%; margin-top: 20px;">
-                <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Terms and Conditions</h3>
+            <div class="terms-container">
+                <h3 class="form-title">Terms and Conditions</h3>
                 {% for business_id, terms in businesses_terms.items %}
-                    <div class="business-terms" data-business-id="{{ business_id }}" style="margin-bottom: 30px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <div class="business-terms" data-business-id="{{ business_id }}">
                         <h4 style="font-size: 20px; margin-bottom: 10px;">{{ terms.name }}</h4>
                         {% if terms.terms_pdf %}
-                            <p>PDF URL: {{ terms.terms_pdf }}</p>
                             <p>
                                 <a href="{{ terms.terms_pdf }}" download>Download Terms and Conditions PDF</a>
                             </p>
-                            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                            <div class="terms-content">
                                 Please download and review the Terms and Conditions PDF above.
                             </div>
                         {% else %}
-                            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                            <div class="terms-content">
                                 {{ terms.terms|linebreaks }}
                             </div>
                         {% endif %}
-                        <div class="signature-pad" style="border: 1px solid #000; width: 300px; height: 150px; margin-bottom: 10px;">
+                        <div class="signature-pad">
                             <canvas width="300" height="150"></canvas>
                         </div>
-                        <button type="button" class="clear-signature" style="padding: 5px 10px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer;">Clear Signature</button>
+                        <button type="button" class="clear-signature">Clear Signature</button>
                     </div>
                 {% endfor %}
             </div>
 
             <div style="width: 100%; margin-top: 20px;">
-                <button id="checkout-button" style="display: block; width: 100%; background-color: #2563eb; color: white; text-align: center; text-decoration: none; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;" disabled>Place Order</button>
+                <button id="checkout-button" class="checkout-button" disabled>Place Order</button>
             </div>
         </form>
     </div>

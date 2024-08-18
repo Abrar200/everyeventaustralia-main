@@ -18,25 +18,30 @@
         {% for message in conversation_messages %}
         <div style="margin-bottom: 16px; display: flex; {% if message.sender == request.user %}justify-content: flex-end;{% endif %}">
             <div style="max-width: 70%; padding: 12px; border-radius: 18px; {% if message.sender == request.user %}background-color: #0084ff; color: white;{% else %}background-color: #e4e6eb; color: black;{% endif %}">
+                <small style="display: block; color: black; margin-bottom: 5px;">
+                    {{ message.timestamp|date:"jS F g:i A" }}
+                </small>
                 {{ message.content }}
                 {% if message.quotes.exists %}
                     {% for quote in message.quotes.all %}
                     <div class="quote-card" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; border-radius: 8px; width: 400px;">
                         <img src="{{ quote.service.image.url }}" alt="{{ quote.service.name }}" class="quote-image" style="width: 100%; border-radius: 4px; height: 230px; object-fit: cover;">
-                            <div class="quote-details">
-                                <a href="{% url 'service_detail' quote.service.business.business_slug quote.service.service_slug %}" class="quote-title">{{ quote.service.name }}</a>
-                                <p style="margin: 5px 0;">Price: ${{ quote.price }}</p>
-                                {% if not quote.is_accepted and message.recipient == request.user %}
-                                    <button class="btn btn-success accept-quote" data-quote-id="{{ quote.id }}" style="margin-top: 5px;">Accept</button>
-                                {% endif %}
-                                <button class="btn btn-primary add-to-cart" data-service-id="{{ quote.service.id }}" data-price="{{ quote.price }}" style="margin-top: 5px;">Add to Cart</button>
-                            </div>
+                        <div class="quote-details">
+                            <a href="{% url 'service_detail' quote.service.business.business_slug quote.service.service_slug %}" class="quote-title">{{ quote.service.name }}</a>
+                            <p style="margin: 5px 0;">Price: ${{ quote.price }}</p>
+                            <button class="btn btn-primary add-to-cart" data-quote-id="{{ quote.id }}" style="margin-top: 5px;">Add to Cart</button>
                         </div>
+                    </div>
                     {% endfor %}
+                {% endif %}
+                {% if message.is_read and message.sender == request.user %}
+                    <div style="font-size: 12px; color: black; margin-top: 5px;">
+                        Read
+                    </div>
                 {% endif %}
             </div>
         </div>
-    {% endfor %}
+        {% endfor %}
     </div>
 
     <!-- Message input -->
@@ -128,25 +133,20 @@
 
     document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
-            const serviceId = this.dataset.serviceId;
-            const price = this.dataset.price;
-            fetch('/cart/add/', {
+            const quoteId = this.dataset.quoteId;
+            fetch(`/add_quote_to_cart/${quoteId}/`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({
-                    service_id: serviceId,
-                    price: price
-                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Service added to cart.');
+                    alert('Service added to cart successfully.');
+                    window.location.reload();
                 } else {
-                    alert('Error adding service to cart.');
+                    alert('Error adding quote to cart: ' + (data.error || 'Unknown error'));
                 }
             });
         });

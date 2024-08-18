@@ -13,7 +13,6 @@ class QuoteForm(forms.ModelForm):
         }
 
 
-
 class VenueVendorRegistrationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)

@@ -84,6 +84,15 @@
     <!-- /container -->
 </section>
 
+
+<style>
+    .disabled-field {
+        opacity: 0.3;
+        pointer-events: none;
+    }
+</style>
+
+
 <script>
     document.getElementById('setup_packdown_fee_checkbox').addEventListener('change', function() {
         var setupFeeField = document.getElementById('setup_packdown_fee_amount');
@@ -92,13 +101,15 @@
 
     document.getElementById('available_by_quotation_only').addEventListener('change', function() {
         var hirePriceField = document.getElementById('hire_price');
-        var hireDurationField = document.getElementById('hire_duration');
         var hasVariationsCheckbox = document.getElementById('has_variations_checkbox');
         var disable = this.checked;
         hirePriceField.disabled = disable;
-        hireDurationField.disabled = disable;
         hasVariationsCheckbox.disabled = disable;
-
+    
+        // Apply or remove the disabled-field class
+        hirePriceField.parentElement.classList.toggle('disabled-field', disable);
+        hasVariationsCheckbox.parentElement.classList.toggle('disabled-field', disable);
+    
         // If disabling and 'has_variations' was checked, uncheck it and hide the variations section
         if (disable && hasVariationsCheckbox.checked) {
             hasVariationsCheckbox.checked = false;

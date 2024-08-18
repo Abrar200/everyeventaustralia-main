@@ -43,39 +43,20 @@
     </ul>
     
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Order Summary</h2>
-    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Subtotal: ${{ order.total_amount|floatformat:2 }}</p>
-    {% if order.delivery_fee %}
-        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Delivery Fee: ${{ order.delivery_fee }}</p>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Subtotal: ${{ business_subtotal|floatformat:2 }}</p>
+    {% if business_delivery_fee > 0 %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Delivery Fee: ${{ business_delivery_fee|floatformat:2 }}</p>
     {% endif %}
-    {% if order.setup_packdown_fee %}
-        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Setup/Packdown Fee: ${{ order.setup_packdown_fee }}</p>
+    {% if business_setup_packdown_fee > 0 %}
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Setup/Packdown Fee: ${{ business_setup_packdown_fee|floatformat:2 }}</p>
     {% endif %}
     
-    {% with total=order.total_amount %}
-        {% if order.delivery_fee %}
-            {% with total=total|add:order.delivery_fee %}
-                {% if order.setup_packdown_fee %}
-                    {% with total=total|add:order.setup_packdown_fee %}
-                        <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-                    {% endwith %}
-                {% else %}
-                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-                {% endif %}
-            {% endwith %}
-        {% else %}
-            {% if order.setup_packdown_fee %}
-                {% with total=total|add:order.setup_packdown_fee %}
-                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-                {% endwith %}
-            {% else %}
-                <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-            {% endif %}
-        {% endif %}
-    {% endwith %}
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Business Total: ${{ business_total|floatformat:2 }}</p>
     
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Customer Details</h2>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Name: {{ order.user.get_full_name }}</p>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Email: {{ order.user.email }}</p>
+    <a href="{% url "message_buyer" order.user.username %}"><button style="background-color: #710919; color: #FFFFFF; padding: 10px 20px; border-radius: 4px; font-size: 16px; border: none; cursor: pointer; margin-right: 20px;">Message Buyer</button></a>
     
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Event Details</h2>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Date: {{ order.event_date }}</p>
@@ -93,10 +74,10 @@
         {% for item in order.items.all %}
             {% if item.product and item.product.business == business or item.service and item.service.business == business %}
                 <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">
-                    {% if item.product %}
-                        {{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.product.name }}
+                    {% if item.delivery_method == 'delivery' %}
+                        Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
                     {% else %}
-                        {{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.service.name }}
+                        Pickup at {% if item.product %}{{ item.product.pickup_location }}{% else %}{{ item.service.pickup_location }}{% endif %} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
                     {% endif %}
                 </li>
             {% endif %}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+{% load static %}
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html>
+<head>
+    <title>New Message Notification</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #f5f5f5;">
+    <div style="background-color: white; padding: 20px; border: 1px solid #ddd;">
+        <header style="margin-bottom: 20px;">
+            <img src="{{ domain }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
+        </header>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ domain }}{% static 'event/images/new_message.png' %}" alt="Order Status" style="width: 80%; max-width: 400px;">
+        </div>
+        
+        <h2>You have a new message from {% if sender.business %} {{ business.business_name }}{% else %}{{ sender.username }}{% endif %}</h2>
+        <p>{{ message_content }}</p>
+        <p>To reply, please log in to your account.</p>
+    </div>
+    
+    <p style="text-align: center; margin: 20px 0;">Got a question? Email us at info@everyeventaus.com.au</p>
+    
+    <p style="text-align: center; font-weight: bold; margin-bottom: 10px;">DON'T FORGET TO FOLLOW US</p>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <!-- Social media links can be added here -->
+    </div>
+    
+    <div style="text-align: center; font-size: 12px;">
+        <a href="{{ domain }}{% url 'privacy_policy' %}" style="color: #333; text-decoration: none; margin: 0 10px;">PRIVACY POLICY</a>
+        <a href="{{ domain }}{% url 'home' %}" style="color: #333; text-decoration: none; margin: 0 10px;">VISIT US</a>
+        <a href="{{ domain }}{% url 'terms_and_conditions' %}" style="color: #333; text-decoration: none; margin: 0 10px;">TERMS OF USE</a>
+    </div>
+</body>
+</html>

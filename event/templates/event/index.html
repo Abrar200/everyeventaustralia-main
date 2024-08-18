@@ -6,11 +6,37 @@
 {% block content %}
 
 <!-- HOME SLIDER -->
-<div class="container" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%; margin-top: -70px;">
+<div class="container" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%; margin-top: -80px;">
     <div class="slider-container slider-boxed" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%;">
         <div class="owl-carousel owl-theme home-slider" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%;">
             <div class="slider-post slider-item-box-bkg slider-item-box3" style="width: 100%; max-width: 100%;">
                 <div class="slider-img" style="background-image:url('/static/event/images/home/1.webp'); width: 100%; max-width: 100%;"></div>
+                <div class="container slider-caption" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%;">
+                    <div class="slider-text" style="padding: 0 15px; width: 100%; max-width: 100%;">
+                        <h1 style="font-size: clamp(36px, 7.5vw, 54px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
+                        <p style="font-size: clamp(14px, 3vw, 18px); line-height: 1.4; margin-bottom: 20px;">Browse, compare & book online from trusted Melbourne and Adelaide vendors online storefronts</p>
+                        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <a href="#" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
+                            <a href="#" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-post slider-item-box-bkg slider-item-box3" style="width: 100%; max-width: 100%;">
+                <div class="slider-img" style="background-image:url('/static/event/images/home/2.webp'); width: 100%; max-width: 100%;"></div>
+                <div class="container slider-caption" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%;">
+                    <div class="slider-text" style="padding: 0 15px; width: 100%; max-width: 100%;">
+                        <h1 style="font-size: clamp(36px, 7.5vw, 54px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
+                        <p style="font-size: clamp(14px, 3vw, 18px); line-height: 1.4; margin-bottom: 20px;">Browse, compare & book online from trusted Melbourne and Adelaide vendors online storefronts</p>
+                        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <a href="#" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
+                            <a href="#" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-post slider-item-box-bkg slider-item-box3" style="width: 100%; max-width: 100%;">
+                <div class="slider-img" style="background-image:url('/static/event/images/home/3.webp'); width: 100%; max-width: 100%;"></div>
                 <div class="container slider-caption" style="padding-left: 0; padding-right: 0; width: 100%; max-width: 100%;">
                     <div class="slider-text" style="padding: 0 15px; width: 100%; max-width: 100%;">
                         <h1 style="font-size: clamp(36px, 7.5vw, 54px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
@@ -53,6 +79,55 @@
     </div>
 </div>
 <!-- /HOME SLIDER -->
+
+
+<style>
+    @media (max-width: 768px) {
+        .owl-carousel .owl-nav {
+            position: absolute;
+            top: auto;
+            bottom: 120px; /* Adjust this value to position between your buttons */
+            left: 0;
+            right: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none; /* This allows clicks to pass through to elements below */
+        }
+    
+        .owl-carousel .owl-prev,
+        .owl-carousel .owl-next {
+            position: relative;
+            top: auto;
+            transform: none;
+            color: white !important;
+            font-size: 24px !important;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto; /* This makes the buttons clickable */
+        }
+    
+        .owl-carousel .owl-prev {
+            position: absolute;
+            top: 60%;
+        }
+    
+        .owl-carousel .owl-next {
+            position: absolute;
+            top: 60%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .owl-carousel .owl-nav {
+            bottom: 250px; /* Adjust for even smaller screens if needed */
+        }
+    }
+    </style>
+
 
 <script>
     document.querySelectorAll('.view-more.find-more').forEach(button => {
@@ -179,35 +254,50 @@
         <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Best Sellers</h2>
         
         <div class="slider-container" style="position: relative; overflow: hidden;">
-            <button class="slider-btn prev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 2; background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">&lt;</button>
-            <button class="slider-btn next" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2; background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">&gt;</button>
+            <button class="slider-btn prev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 2; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">&lt;</button>
+            <button class="slider-btn next" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">&gt;</button>
             
             <div class="slider" style="display: flex; transition: transform 0.3s ease-in-out;">
                 {% for item in best_sellers %}
                     <div class="item-card" style="flex: 0 0 auto; width: 300px; margin-right: 20px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
                         {% if item.type == 'product' %}
                             <a href="{% url 'product_detail' item.business.business_slug item.product_slug %}">
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+                            </a>
                         {% else %}
                             <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}">
-                        {% endif %}
-                            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 200px; object-fit: cover;">
-                        </a>
-                        <div style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
-                            {% if item.type == 'product' %}
-                                <a href="{% url 'product_detail' item.business.business_slug item.product_slug %}" style="text-decoration: none; color: inherit;">
-                            {% else %}
-                                <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}" style="text-decoration: none; color: inherit;">
-                            {% endif %}
-                                <h3 style="font-size: 18px; margin-bottom: 5px;">{{ item.name }}</h3>
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 200px; object-fit: cover;">
                             </a>
+                        {% endif %}
+                        <div style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
+                            <h3 style="font-size: 18px; margin-bottom: 5px;">
+                                {% if item.type == 'product' %}
+                                    <a href="{% url 'product_detail' item.business.business_slug item.product_slug %}" style="text-decoration: none; color: inherit;">{{ item.name }}</a>
+                                {% else %}
+                                    <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}" style="text-decoration: none; color: inherit;">{{ item.name }}</a>
+                                {% endif %}
+                            </h3>
                             <p style="font-size: 14px; color: #666; margin-bottom: 5px;">{{ item.business.name }}</p>
-                            
                             <div style="flex-grow: 1;"></div>
-                            <p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">${{ item.price }}</p>
-                            {% if item.type == 'product' %}
-                                <button class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Add to Cart</small></button>
+                            {% if item.type == 'service' and item.available_by_quotation_only %}
                             {% else %}
-                                <button class="get-quote" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Get Quote</small></button>
+                                <p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">${{ item.price }}</p>
+                            {% endif %}
+                            
+                            {% if item.type == 'product' %}
+                                <form action="{% url 'add_to_cart' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ item.id }}">
+                                    <button type="submit" class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Add to Cart</small></button>
+                                </form>
+                            {% elif item.type == 'service' and item.available_by_quotation_only %}
+                                <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}"><button type="submit" class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Get Quote</small></button></a>
+                            {% else %}
+                                <form action="{% url 'add_to_cart' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="service_id" value="{{ item.id }}">
+                                    <button type="submit" class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Add to Cart</small></button>
+                                </form>
                             {% endif %}
                         </div>
                     </div>
@@ -232,7 +322,17 @@
         color: white !important;
         border-color: #710919 !important;
     }
+
+    .slider-btn {
+        transition: all 0.3s ease;
+    }
+
+    .slider-btn:hover {
+        background: rgba(0,0,0,0.9) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+    }
 </style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const slider = document.querySelector('.slider');
@@ -254,17 +354,25 @@
     });
 </script>
 
-<section class="py-5" style="padding-top: 0 !important;">
+
+<section class="py-5" style="padding-top: 0 !important; margin-top: -50px;">
     <div class="container">
-        <div style="border: 1px solid #e0e0e0; display: flex; margin: 0 auto; padding: 0; max-width: 100%;">
-            <div style="flex: 1; width: 60%;">
-                <img src="{% static 'event/images/wedding.jpeg' %}" alt="Description of image" style="width: 100%; height: 100%; object-fit: cover;">
+        <div class="venue-container">
+            <div class="venue-image">
+                <img src="{% static 'event/images/wedding.jpeg' %}" style="height: 325px;" alt="Wedding venue" class="venue-img">
             </div>
-            <div style="flex: 1; width: 40%; padding: 40px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
-                <h2 style="font-size: 32px; margin-bottom: 20px; line-height: 1.2;"><small style="font-size: 24px;">Find Your</small><br> Dream Wedding <br> Venue</h2>
-                <p style="font-size: 18px; line-height: 1.6; margin-bottom: 30px;">Browse our Exclusive Selection of <br> Premier Wedding and Event Venues.</p>
-                <div style="text-align: center;">
-                    <a href="{% url 'venues' %}" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
+            <div class="venue-content">
+                <h2 class="venue-title">
+                    <small>Find Your</small><br>
+                    Dream Wedding <br>
+                    Venue
+                </h2>
+                <p class="venue-description">
+                    Browse our Exclusive Selection of <br>
+                    Premier Wedding and Event Venues.
+                </p>
+                <div class="venue-cta">
+                    <a href="{% url 'venues' %}" class="venue-button">
                         Venue Directory
                     </a>
                 </div>
@@ -273,7 +381,113 @@
     </div>
 </section>
 
-<section class="py-5">
+<style>
+    .venue-container {
+        border: 1px solid #e0e0e0;
+        display: flex;
+        margin: 0 auto;
+        padding: 0;
+        max-width: 100%;
+        height: 100%; /* Ensure the container takes full height */
+    }
+    
+    .venue-image {
+        flex: 1;
+        width: 60%;
+    }
+    
+    .venue-img {
+        width: 100%;
+        object-fit: cover; /* Make the image cover the entire container */
+    }
+    
+    .venue-content {
+        flex: 1;
+        width: 40%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .venue-title {
+        font-size: 32px;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+    
+    .venue-title small {
+        font-size: 24px;
+    }
+    
+    .venue-description {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+    
+    .venue-button {
+        display: inline-block;
+        padding: 10px 20px;
+        color: #710919;
+        border: 2px solid #710919;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .venue-button:hover {
+        background-color: #710919;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .venue-container {
+            flex-direction: column;
+            align-items: center; /* Center align all the items */
+            text-align: center; /* Center the text */
+        }
+        
+        .venue-image, .venue-content {
+            width: 100%;
+        }
+        
+        .venue-content {
+            order: 2;
+            padding: 20px;
+            align-items: center; /* Center align the content */
+        }
+        
+        .venue-image {
+            order: 1;
+        }
+        
+        .venue-title {
+            font-size: 28px;
+            text-align: center;
+            margin-left: auto; /* Center the title text */
+            margin-right: auto;
+        }
+        
+        .venue-title small {
+            font-size: 20px;
+        }
+        
+        .venue-description {
+            font-size: 16px;
+            text-align: center; /* Center the description */
+        }
+        
+        .venue-button {
+            margin-top: 20px; /* Add space between the text and button */
+        }
+    }
+</style>
+
+
+<section class="py-5" style="margin-top: -40px;">
     <div class="container">
         <div style="max-width: 1200px; margin: 0 auto;">
             <p style="font-size: 18px; line-height: 1.5; color: #333; margin-bottom: 20px; text-align: justify; max-width: 800px; margin-left: auto; margin-right: auto;">
@@ -319,25 +533,69 @@
 
 <section class="as-seen-with py-5">
     <div class="container">
-        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">As seen with</h2>
+        <h2 class="section-title">As seen with</h2>
         
-        <div class="logo-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-            <img src="{% static 'event/images/saweddings.png' %}" alt="Brand Logo 1" style="max-width: 150px; height: auto; margin: 10px;">
-            <img src="{% static 'event/images/uni.jpeg' %}" alt="Brand Logo 2" style="max-width: 150px; height: auto; margin: 10px;">
-            <img src="{% static 'event/images/pa.webp' %}" alt="Brand Logo 3" style="max-width: 150px; height: auto; margin: 10px;">
-            <img src="{% static 'event/images/grid.png' %}" alt="Brand Logo 4" style="max-width: 150px; height: auto; margin: 10px;">
-            <img src="{% static 'event/images/sastyle.webp' %}" alt="Brand Logo 5" style="max-width: 150px; height: auto; margin: 10px;">
+        <div class="logo-grid">
+            <div class="logo-item"><img src="{% static 'event/images/saweddings.png' %}" alt="SA Weddings Logo" class="logo"></div>
+            <div class="logo-item"><img src="{% static 'event/images/uni.jpeg' %}" alt="University of Adelaide Logo" class="logo"></div>
+            <div class="logo-item"><img src="{% static 'event/images/pa.webp' %}" alt="Port Adelaide Football Club Logo" class="logo"></div>
+            <div class="logo-item"><img src="{% static 'event/images/grid.png' %}" alt="Grid Logo" class="logo"></div>
+            <div class="logo-item"><img src="{% static 'event/images/sastyle.webp' %}" alt="SA Style Logo" class="logo"></div>
         </div>
     </div>
 </section>
 
 <style>
+    .section-title {
+        font-size: 36px;
+        font-family: Prata, serif;
+        color: #000000;
+        text-align: left;
+        margin-bottom: 30px;
+    }
+
+    .logo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        justify-items: center;
+        align-items: center;
+    }
+
+    .logo-item {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .logo {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
     @media (max-width: 768px) {
-        .logo-container {
-            justify-content: center;
+        .logo-grid {
+            grid-template-columns: repeat(2, 1fr);
         }
-        .logo-container img {
-            max-width: 120px;
+
+        .logo-item {
+            height: 80px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .section-title {
+            font-size: 28px;
+        }
+
+        .logo-item {
+            height: 100px;
         }
     }
 </style>

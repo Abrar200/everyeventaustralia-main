@@ -16,8 +16,9 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1200px; margin: 80px auto 0; padding: 40px; background-color: #FFFFFF;">
-    <h1 style="font-size: 48px; color: #000000; margin-bottom: 40px; text-align: center;">Orders Dashboard</h1>
+<div style="max-width: 1200px; margin: 80px auto 0; padding: 20px; background-color: #FFFFFF;">
+    <h1 style="font-size: 48px; color: #000000; margin-bottom: 20px; text-align: center;">Orders Dashboard</h1>
+    <h5 style="color: #000000; margin-bottom: 40px; text-align: center;">{{ pending_order_count }} Orders Pending Approval</h5>
     
     <form id="filter-form" method="get" action="{% url 'business_orders' %}" style="text-align: center; margin-bottom: 40px;">
         <label for="status" style="font-size: 18px; margin-right: 10px;">Filter by status:</label>
@@ -29,9 +30,9 @@
         </select>
     </form>
 
-    {% if orders %}
+    {% if orders_with_totals %}
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-        {% for order in orders %}
+        {% for order, business_total in orders_with_totals %}
             <div style="background-color: #FFFFFF; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; transition: box-shadow 0.3s;">
                 <div style="padding: 20px;">
                     <h2 style="font-size: 24px; margin: 0;">Order #{{ order.ref_code }}</h2>
@@ -74,6 +75,8 @@
                         {% endif %}
                     {% endfor %}
 
+                    <p style="font-size: 18px; color: #000000; margin-top: 20px;">Business Total: ${{ business_total|floatformat:2 }}</p>
+
                     <div style="margin-top: 20px; text-align: right;">
                         {% if order.status == 'pending' %}
                             <a href="{% url 'review_order' order.id business.id %}" class="btn" style="margin-right: 10px; background-color: #710919; color: #FFFFFF; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.3s; border: none; cursor: pointer;">Review Order</a>
@@ -85,11 +88,48 @@
             </div>
         {% endfor %}
         </div>
+
+        <!-- Pagination -->
+        <div style="margin-top: 40px; text-align: center;">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
+                onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
+                onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
+                &laquo; First
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
+                onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
+                onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
+                Previous
+                </a>
+            {% endif %}
+
+            <span style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; background-color: #710919; color: #fff;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
+                onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
+                onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
+                Next
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
+                onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
+                onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
+                Last &raquo;
+                </a>
+            {% endif %}
+        </div>
     {% else %}
         <p style="font-size: 20px; color: #000000; text-align: center; margin-top: 50px; font-style: italic;">No orders found.</p>
     {% endif %}
-</div>
 
+</div>
 <script>
     document.getElementById('status').addEventListener('change', function() {
         document.getElementById('filter-form').submit();

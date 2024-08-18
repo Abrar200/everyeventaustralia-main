@@ -78,10 +78,14 @@
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Delivery/Pickup Method</h2>
     <ul style="list-style-type: none; padding-left: 0;">
         {% for item in order.items.all %}
-            {% if item.product %}
-                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">{{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.product.name }}</li>
-            {% elif item.service %}
-                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">{{ item.delivery_method|capfirst }} to {{ order.address }} for {{ item.service.name }}</li>
+            {% if item.product or item.service %}
+                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">
+                    {% if item.delivery_method == 'delivery' %}
+                        Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
+                    {% else %}
+                        Pickup at {% if item.product %}{{ item.product.pickup_location }}{% else %}{{ item.service.pickup_location }}{% endif %} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
+                    {% endif %}
+                </li>
             {% endif %}
         {% endfor %}
     </ul>

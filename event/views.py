@@ -55,6 +55,9 @@ import base64
 from django.core.files.base import ContentFile
 from dateutil.relativedelta import relativedelta
 from celery import shared_task
+from .tasks import send_email_task
+from django.contrib.sites.shortcuts import get_current_site
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -1180,6 +1183,8 @@ class CartView(View):
                 'quantity': item.quantity,
                 'total_price': item.price * item.quantity,
                 'hire': item.hire,
+                'is_product': item.product is not None,
+                'is_service': item.service is not None,
                 'variations': [],
             }
             
@@ -1187,11 +1192,13 @@ class CartView(View):
                 item_data['name'] = item.product.name
                 item_data['image'] = item.product.image.url
                 item_data['business_name'] = item.product.business.business_name
+                item_data['hire_duration'] = item.product.hire_duration
                 item_data['base_price'] = item.product.hire_price if item.hire else item.product.price
             elif item.service:
                 item_data['name'] = item.service.name
                 item_data['image'] = item.service.image.url
                 item_data['business_name'] = item.service.business.business_name
+                item_data['hire_duration'] = item.service.hire_duration
                 item_data['base_price'] = item.service.hire_price
             
             for variation in item.variations.all():
@@ -1280,7 +1287,6 @@ class CartView(View):
         messages.success(request, f"{product.name} has been added to your cart.")
         return self.handle_response(request, True, f"{product.name} has been added to your cart.")
 
-    
     def add_service_to_cart(self, request):
         service_id = request.POST.get('service_id')
         duration = int(request.POST.get('duration', 1))
@@ -1326,12 +1332,13 @@ class CartView(View):
             user=request.user,
             service=service,
             variation_key=variation_key,
-            defaults={'quantity': duration, 'price': price}
+            defaults={'quantity': duration, 'price': price, 'hire': True}  # Set hire=True here
         )
 
         if not created:
             cart_item.quantity += duration
             cart_item.price = price
+            cart_item.hire = True  # Ensure hire is always True
             cart_item.save()
 
         CartItemVariation.objects.filter(cart=cart_item).delete()
@@ -2014,8 +2021,15 @@ class PaymentSuccessView(LoginRequiredMixin, View):
                 if key in request.session:
                     del request.session[key]
 
+            
+            cart_items = self.get_cart_items(order.items.all())
+            domain = settings.SITE_URL  # Get the site URL
+            
+            subtotal = sum(item['item_total_price'] for item in cart_items)
+            total_price = subtotal + order.delivery_fee + order.setup_packdown_fee
+
             print(f"Order processed successfully: {order.ref_code}")  # Debug: Order processed
-            return render(request, 'event/success.html', {'order': order})
+            return render(request, 'event/success.html', {'order': order, 'total_price': total_price})
         except Exception as e:
             print(f"Error in PaymentSuccessView: {str(e)}")
             import traceback
@@ -2148,6 +2162,7 @@ class PaymentSuccessView(LoginRequiredMixin, View):
         return cart_items_data
 
 
+
 class ReviewOrderView(UserPassesTestMixin, View):
     def test_func(self):
         order = get_object_or_404(Order, id=self.kwargs['order_id'])
@@ -2161,6 +2176,22 @@ class ReviewOrderView(UserPassesTestMixin, View):
             models.Q(product__business=business) |
             models.Q(service__business=business)
         )
+
+        # Calculate business subtotal
+        business_subtotal = sum(item.price * item.quantity for item in order_items)
+        
+        # Calculate setup/packdown fee for the business
+        business_setup_packdown_fee = sum(
+            item.product.setup_packdown_fee_amount if item.product and item.product.setup_packdown_fee else
+            item.service.setup_packdown_fee_amount if item.service and item.service.setup_packdown_fee else 0
+            for item in order_items
+        )
+        
+        # Calculate delivery fee for the business
+        business_delivery_fee = business.price_per_way * 2 if any(item.delivery_method == 'delivery' for item in order_items) else 0
+        
+        # Calculate total for the business
+        business_total = business_subtotal + business_setup_packdown_fee + business_delivery_fee
 
         items_data = []
         for item in order_items:
@@ -2178,8 +2209,13 @@ class ReviewOrderView(UserPassesTestMixin, View):
         return render(request, 'event/review_order.html', {
             'order': order,
             'business': business,
-            'order_items': items_data
+            'order_items': items_data,
+            'business_subtotal': business_subtotal,
+            'business_setup_packdown_fee': business_setup_packdown_fee,
+            'business_delivery_fee': business_delivery_fee,
+            'business_total': business_total,
         })
+
 
     def post(self, request, order_id, business_id):
         order = get_object_or_404(Order, id=order_id)
@@ -2237,7 +2273,9 @@ class ReviewOrderView(UserPassesTestMixin, View):
         stripe.Refund.create(payment_intent=order.payment_intent)
 
     def send_confirmation_emails(self, order):
-        cart_items = self.get_cart_items(order.items.all())
+        # Collect delivery methods from each order item
+        delivery_methods = {str(item.id): item.delivery_method for item in order.items.all()}
+        cart_items = self.get_cart_items(order.items.all(), delivery_methods)
         subtotal = sum(item['item_total_price'] for item in cart_items)
 
         subtotal = Decimal(str(subtotal))
@@ -2297,17 +2335,16 @@ class ReviewOrderView(UserPassesTestMixin, View):
             business_email.attach_alternative(business_message, "text/html")
             business_email.send()
 
-
     def send_rejection_emails(self, order):
-        cart_items = self.get_cart_items(order.items.all())
+        # Collect delivery methods from each order item
+        delivery_methods = {str(item.id): item.delivery_method for item in order.items.all()}
+        cart_items = self.get_cart_items(order.items.all(), delivery_methods)
         subtotal = sum(item['item_total_price'] for item in cart_items)
 
-        # Convert all values to Decimal for consistent calculation
         subtotal = Decimal(str(subtotal))
         delivery_fee = order.delivery_fee or Decimal('0')
         setup_packdown_fee = order.setup_packdown_fee or Decimal('0')
 
-        # Calculate the correct total price
         total_price = subtotal + delivery_fee + setup_packdown_fee
         
         customer_subject = f"Order Rejected - {order.ref_code}"
@@ -2373,11 +2410,56 @@ class ReviewOrderView(UserPassesTestMixin, View):
         context = super().get_context_data(**kwargs)
         context['business'] = self.request.user.business
         return context
+    
+    
+    def get_cart_items(self, cart_items, delivery_methods):
+        print("CreateCheckoutSessionView: Entered get_cart_items method")
+        cart_items_data = []
+        domain = settings.SITE_URL  # Get the site URL
+
+        for item in cart_items:
+            is_product = bool(item.product)
+            is_service = bool(item.service)
+
+            # Check if item.variations is a list and extract variations accordingly
+            if isinstance(item.variations, list):
+                variations = [
+                    {
+                        'variation_name': cv.get('variation_name'),
+                        'variation_value': cv.get('variation_value')
+                    }
+                    for cv in item.variations
+                ]
+            else:
+                variations = []
+
+            item_data = {
+                'id': item.id,
+                'item_id': item.product.id if is_product else item.service.id,
+                'item_type': 'product' if is_product else 'service',
+                'hire': item.hire if is_product else True,
+                'hire_duration': item.product.hire_duration if is_product and item.hire else (item.service.hire_duration if is_service else None),
+                'name': item.product.name if is_product else item.service.name,
+                'business_name': item.product.business.business_name if is_product else item.service.business.business_name,
+                'quantity': item.quantity,
+                'price': float(item.price),
+                'item_total_price': float(item.price * item.quantity),
+                'variations': variations,
+                'delivery_method': delivery_methods.get(str(item.id), 'delivery'),
+                'pickup_location': item.product.pickup_location if is_product and item.product.for_pickup else None,
+                'image': f"{domain}{item.product.image.url}" if is_product and item.product.image else (f"{domain}{item.service.image.url}" if is_service and item.service.image else None),
+            }
+            cart_items_data.append(item_data)
+
+            print(f"Cart item data: {cart_items_data[-1]}")  # Debug: Cart item data
+        return cart_items_data
+
 
 class BusinessOrdersView(UserPassesTestMixin, ListView):
     model = Order
     template_name = 'event/business_orders.html'
     context_object_name = 'orders'
+    paginate_by = 9
 
     def test_func(self):
         return hasattr(self.request.user, 'business')
@@ -2391,19 +2473,55 @@ class BusinessOrdersView(UserPassesTestMixin, ListView):
             queryset = queryset.filter(status=status_filter)
         return queryset
 
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        orders_with_totals = []
+        for order in context['orders']:
+            business = self.request.user.business
+            business_total = self.calculate_total_for_business(order, business)
+            delivery_fee = business.price_per_way * 2 if any(item.delivery_method == 'delivery' for item in order.items.filter(
+                models.Q(product__business=business) |
+                models.Q(service__business=business)
+            )) else 0
+            
+            # Correctly access setup_packdown_fee from the related Product or Service
+            setup_packdown_fee = sum(
+                item.product.setup_packdown_fee_amount if item.product and item.product.setup_packdown_fee else
+                item.service.setup_packdown_fee_amount if item.service and item.service.setup_packdown_fee else 0
+                for item in order.items.filter(
+                    models.Q(product__business=business) |
+                    models.Q(service__business=business)
+                )
+            )
+
+            business_total += delivery_fee + setup_packdown_fee
+            orders_with_totals.append((order, business_total))
+
+        context['orders_with_totals'] = orders_with_totals
         context['business'] = self.request.user.business
         context['status_choices'] = Order.STATUS_CHOICES
         context['current_status'] = self.request.GET.get('status', '')
         return context
 
+    def calculate_total_for_business(self, order, business):
+        total = Decimal('0.00')
+        for item in order.items.filter(
+                models.Q(product__business=business) |
+                models.Q(service__business=business)):
+            total += item.price * item.quantity
+        return total
+
 
 class UserOrdersView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         orders = Order.objects.filter(user=request.user).order_by('-created_at')
-        return render(request, 'event/user_orders.html', {'orders': orders})
+        paginator = Paginator(orders, 9)  # 10 orders per page
 
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'event/user_orders.html', {'orders': page_obj})
 
 class UserOrderDetailsView(LoginRequiredMixin, View):
     def get(self, request, order_id, *args, **kwargs):
@@ -2476,6 +2594,85 @@ Customer Email: {email}
         return redirect('user_orders')
 
 
+@login_required
+def create_quote(request, username):
+    print(f"[DEBUG] Entering create_quote view. Username: {username}")
+    print(f"[DEBUG] Request method: {request.method}")
+    
+    recipient = get_object_or_404(CustomUser, username=username)
+    business = Business.objects.filter(seller=request.user).first()
+
+    if not business:
+        print("[DEBUG] No business found for this user")
+        return JsonResponse({'success': False, 'error': 'No business found for this user'})
+
+    if request.method == 'POST':
+        print("[DEBUG] Processing POST request")
+        print(f"[DEBUG] POST data: {request.POST}")
+        
+        form = QuoteForm(request.POST)
+        if form.is_valid():
+            print("[DEBUG] Form is valid")
+            service = form.cleaned_data['service']
+            price = form.cleaned_data['price']
+            
+            # Create the message
+            message = Message.objects.create(
+                sender=request.user,
+                recipient=recipient,
+                business=business,
+                content=f"Quote for {service.name} at ${price}"
+            )
+            print(f"[DEBUG] Message created: {message}")
+            
+            # Create the quote
+            quote = Quote.objects.create(
+                sender=request.user,
+                recipient=recipient,
+                service=service,
+                price=price,
+                message=message
+            )
+            print(f"[DEBUG] Quote created: {quote}")
+            
+            return JsonResponse({'success': True})
+        else:
+            print(f"[DEBUG] Form is invalid. Errors: {form.errors}")
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+    print("[DEBUG] Invalid request method")
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required
+def accept_quote(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id, recipient=request.user)
+    quote.is_accepted = True
+    quote.save()
+    return JsonResponse({'success': True})
+
+
+@login_required
+def add_quote_to_cart(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id)
+    
+    # Check if the quote is for the current user
+    if quote.recipient != request.user:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    # Add the service to the cart with the quoted price
+    cart_item, created = Cart.objects.get_or_create(
+        user=request.user,
+        service=quote.service,
+        defaults={'price': quote.price, 'hire': True}
+    )
+    
+    if not created:
+        cart_item.price = quote.price
+        cart_item.hire = True
+        cart_item.save()
+
+    return JsonResponse({'success': True})
 
 @login_required
 def message_seller(request, business_slug):
@@ -2484,6 +2681,7 @@ def message_seller(request, business_slug):
     if request.method == 'POST':
         content = request.POST.get('content')
         if content:
+            # Create the message
             Message.objects.create(
                 sender=request.user,
                 recipient=business.seller,
@@ -2491,13 +2689,24 @@ def message_seller(request, business_slug):
                 content=content
             )
             
-            # Send email to the business
+            # Get the current site
+            current_site = get_current_site(request)
+            domain = '127.0.0.1:8000'
+            
+            # Prepare email content
             subject = f"New message from {request.user.username}"
-            message = f"{request.user.username} has messaged {business.business_name}"
+            email_body = render_to_string('event/message_notification.html', {
+                'sender': request.user,
+                'recipient': business.seller,
+                'message_content': content,
+                'business': business,
+                'domain': f'http://{domain}'  # Use https if your site uses SSL
+            })
             from_email = settings.DEFAULT_FROM_EMAIL
             recipient_list = [business.email]
             
-            send_mail(subject, message, from_email, recipient_list)
+            # Send email asynchronously
+            send_email_task.delay(subject, email_body, from_email, recipient_list)
             
             return redirect('message_seller', business_slug=business.business_slug)
 
@@ -2510,6 +2719,7 @@ def message_seller(request, business_slug):
     ).filter(business=business).order_by('timestamp')
 
     individual_business_message_counter = Message.objects.filter(recipient=request.user, business=business, is_read=False).count()
+    
     context = {
         'business': business,
         'conversation_messages': conversation_messages,
@@ -2528,6 +2738,7 @@ def message_buyer(request, username):
     if request.method == 'POST':
         content = request.POST.get('content')
         if content:
+            # Create the message
             Message.objects.create(
                 sender=request.user,
                 recipient=user,
@@ -2535,17 +2746,28 @@ def message_buyer(request, username):
                 content=content
             )
             
-            # Send email to the user
+            # Get the current site
+            current_site = get_current_site(request)
+            domain = '127.0.0.1:8000'
+            
+            # Prepare email content
             subject = f"New message from {business.business_name}"
-            message = f"{business.business_name} has messaged you"
+            email_body = render_to_string('event/message_notification.html', {
+                'sender': request.user,
+                'recipient': user,
+                'message_content': content,
+                'business': business,
+                'domain': f'http://{domain}'  # Use https if your site uses SSL
+            })
             from_email = settings.DEFAULT_FROM_EMAIL
             recipient_list = [user.email]
             
-            send_mail(subject, message, from_email, recipient_list)
+            # Send email asynchronously
+            send_email_task.delay(subject, email_body, from_email, recipient_list)
             
             return redirect('message_buyer', username=user.username)
 
-    # Mark messages as read for the current user and buyer
+    # Mark messages as read
     Message.objects.filter(recipient=request.user, sender=user).update(is_read=True)
 
     conversation_messages = Message.objects.filter(
@@ -2553,9 +2775,15 @@ def message_buyer(request, username):
         Q(sender=user, recipient=request.user)
     ).filter(business=business).order_by('timestamp')
 
+    can_create_quote = bool(request.user.business)
+    business_services = business.services.all() if business else []
+
     context = {
         'user': user,
         'conversation_messages': conversation_messages,
+        'business': business,
+        'can_create_quote': can_create_quote,
+        'business_services': business_services,
     }
     return render(request, 'event/message_buyer.html', context)
 
@@ -2609,7 +2837,6 @@ def user_messages_view(request):
                 business_slug = request.POST.get('business_slug')
                 business = get_object_or_404(Business, business_slug=business_slug)
                 if request.user == business.seller:
-                    # Business sending message to user
                     username = request.POST.get('username')
                     if username:
                         recipient = get_object_or_404(CustomUser, username=username)
@@ -2620,17 +2847,25 @@ def user_messages_view(request):
                             content=content
                         )
                         
-                        # Send email to the user
+                        # Get the current site
+                        current_site = get_current_site(request)
+                        domain = '127.0.0.1:8000'
+                        
                         subject = f"New message from {business.business_name}"
-                        message = f"{business.business_name} has messaged you"
+                        email_body = render_to_string('event/message_notification.html', {
+                            'sender': request.user,
+                            'recipient': recipient,
+                            'message_content': content,
+                            'business': business,
+                            'domain': f'http://{domain}'  # Use https if your site uses SSL
+                        })
                         from_email = settings.DEFAULT_FROM_EMAIL
                         recipient_list = [recipient.email]
                         
-                        send_mail(subject, message, from_email, recipient_list)
+                        send_email_task.delay(subject, email_body, from_email, recipient_list)
                         
                         return redirect(f'{request.path}?business_slug={business_slug}&username={username}')
                 else:
-                    # User sending message to business
                     Message.objects.create(
                         sender=request.user,
                         recipient=business.seller,
@@ -2638,13 +2873,22 @@ def user_messages_view(request):
                         content=content
                     )
                     
-                    # Send email to the business
+                    # Get the current site
+                    current_site = get_current_site(request)
+                    domain = '127.0.0.1:8000'
+                    
                     subject = f"New message from {request.user.username}"
-                    message = f"{request.user.username} has messaged {business.business_name}"
+                    email_body = render_to_string('event/message_notification.html', {
+                        'sender': request.user,
+                        'recipient': business.seller,
+                        'message_content': content,
+                        'business': business,
+                        'domain': f'http://{domain}'  # Use https if your site uses SSL
+                    })
                     from_email = settings.DEFAULT_FROM_EMAIL
                     recipient_list = [business.email]
                     
-                    send_mail(subject, message, from_email, recipient_list)
+                    send_email_task.delay(subject, email_body, from_email, recipient_list)
                     
                     return redirect(f'{request.path}?business_slug={business_slug}')
             elif 'username' in request.POST:
@@ -2658,13 +2902,22 @@ def user_messages_view(request):
                     content=content
                 )
                 
-                # Send email to the user
+                # Get the current site
+                current_site = get_current_site(request)
+                domain = current_site.domain
+                
                 subject = f"New message from {business.business_name}"
-                message = f"{business.business_name} has messaged you"
+                email_body = render_to_string('event/message_notification.html', {
+                    'sender': request.user,
+                    'recipient': recipient,
+                    'message_content': content,
+                    'business': business,
+                    'domain': f'http://{domain}'  # Use https if your site uses SSL
+                })
                 from_email = settings.DEFAULT_FROM_EMAIL
                 recipient_list = [recipient.email]
                 
-                send_mail(subject, message, from_email, recipient_list)
+                send_email_task.delay(subject, email_body, from_email, recipient_list)
                 
                 return redirect(f'{request.path}?username={username}')
 
@@ -2678,7 +2931,6 @@ def user_messages_view(request):
         business_slug = request.GET.get('business_slug')
         selected_business = get_object_or_404(Business, business_slug=business_slug)
         if request.user == selected_business.seller:
-            # Query messages for selected_business with selected_user
             username = request.GET.get('username')
             selected_user = get_object_or_404(CustomUser, username=username)
             conversation_messages = Message.objects.filter(
@@ -2716,7 +2968,6 @@ def user_messages_view(request):
         'business_services': business_services,
     }
     return render(request, 'event/user_messages.html', context)
-
 
 def products(request):
     products = Product.objects.all()
@@ -2861,71 +3112,6 @@ def delete_cart_item(request, cart_item_id):
     return redirect('cart')  # Assuming 'cart' is the name of your cart view
 
 
-@login_required
-def create_quote(request, username):
-    recipient = get_object_or_404(CustomUser, username=username)
-    business = Business.objects.filter(seller=request.user).first()
-
-    if not business:
-        return JsonResponse({'success': False, 'error': 'No business found for this user'})
-
-    if request.method == 'POST':
-        form = QuoteForm(request.POST)
-        if form.is_valid():
-            service = form.cleaned_data['service']
-            price = form.cleaned_data['price']
-            
-            # Create the message
-            message = Message.objects.create(
-                sender=request.user,
-                recipient=recipient,  # Send to the intended recipient
-                business=business,
-                content=f"Quote for {service.name} at ${price}"
-            )
-            
-            # Create the quote
-            Quote.objects.create(
-                sender=request.user,
-                recipient=recipient,  # The recipient is the user in the conversation
-                service=service,
-                price=price,
-                message=message
-            )
-            
-            return JsonResponse({'success': True})
-        else:
-            return JsonResponse({'success': False, 'errors': form.errors})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
-
-@login_required
-def accept_quote(request, quote_id):
-    quote = get_object_or_404(Quote, id=quote_id, recipient=request.user)
-    quote.is_accepted = True
-    quote.save()
-    return JsonResponse({'success': True})
-
-
-@login_required
-def add_quote_to_cart(request, quote_id):
-    quote = get_object_or_404(Quote, id=quote_id)
-    
-    # Check if the quote is for the current user
-    if quote.recipient != request.user:
-        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
-    
-    # Add the service to the cart with the quoted price
-    cart_item, created = Cart.objects.get_or_create(
-        user=request.user,
-        service=quote.service,
-        defaults={'price': quote.price}
-    )
-    
-    if not created:
-        cart_item.price = quote.price
-        cart_item.save()
-
-    return JsonResponse({'success': True})
 
 class VenueVendorRegistrationView(View):
     def get(self, request):

@@ -68,12 +68,6 @@
                 <input type="hidden" name="product_id" value="{{ product.id }}">
                 <input type="hidden" name="hire" id="hire" value="false">
                 <div class="variation-section" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    {% if product.for_hire %}
-                        <div class="purchase-hire-selection" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 20px;">
-                            <button type="button" id="purchase-btn" class="btn-selection active" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Purchase</button>
-                            <button type="button" id="hire-btn" class="btn-selection" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Hire</button>
-                        </div>
-                    {% endif %}
 
                     <div class="quantity-selection" id="quantity-container" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
                         <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 0;">
@@ -91,6 +85,14 @@
                             <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="increase-quantity">+</button>
                         </div>
                     </div>
+
+
+                    {% if product.for_hire %}
+                        <div class="purchase-hire-selection" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 20px;">
+                            <button type="button" id="purchase-btn" class="btn-selection active" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Purchase</button>
+                            <button type="button" id="hire-btn" class="btn-selection" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Hire</button>
+                        </div>
+                    {% endif %}
 
                     {% for variation in variations %}
                     <div class="variation" style="margin-bottom: 15px;">
@@ -155,7 +157,7 @@
                     <img src="{{ business.profile_picture.url }}" alt="{{ business.business_name }}" style="width: 50px; height: 50px; border-radius: 25px; margin-right: 10px;">
                     <span>Listed by <strong><a href="{% url 'business_detail' business.business_slug %}" style="text-decoration: none; color: #710919;">{{ business.business_name }}</a></strong></span>
                 </div>
-                <a href="{% url 'business_detail' business.business_slug %}"><button style="padding: 10px 20px; background-color: #f0f0f0; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">View Profile</button></a>
+                <a href="{% url 'business_detail' business.business_slug %}"><button style="padding: 10px 20px; color: black; background-color: #f0f0f0; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">View Profile</button></a>
             </div>
         </div>
     </div>
@@ -192,7 +194,7 @@
             <button type="submit" class="btn-selection active" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Submit Review</button>
         </form>
         {% else %}
-        <p style="margin-top: 30px;">You need to <a href="{% url 'login' %}" style="color: #2563eb; text-decoration: underline;">login</a> to submit a review.</p>
+        <p style="margin-top: 30px;">You need to <a href="{% url 'login' %}" style="color: black; text-decoration: none;">login</a> to submit a review.</p>
         {% endif %}
     </div>
 

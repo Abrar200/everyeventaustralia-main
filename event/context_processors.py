@@ -72,22 +72,44 @@ def unread_message_count(request):
     return {
         'unread_message_count': unread_count,
     }
-    
-
-
-
-
-def business_order_count(request):
-    order_count = 0
-    if request.user.is_authenticated and hasattr(request.user, 'business'):
-        business = request.user.business
-        order_count = Order.objects.filter(items__product__business=business, order_status='ordered').distinct().count()
-    return {'business_order_count': order_count}
-
-
 
 def popular_products(request):
     popular_products = Product.objects.filter(is_popular=True)
     return {
         'popular_products': popular_products
     }
+
+def business_order_count(request):
+    order_count = 0
+    pending_order_count = 0
+
+    if request.user.is_authenticated and hasattr(request.user, 'business'):
+        business = request.user.business
+        
+        # Update the query to ensure it correctly matches the business's products or services in the order items
+        order_count = Order.objects.filter(
+            items__product__business=business, 
+            order_status='ordered'
+        ).distinct().count()
+
+        pending_order_count = Order.objects.filter(
+            items__product__business=business, 
+            status='pending'
+        ).distinct().count()
+
+        # Also check for services associated with the business
+        pending_order_count += Order.objects.filter(
+            items__service__business=business,
+            status='pending'
+        ).distinct().count()
+
+        print(f"User: {request.user.username}")
+        print(f"Business: {business.business_name}")
+        print(f"Order Count: {order_count}")
+        print(f"Pending Order Count: {pending_order_count}")
+
+    return {
+        'business_order_count': order_count,
+        'pending_order_count': pending_order_count,
+    }
+
