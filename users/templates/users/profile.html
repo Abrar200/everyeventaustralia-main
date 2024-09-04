@@ -1,0 +1,41 @@
+{% extends "event/base.html" %}
+{% load static %}
+{% block content %}
+<section style="max-width: 400px; margin: 50px auto 0; margin-top: 100px; padding: 10px;">
+    <h1 style="text-align: center; font-size: 32px; margin-bottom: 5px; font-weight: normal;">User Profile</h1>
+    <p style="text-align: center; font-size: 14px; color: #666; margin-bottom: 20px;">Update your profile information</p>
+    
+    <form method="post" action="{% url 'profile' username=user.username %}" style="margin-bottom: 20px;">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label for="first_name" style="display: block; margin-bottom: 5px; font-weight: bold;">First Name:</label>
+            <input type="text" id="first_name" name="first_name" value="{{ first_name }}" required
+                   style="width: 100%; padding: 10px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label for="last_name" style="display: block; margin-bottom: 5px; font-weight: bold;">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" value="{{ last_name }}" required
+                   style="width: 100%; padding: 10px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label for="email" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+            <input type="email" id="email" name="email" value="{{ email }}" required
+                   style="width: 100%; padding: 10px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="submit" 
+                    style="width: 150px; padding: 10px; background-color: #710919; color: white; border: none; font-size: 16px; cursor: pointer;">
+                Update Profile
+            </button>
+        </div>
+    </form>
+    
+    <p style="text-align: center; font-size: 16px; margin-bottom: 10px;">Need to change your password?</p>
+    <div style="text-align: center;">
+        <a href="{% url 'reset_password' %}" 
+           style="display: inline-block; width: 150px; padding: 10px; background-color: #710919; color: white; text-align: center; text-decoration: none; font-size: 16px;">
+            Reset Password
+        </a>
+    </div>
+</section>
+{% endblock content %}

@@ -48,8 +48,33 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'django.contrib.sites',
     'celery',
+    'background_task',
+    'django_ckeditor_5',
+    'nested_admin',
 ]
 
+
+# CKEditor 5 configuration
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                    'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', '|',
+                    'undo', 'redo'],
+        'height': 300,
+        'width': '100%',
+    }
+}
+
+# CKEditor 5 upload configurations
+CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+CKEDITOR_5_UPLOAD_PATH = "uploads/"  # This path is relative to MEDIA_ROOT
+CKEDITOR_5_CUSTOM_UPLOAD = None
+CKEDITOR_5_CONFIGS['default']['simpleUpload'] = {
+    "uploadUrl": "/ckeditor5/image_upload/"
+}
+
+
+BACKGROUND_TASK_RUN_ASYNC = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -137,18 +162,13 @@ EMAIL_HOST_PASSWORD = "htvqrrnevbcyccku"
 DEFAULT_FROM_EMAIL = "missamaniaesthetics@gmail.com"
 
 
-# Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 # Stripe settings
 STRIPE_SECRET_KEY = 'sk_test_51P4gElP9SsicgG1jiHrOYu86MB4PNBRKMTxSgCHrCpPGaWrs68tkgtsUMx8CBZ7Nv0BXd9nFMAyuia4mSEo60Tdj00iH6Li1dk'
 STRIPE_PUBLIC_KEY = 'pk_test_51P4gElP9SsicgG1jB3b9vewTDC2pbRh3YOUKAaavO88BIFyqQgIg3FJzmy9NDwitrtwS8BXHUYhG2R2WtuuqfLFw00ZdmOuvHt'
+STRIPE_ANNUAL_SUBSCRIPTION_PRICE_ID = 'price_1Pp4v0P9SsicgG1jJvpTvrPK'
 
 
 LOGGING = {

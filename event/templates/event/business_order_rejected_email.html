@@ -7,21 +7,21 @@
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #f5f5f5;">
     <div style="background-color: white; padding: 20px; border: 1px solid #ddd;">
         <header style="margin-bottom: 20px;">
-            <img src="{{ request.build_absolute_uri }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
+            <img src="{{ domain }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
         </header>
 
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ request.build_absolute_uri }}{% static 'event/images/order_rejected.png' %}" alt="Order Status" style="width: 80%; max-width: 400px;">
+            <img src="{{ domain }}{% static 'event/images/order_rejected.png' %}" alt="Order Status" style="width: 80%; max-width: 400px;">
         </div>
         
         <h1 style="font-size: 24px; margin-bottom: 5px;">Order Rejected</h1>
         <p style="margin-bottom: 20px;">Order Reference: #{{ order.ref_code }}</p>
         
         <p style="margin-bottom: 20px;">Dear {{ business.business_name }},<br>
-        This email is to confirm that the order has been rejected. The customer has been notified and a full refund has been processed.</p>
+        This email is to confirm that your part of the order has been rejected. The customer will be notified and a refund will be processed for the items you've rejected.</p>
         
         <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
-            <h2 style="margin: 0; font-size: 18px;">Order Information</h2>
+            <h2 style="margin: 0; font-size: 18px;">Rejected Items</h2>
         </div>
         
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white;">
@@ -33,22 +33,16 @@
                     </td>
                     <td style="padding: 10px;">
                         <strong>{{ item.name }}</strong>
-                        {% if item.item_type == 'service' or item.hire %}
+                        {% if item.hire %}
                             (Hire)
                         {% endif %}
                         <br>
-                        {% if item.item_type == 'service' %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% elif item.hire %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% else %}
-                            Quantity: {{ item.quantity }}
-                        {% endif %}
+                        Quantity: {{ item.quantity }}
                         {% for variation in item.variations %}
                             <br>{{ variation.variation_name }}: {{ variation.variation_value }}
                         {% endfor %}
                     </td>
-                    <td style="padding: 10px; text-align: right;">${{ item.item_total_price }}</td>
+                    <td style="padding: 10px; text-align: right;">${{ item.price }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -75,6 +69,26 @@
                 </tr>
             </tfoot>
         </table>
+
+        <div style="background-color: white; padding: 10px; margin-bottom: 20px;">
+            <h3 style="margin-bottom: 5px;">Customer details</h3>
+            <p style="margin: 0;">{{ order.user.first_name }} {{ order.user.last_name }}<br>
+            {{ order.user.email }}<br>
+
+            <h3 style="margin: 15px 0 5px;">Event details</h3>
+            <p style="margin: 0;">
+                Date: {{ order.event_date }}<br>
+                Time: {{ order.event_time|time:"h:i A" }}<br>
+                Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}
+            </p>
+
+            {% if order.note %}
+                <h3 style="margin: 15px 0 5px;">Order Notes</h3>
+                <p style="margin: 0;">{{ order.note }}</p>
+            {% endif %}
+        </div>
+
+        <p style="margin-top: 20px;">If you have any questions about this rejection or need to discuss it further, please contact our support team.</p>
     </div>
     
     <p style="text-align: center; margin: 20px 0;">Got a question? Email us at info@everyeventaus.com.au</p>

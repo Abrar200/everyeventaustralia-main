@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>Order Status Update</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #f5f5f5;">
+    <div style="background-color: white; padding: 20px; border: 1px solid #ddd;">
+        <header style="margin-bottom: 20px;">
+            <img src="{{ domain }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
+        </header>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ domain }}{% static 'event/images/order_status_update.png' %}" alt="Order Status Update" style="width: 80%; max-width: 400px;">
+        </div>
+
+        <h1 style="font-size: 24px; margin-bottom: 5px;">Order Status Update</h1>
+        <p style="margin-bottom: 20px;">Order number: #{{ order.ref_code }}</p>
+
+        <p style="margin-bottom: 20px;">Hi {{ order.user.first_name }},<br>
+        We have an update on your order. Please see the details below:</p>
+
+        {% if approved_items %}
+            <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
+                <h2 style="margin: 0; font-size: 18px;">Approved Items</h2>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white;">
+                <tbody>
+                    {% for item in approved_items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">
+                            {% if item.product %}
+                                <strong>{{ item.product.name }}</strong>
+                            {% elif item.service %}
+                                <strong>{{ item.service.name }}</strong>
+                            {% else %}
+                                <strong>Unnamed Item</strong>
+                            {% endif %}
+                            {% if item.hire %}
+                                (Hire)
+                            {% endif %}
+                            <br>
+                            Quantity: {{ item.quantity }}
+                        </td>
+                        <td style="padding: 10px; text-align: right;">${{ item.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if rejected_items %}
+            <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
+                <h2 style="margin: 0; font-size: 18px;">Rejected Items (Refunded)</h2>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white;">
+                <tbody>
+                    {% for item in rejected_items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">
+                            {% if item.product %}
+                                <strong>{{ item.product.name }}</strong>
+                            {% elif item.service %}
+                                <strong>{{ item.service.name }}</strong>
+                            {% else %}
+                                <strong>Unnamed Item</strong>
+                            {% endif %}
+                            {% if item.hire %}
+                                (Hire)
+                            {% endif %}
+                            <br>
+                            Quantity: {{ item.quantity }}
+                        </td>
+                        <td style="padding: 10px; text-align: right;">${{ item.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if pending_items %}
+            <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
+                <h2 style="margin: 0; font-size: 18px;">Pending Items</h2>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white;">
+                <tbody>
+                    {% for item in pending_items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">
+                            {% if item.product %}
+                                <strong>{{ item.product.name }}</strong>
+                            {% elif item.service %}
+                                <strong>{{ item.service.name }}</strong>
+                            {% else %}
+                                <strong>Unnamed Item</strong>
+                            {% endif %}
+                            {% if item.hire %}
+                                (Hire)
+                            {% endif %}
+                            <br>
+                            Quantity: {{ item.quantity }}
+                        </td>
+                        <td style="padding: 10px; text-align: right;">${{ item.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 18px;">Order Summary</h2>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white;">
+            <tr>
+                <td style="padding: 10px;">Total Approved:</td>
+                <td style="padding: 10px; text-align: right;">${{ total_approved|floatformat:2 }}</td>
+            </tr>
+            {% if total_rejected > 0 %}
+            <tr>
+                <td style="padding: 10px;">Total Rejected (Refunded):</td>
+                <td style="padding: 10px; text-align: right;">${{ total_rejected|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% if total_pending > 0 %}
+            <tr>
+                <td style="padding: 10px;">Total Pending:</td>
+                <td style="padding: 10px; text-align: right;">${{ total_pending|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% if afterpay_fee > 0 %}
+            <tr>
+                <td style="padding: 10px;">Afterpay Fee (Non-refundable):</td>
+                <td style="padding: 10px; text-align: right;">${{ afterpay_fee|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td style="padding: 10px;">Total Charged:</td>
+                <td style="padding: 10px; text-align: right;">${{ total_charged|floatformat:2 }}</td>
+            </tr>
+            {% if total_refunded > 0 %}
+            <tr>
+                <td style="padding: 10px;">Total Refunded:</td>
+                <td style="padding: 10px; text-align: right;">${{ total_refunded|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td style="padding: 10px;"><strong>Final Total:</strong></td>
+                <td style="padding: 10px; text-align: right;"><strong>${{ final_total|floatformat:2 }}</strong></td>
+            </tr>
+        </table>
+
+        <p style="margin-top: 20px;">If you have any questions about this update, please don't hesitate to contact us.</p>
+    </div>
+
+    <p style="text-align: center; margin: 20px 0;">Got a question? Email us at info@everyeventaus.com.au</p>
+
+    <div style="text-align: center; font-size: 12px;">
+        <a href="{% url 'privacy_policy' %}" style="color: #333; text-decoration: none; margin: 0 10px;">PRIVACY POLICY</a>
+        <a href="{% url 'home' %}" style="color: #333; text-decoration: none; margin: 0 10px;">VISIT US</a>
+        <a href="{% url 'terms_and_conditions' %}" style="color: #333; text-decoration: none; margin: 0 10px;">TERMS OF USE</a>
+    </div>
+</body>
+</html>

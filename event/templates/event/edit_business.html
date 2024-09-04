@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block slider %}
-
 {% endblock slider %}
 
 {% block content %}
@@ -13,9 +12,26 @@
                 <div id="contact-form-holder">
                     <form method="post" id="contact-form" action="{% url 'edit_business' business.business_slug %}" enctype="multipart/form-data">
                         {% csrf_token %}
+                        
+                        <!-- Business Name and States -->
                         <div class="row margin-b24 mt-3">
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <input type="text" name="business_name" class="comm-field" placeholder="Business Name" value="{{ business.business_name }}" required/>
+                            </div>
+                            <!-- Description, Address, Phone, Email -->
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <textarea name="description" class="comm-field" placeholder="Description" required>{{ business.description }}</textarea>
+                            </div>
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <input type="text" id="address-input" name="address" class="comm-field" placeholder="Start typing your address" required value="{{ business.address }}"/>
+                                <input type="hidden" id="latitude" name="latitude" value="{{ business.latitude }}">
+                                <input type="hidden" id="longitude" name="longitude" value="{{ business.longitude }}">
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <input type="tel" name="phone" class="comm-field" placeholder="Phone" value="{{ business.phone }}" required/>
+                            </div>
+                            <div class="col-md-6 margin-bm24 mt-3">
+                                <input type="email" name="email" class="comm-field" placeholder="Email" value="{{ business.email }}" required/>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label>States:</label><br>
@@ -39,6 +55,7 @@
                                 {% endfor %}
                             </div>
 
+                            <!-- Terms and Conditions -->
                             <div class="col-md-12 margin-bm24 mt-3">
                                 <h3>Terms and Conditions</h3>
                                 <textarea name="terms_and_conditions" class="comm-field" placeholder="Enter your business terms and conditions">{{ business.terms_and_conditions }}</textarea>
@@ -55,16 +72,52 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 margin-bm24 mt-3">
-                                <h3>Delivery Radius (in km)</h3>
-                                <input type="number" name="delivery_radius" class="comm-field" min="1" max="100" placeholder="Enter delivery radius in kilometers" value="{{ business.delivery_radius }}">
+                            <!-- Delivery Options -->
+                            <div class="col-md-12 margin-bm24 mt-3">
+                                <label for="delivery_type">Select Delivery Type:</label><br>
+                                <input type="radio" name="delivery_type" value="price_per_way" id="delivery_price_per_way" {% if business.delivery_type == 'price_per_way' %}checked{% endif %} onclick="toggleDeliveryFields('price_per_way')">
+                                <label for="delivery_price_per_way">Delivery Price Per Way</label><br>
+                                <input type="radio" name="delivery_type" value="by_radius" id="delivery_by_radius" {% if business.delivery_type == 'by_radius' %}checked{% endif %} onclick="toggleDeliveryFields('by_radius')">
+                                <label for="delivery_by_radius">Delivery By Radius</label>
                             </div>
 
-                            <div class="col-md-6 margin-bm24 mt-3">
-                                <h3>Price Per Way</h3>
-                                <input type="number" name="price_per_way" class="comm-field" min="0" placeholder="Enter price per way" value="{{ business.price_per_way }}">
+                            <!-- Delivery Price Per Way Fields -->
+                            <div id="delivery_price_per_way_fields" style="display: {% if business.delivery_type == 'price_per_way' %}block{% else %}none{% endif %};">
+                                <div class="row margin-b24 mt-3">
+                                    <div class="col-md-6 margin-bm24 mt-3">
+                                        <label for="max_delivery_distance">Maximum Delivery Distance (km):</label>
+                                        <input type="number" name="max_delivery_distance" id="max_delivery_distance" class="comm-field" min="1" placeholder="Enter maximum delivery distance in kilometers" value="{{ business.max_delivery_distance }}">
+                                        <small class="form-text text-muted">Specify the maximum distance you are willing to deliver.</small>
+                                    </div>
+                                    <div class="col-md-6 margin-bm24 mt-3">
+                                        <label for="delivery_price_per_way">Price Per Way (A$):</label>
+                                        <input type="number" name="delivery_price_per_way" id="delivery_price_per_way" class="comm-field" min="0" placeholder="Enter delivery fee per way" value="{{ business.delivery_price_per_way }}">
+                                        <small class="form-text text-muted">Enter the delivery fee per way. The total delivery fee will be twice this amount for a round trip.</small>
+                                    </div>
+                                </div>
                             </div>
 
+                            <!-- Delivery By Radius Fields -->
+                            <div id="delivery_by_radius_fields" style="display: {% if business.delivery_type == 'by_radius' %}block{% else %}none{% endif %};">
+                                <div id="radius-fields-container">
+                                    {% for radius in delivery_radius_options %}
+                                    <div class="row margin-b24 mt-3 radius-field" data-id="{{ radius.id }}">
+                                        <div class="col-md-6 margin-bm24">
+                                            <label for="delivery_radius_{{ radius.id }}">Delivery Radius (km):</label>
+                                            <input type="number" name="delivery_radius" class="comm-field" min="1" placeholder="Enter delivery radius in kilometers" value="{{ radius.radius }}">
+                                        </div>
+                                        <div class="col-md-6 margin-bm24">
+                                            <label for="delivery_radius_price_{{ radius.id }}">Price (A$):</label>
+                                            <input type="number" name="delivery_radius_price" class="comm-field" min="0" placeholder="Enter delivery fee for this radius" value="{{ radius.price }}">
+                                            <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeRadiusField(this)">Remove</button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" onclick="addRadiusField()" class="btn btn-secondary mt-3">Add More</button>
+                            </div>
+
+                            <!-- Awards Section -->
                             <div class="col-md-12 margin-bm24 mt-3">
                                 <h3>Awards</h3>
                                 <div id="awards-container">
@@ -82,20 +135,7 @@
                                 <button type="button" onclick="addAwardField()" class="btn btn-secondary mt-3">Add Another Award</button>                                
                             </div>
 
-                            <div class="col-md-12 margin-bm24 mt-3">
-                                <textarea name="description" class="comm-field" placeholder="Description" required>{{ business.description }}</textarea>
-                            </div>
-                            <div class="col-md-12 margin-bm24 mt-3">
-                                <input type="text" id="address-input" name="address" class="comm-field" placeholder="Start typing your address" required value="{{ business.address }}"/>
-                                <input type="hidden" id="latitude" name="latitude" value="{{ business.latitude }}">
-                                <input type="hidden" id="longitude" name="longitude" value="{{ business.longitude }}">
-                            </div>
-                            <div class="col-md-6 margin-bm24 mt-3">
-                                <input type="tel" name="phone" class="comm-field" placeholder="Phone" value="{{ business.phone }}" required/>
-                            </div>
-                            <div class="col-md-6 margin-bm24 mt-3">
-                                <input type="email" name="email" class="comm-field" placeholder="Email" value="{{ business.email }}" required/>
-                            </div>
+                            <!-- Profile Picture and Banner Image -->
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="profile_picture">Profile Picture:</label>
                                 <div class="custom-file">
@@ -122,7 +162,7 @@
                                     </label>
                                 </div>
                             </div>
-                            
+
                             <!-- Opening Hours -->
                             <div class="col-md-12 margin-bm24 mt-3">
                                 <h3>Opening Hours</h3>
@@ -155,45 +195,19 @@
                                 {% endfor %}
                             </div>
                         </div>
+
+                        <!-- Submit Button -->
                         <p><input type="submit" value="Update Business" id="submit" class="btn btn-primary"/></p>
                     </form>
                 </div>
-                <!-- contact-form-holder-->
-                <div id="output-contact"></div>
             </div>
-            <!-- /col-lg-12 -->
         </div>
-        <!-- /row -->
     </div>
-    <!-- /container -->
 </section>
-<!-- /SECTION 1-->
 
+<!-- JavaScript -->
 <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
 <script>
-    function toggleOpeningClosingFields(day) {
-        const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
-        const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
-        const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
-    
-        if (isClosedCheckbox.checked) {
-            openingTimeField.disabled = true;
-            closingTimeField.disabled = true;
-            openingTimeField.value = '';
-            closingTimeField.value = '';
-        } else {
-            openingTimeField.disabled = false;
-            closingTimeField.disabled = false;
-        }
-    }
-    
-    window.addEventListener('load', function() {
-        const days = {{ day_choices|safe }};
-        days.forEach(day => {
-            toggleOpeningClosingFields(day[0]);
-        });
-    });
-
     function initAutocomplete() {
         var input = document.getElementById('address-input');
         var autocomplete = new google.maps.places.Autocomplete(input, {
@@ -215,6 +229,53 @@
 
     google.maps.event.addDomListener(window, 'load', initAutocomplete);
 
+    function toggleDeliveryFields(type) {
+        const pricePerWayFields = document.getElementById('delivery_price_per_way_fields');
+        const byRadiusFields = document.getElementById('delivery_by_radius_fields');
+        const maxDeliveryDistanceInput = document.getElementById('max_delivery_distance');
+        const deliveryPricePerWayInput = document.getElementById('delivery_price_per_way');
+        const radiusInputs = document.querySelectorAll('input[name="delivery_radius"]');
+        const radiusPriceInputs = document.querySelectorAll('input[name="delivery_radius_price"]');
+    
+        if (type === 'price_per_way') {
+            pricePerWayFields.style.display = 'block';
+            byRadiusFields.style.display = 'none';
+            maxDeliveryDistanceInput.required = true;
+            deliveryPricePerWayInput.required = true;
+            radiusInputs.forEach(input => input.required = false);
+            radiusPriceInputs.forEach(input => input.required = false);
+        } else if (type === 'by_radius') {
+            pricePerWayFields.style.display = 'none';
+            byRadiusFields.style.display = 'block';
+            maxDeliveryDistanceInput.required = false;
+            deliveryPricePerWayInput.required = false;
+            radiusInputs.forEach(input => input.required = true);
+            radiusPriceInputs.forEach(input => input.required = true);
+        }
+    }
+
+    function addRadiusField() {
+        const container = document.getElementById('radius-fields-container');
+        const div = document.createElement('div');
+        div.className = 'row margin-b24 mt-3 radius-field';
+        div.innerHTML = `
+            <div class="col-md-6 margin-bm24">
+                <label for="delivery_radius">Delivery Radius (km):</label>
+                <input type="number" name="delivery_radius" class="comm-field" min="1" placeholder="Enter delivery radius in kilometers">
+            </div>
+            <div class="col-md-6 margin-bm24">
+                <label for="delivery_radius_price">Price (A$):</label>
+                <input type="number" name="delivery_radius_price" class="comm-field" min="0" placeholder="Enter delivery fee for this radius">
+                <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeRadiusField(this)">Remove</button>
+            </div>`;
+        container.appendChild(div);
+    }
+
+    function removeRadiusField(button) {
+        const field = button.closest('.radius-field');
+        field.remove();
+    }
+
     function addAwardField() {
         const container = document.getElementById('awards-container');
         const div = document.createElement('div');
@@ -222,8 +283,14 @@
         div.innerHTML = `
             <input type="file" name="awards" class="custom-file-input">
             <label class="custom-file-label">Choose file</label>
+            <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeAwardField(this)">Remove</button>
         `;
         container.appendChild(div);
+    }
+
+    function removeAwardField(button) {
+        const field = button.closest('.custom-file');
+        field.remove();
     }
 
     function removeAward(awardId) {
@@ -231,7 +298,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({ 'award_id': awardId })
         }).then(response => {
@@ -245,34 +312,102 @@
         });
     }
 
-    // Update file input labels
-    document.querySelectorAll('.custom-file-input').forEach(fileInput => {
-        fileInput.addEventListener('change', function (e) {
-            var fileName = e.target.files[0].name;
-            var nextSibling = e.target.nextElementSibling;
-            nextSibling.innerText = fileName;
-        });
-    });
-
-    // Form validation
-    document.getElementById('contact-form').addEventListener('submit', function(event) {
-        const days = {{ day_choices|safe }};
+    function validateOpeningHours() {
+        const container = document.querySelector('.col-md-12.margin-bm24.mt-3:has(h3:contains("Opening Hours"))');
+        const rows = container.querySelectorAll('.row.mt-3');
         let isValid = true;
 
-        days.forEach(day => {
-            const openingTime = document.getElementById(`opening_hours-${day[0]}-opening_time`);
-            const closingTime = document.getElementById(`opening_hours-${day[0]}-closing_time`);
-            const isClosed = document.getElementById(`opening_hours-${day[0]}-is_closed`);
-
-            if (!isClosed.checked && (!openingTime.value || !closingTime.value)) {
+        rows.forEach(row => {
+            const openingTime = row.querySelector('input[name$="-opening_time"]');
+            const closingTime = row.querySelector('input[name$="-closing_time"]');
+            const closedCheckbox = row.querySelector('input[name$="-is_closed"]');
+            
+            if (!closedCheckbox.checked && (!openingTime.value || !closingTime.value)) {
                 isValid = false;
-                alert(`Please fill both opening and closing time for ${day[1]} or mark it as closed.`);
             }
         });
 
-        if (!isValid) {
-            event.preventDefault();
+        return isValid;
+    }
+
+    function toggleOpeningClosingFields(day) {
+        const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
+        const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
+        const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
+    
+        if (isClosedCheckbox.checked) {
+            openingTimeField.value = '';
+            closingTimeField.value = '';
+            openingTimeField.disabled = true;
+            closingTimeField.disabled = true;
+        } else {
+            openingTimeField.disabled = false;
+            closingTimeField.disabled = false;
         }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const days = {{ day_choices|safe }};
+        days.forEach(day => {
+            toggleOpeningClosingFields(day[0]);
+            const isClosedCheckbox = document.getElementById(`opening_hours-${day[0]}-is_closed`);
+            isClosedCheckbox.addEventListener('change', () => toggleOpeningClosingFields(day[0]));
+        });
+
+        document.querySelectorAll('.custom-file-input').forEach(fileInput => {
+            fileInput.addEventListener('change', function (e) {
+                var fileName = e.target.files[0].name;
+                var nextSibling = e.target.nextElementSibling;
+                nextSibling.innerText = fileName;
+            });
+        });
+
+        document.getElementById('contact-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (!validateOpeningHours()) {
+                alert('Please ensure all opening hours are filled out correctly for each day.');
+                return;
+            }
+
+            const formData = new FormData(this);
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = "{% url 'business_detail' business.business_slug %}";
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form.');
+            });
+        });
     });
 </script>
 {% endblock content %}

@@ -10,7 +10,7 @@
         <div class="row">
             <div class="col-lg-12">
                 <div id="contact-form-holder">
-                    <form method="post" id="contact-form" action="{% url 'business_registration' %}" enctype="multipart/form-data">
+                    <form method="post" id="contact-form" action="{% url 'business_registration' %}" enctype="multipart/form-data" onsubmit="return validateOpeningHours();">
                         {% csrf_token %}
 
                         <!-- Introductory Section -->
@@ -77,7 +77,10 @@
                                     <input type="password" name="confirm_password" class="comm-field" placeholder="Confirm Password" required/>
                                 </div>
                             </div>
-                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(1)">Next</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" style="background-color: #707070; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="prevSection(1)">Back</button>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(1)">Next</button>
+                            </div>
                         </div>
                         
                         <!-- Section 2: Business Information -->
@@ -90,7 +93,7 @@
                                 <div class="col-md-6 margin-bm24">
                                     <textarea name="description" class="comm-field" placeholder="Description" required></textarea>
                                 </div>
-                                <div class="col-md-12 margin-bm24 mt-3">
+                                <div class="col-md-6 margin-bm24 mt-3">
                                     <input type="text" id="address-input" name="address" class="comm-field" placeholder="Start typing your address" required/>
                                     <input type="hidden" id="latitude" name="latitude">
                                     <input type="hidden" id="longitude" name="longitude">
@@ -107,7 +110,10 @@
                                     <input type="file" name="banner_image" id="banner_image" class="comm-field"/>
                                 </div>
                             </div>
-                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(2)">Next</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" style="background-color: #707070; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="prevSection(2)">Back</button>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(2)">Next</button>
+                            </div>
                         </div>
                         
                         <!-- Section 3: Location and Contact Information -->
@@ -133,7 +139,10 @@
                                     {% endfor %}
                                 </div>
                             </div>
-                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(3)">Next</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" style="background-color: #707070; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="prevSection(3)">Back</button>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(3)">Next</button>
+                            </div>
                         </div>
 
                         <!-- Section 4: Terms and Conditions -->
@@ -146,22 +155,63 @@
                                     <input type="file" name="terms_and_conditions_pdf" class="comm-field" accept="application/pdf">
                                 </div>
                             </div>
-                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(4)">Next</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" style="background-color: #707070; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="prevSection(4)">Back</button>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(4)">Next</button>
+                            </div>
                         </div>
 
                         <!-- Section 5: Delivery and Awards -->
                         <div class="form-section" data-section="5" style="display: none;">
                             <h3>Delivery and Awards</h3>
+                            
+                            <!-- Delivery Type Selection -->
                             <div class="row margin-b24">
                                 <div class="col-md-12 margin-bm24 mt-3">
-                                    <h3>Delivery Radius (in km)</h3>
-                                    <input type="number" name="delivery_radius" class="comm-field" min="1" max="100" placeholder="Enter delivery radius in kilometers">
+                                    <label for="delivery_type">Select Delivery Type:</label><br>
+                                    <input type="radio" name="delivery_type" value="price_per_way" id="delivery_price_per_way" onclick="toggleDeliveryFields('price_per_way')">
+                                    <label for="delivery_price_per_way">Delivery Price Per Way</label><br>
+                                    <input type="radio" name="delivery_type" value="by_radius" id="delivery_by_radius" onclick="toggleDeliveryFields('by_radius')">
+                                    <label for="delivery_by_radius">Delivery By Radius</label>
                                 </div>
-                                <div class="col-md-12 margin-bm24 mt-3">
-                                    <h3>Price per Way</h3>
-                                    <input type="number" name="price_per_way" class="comm-field" min="0">
-                                    <small class="form-text text-muted">Enter the delivery fee per way. The total fee will be twice this amount for a round trip.</small>
+                            </div>
+                            
+                            <!-- Delivery Price Per Way Fields -->
+                            <div id="delivery_price_per_way_fields" style="display: none;">
+                                <div class="row margin-b24">
+                                    <div class="col-md-12 margin-bm24 mt-3">
+                                        <label for="max_delivery_distance">Maximum Delivery Distance (km):</label>
+                                        <input type="number" name="max_delivery_distance" id="max_delivery_distance" class="comm-field" min="1" placeholder="Enter maximum delivery distance in kilometers">
+                                        <small class="form-text text-muted">Specify the maximum distance you are willing to deliver.</small>
+                                    </div>
+                                    <div class="col-md-12 margin-bm24 mt-3">
+                                        <label for="delivery_price_per_way">Price Per Way (A$):</label>
+                                        <input type="number" name="delivery_price_per_way" id="delivery_price_per_way" class="comm-field" min="0" placeholder="Enter delivery fee per way">
+                                        <small class="form-text text-muted">Enter the delivery fee per way. The total delivery fee will be twice this amount for a round trip.</small>
+                                    </div>
                                 </div>
+                            </div>
+                            
+                            
+                            <!-- Delivery By Radius Fields -->
+                            <div id="delivery_by_radius_fields" style="display: none;">
+                                <div id="radius-fields-container">
+                                    <div class="row margin-b24 mt-3" id="radius-field-template">
+                                        <div class="col-md-6 margin-bm24">
+                                            <label for="delivery_radius">Delivery Radius (km):</label>
+                                            <input type="number" name="delivery_radius" class="comm-field" min="1" placeholder="Enter delivery radius in kilometers">
+                                        </div>
+                                        <div class="col-md-6 margin-bm24">
+                                            <label for="delivery_radius_price">Price (A$):</label>
+                                            <input type="number" name="delivery_radius_price" class="comm-field" min="0" placeholder="Enter delivery fee for this radius">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addRadiusField()" class="btn btn-secondary mt-3">Add More</button>
+                            </div>
+                            
+                            <!-- Awards Section -->
+                            <div class="row margin-b24 mt-3">
                                 <div class="col-md-12 margin-bm24 mt-3">
                                     <h3>Awards</h3>
                                     <div id="awards-container">
@@ -170,9 +220,51 @@
                                     <button type="button" onclick="addAwardField()" class="btn btn-secondary mt-3">Add Another Award</button>
                                 </div>
                             </div>
-                            <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(5)">Next</button>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" style="background-color: #707070; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="prevSection(5)">Back</button>
+                                <button type="button" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease;" onclick="nextSection(5)">Next</button>
+                            </div>
                         </div>
 
+                        <script>
+                            function toggleDeliveryFields(selectedType) {
+                                document.getElementById('delivery_price_per_way_fields').style.display = selectedType === 'price_per_way' ? 'block' : 'none';
+                                document.getElementById('delivery_by_radius_fields').style.display = selectedType === 'by_radius' ? 'block' : 'none';
+                            }
+
+                            function addRadiusField() {
+                                const container = document.getElementById('radius-fields-container');
+                                const newField = document.createElement('div');
+                                newField.className = 'row margin-b24 mt-3';
+                                newField.innerHTML = `
+                                    <div class="col-md-6 margin-bm24">
+                                        <label for="delivery_radius">Delivery Radius (km):</label>
+                                        <input type="number" name="delivery_radius" class="comm-field" min="1" placeholder="Enter delivery radius in kilometers">
+                                    </div>
+                                    <div class="col-md-6 margin-bm24">
+                                        <label for="delivery_radius_price">Price (A$):</label>
+                                        <input type="number" name="delivery_radius_price" class="comm-field" min="0" placeholder="Enter delivery fee for this radius">
+                                        <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeRadiusField(this)">Remove</button>
+                                    </div>`;
+                                container.appendChild(newField);
+                            }
+
+
+                            function removeRadiusField(button) {
+                                const field = button.closest('.row');
+                                field.remove();
+                            }
+
+                            function addAwardField() {
+                                const container = document.getElementById('awards-container');
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.name = 'awards';
+                                input.className = 'comm-field';
+                                container.appendChild(input);
+                            }
+                        </script>
 
                         <!-- Section 6: Opening Hours -->
                         <div class="form-section" data-section="6" style="display: none;">
@@ -238,6 +330,7 @@
         });
     }
 
+    
     function nextSection(currentSection) {
         const currentFormSection = document.querySelector(`.form-section[data-section="${currentSection}"]`);
         const nextFormSection = document.querySelector(`.form-section[data-section="${currentSection + 1}"]`);
@@ -249,6 +342,16 @@
             }
         } else {
             alert('Please fill out all required fields.');
+        }
+    }
+
+    function prevSection(currentSection) {
+        const currentFormSection = document.querySelector(`.form-section[data-section="${currentSection}"]`);
+        const prevFormSection = document.querySelector(`.form-section[data-section="${currentSection - 1}"]`);
+
+        currentFormSection.style.display = 'none';
+        if (prevFormSection) {
+            prevFormSection.style.display = 'block';
         }
     }
 
@@ -284,34 +387,60 @@
 
     function addAwardField() {
         const container = document.getElementById('awards-container');
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.name = 'awards';
-        input.className = 'comm-field';
-        container.appendChild(input);
+        const newField = document.createElement('div');
+        newField.className = 'award-field-template';
+        newField.innerHTML = `
+            <input type="file" name="awards" class="comm-field">
+            <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeAwardField(this)">Remove</button>`;
+        container.appendChild(newField);
+    }
+
+    function removeAwardField(button) {
+        const field = button.closest('.award-field-template');
+        field.remove();
     }
 
     
     function validateOpeningHours() {
         const rows = document.querySelectorAll('.row.mt-3');
         let isValid = true;
-
+        let invalidDays = [];
+    
         rows.forEach(row => {
+            const day = row.querySelector('label').textContent.trim().slice(0, -1);
             const openingTime = row.querySelector('.opening-time').value;
             const closingTime = row.querySelector('.closing-time').value;
             const isClosed = row.querySelector('.is-closed').checked;
-
+    
             if (!isClosed && (!openingTime || !closingTime)) {
                 isValid = false;
+                invalidDays.push(day);
             }
         });
-
+    
         if (!isValid) {
-            alert('Please ensure that for each day, either both opening and closing times are set, or the "Closed" checkbox is checked.');
+            alert(`Please ensure that for the following days, either both opening and closing times are set, or the "Closed" checkbox is checked: ${invalidDays.join(', ')}`);
             return false;
         }
-
+    
         return true;
+    }
+
+    function toggleOpeningClosingFields(day) {
+        const openingTimeField = document.getElementById(`opening_hours-${day}-opening_time`);
+        const closingTimeField = document.getElementById(`opening_hours-${day}-closing_time`);
+        const isClosedCheckbox = document.getElementById(`opening_hours-${day}-is_closed`);
+
+        // Disable or enable the opening/closing time fields based on the "Closed" checkbox
+        if (isClosedCheckbox.checked) {
+            openingTimeField.value = '';
+            closingTimeField.value = '';
+            openingTimeField.disabled = true;
+            closingTimeField.disabled = true;
+        } else {
+            openingTimeField.disabled = false;
+            closingTimeField.disabled = false;
+        }
     }
 
     function toggleOpeningClosingFields(day) {

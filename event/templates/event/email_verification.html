@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>Email Verification</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #f5f5f5;">
+    <div style="background-color: white; padding: 20px; border: 1px solid #ddd;">
+        <header style="margin-bottom: 20px;">
+            <!-- Logo URL -->
+            <img src="{{ domain }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
+        </header>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <!-- Verification Image URL -->
+            <img src="{{ domain }}{% static 'event/images/email_verification.png' %}" alt="Verify Email" style="width: 80%; max-width: 400px;">
+        </div>
+        
+        <h1 style="font-size: 24px; margin-bottom: 5px;">Verify Your Email Address</h1>
+        
+        <p style="margin-bottom: 20px;">Hi {{ user.first_name }},</p>
+        <p style="margin-bottom: 20px;">
+            Thank you for registering with Every Event Australia. To complete your registration and activate your account, please verify your email address by clicking the link below:
+        </p>
+        
+        <a href="{{ verification_url }}" style="display: block; background-color: #8B0000; color: white; text-align: center; padding: 10px; text-decoration: none; margin-bottom: 20px;">Verify Email</a>
+        
+        <p style="margin-bottom: 20px;">If the button above doesn't work, copy and paste the following link into your web browser:</p>
+        <p style="word-break: break-all; margin-bottom: 20px;"><a href="{{ verification_url }}" style="color: #8B0000;">{{ verification_url }}</a></p>
+        
+        <p style="margin-bottom: 20px;">
+            If you did not register for this account, please ignore this email or contact us at info@everyeventaus.com.au if you have any concerns.
+        </p>
+        
+        <p style="text-align: center; margin: 20px 0;">Got a question? Email us at info@everyeventaus.com.au</p>
+        
+        <p style="text-align: center; font-weight: bold; margin-bottom: 10px;">DON'T FORGET TO FOLLOW US</p>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <!-- Social media links can be added here -->
+        </div>
+        
+        <div style="text-align: center; font-size: 12px;">
+            <a href="{% url 'privacy_policy' %}" style="color: #333; text-decoration: none; margin: 0 10px;">PRIVACY POLICY</a>
+            <a href="{% url 'home' %}" style="color: #333; text-decoration: none; margin: 0 10px;">VISIT US</a>
+            <a href="{% url 'terms_and_conditions' %}" style="color: #333; text-decoration: none; margin: 0 10px;">TERMS OF USE</a>
+        </div>
+    </div>
+</body>
+</html>

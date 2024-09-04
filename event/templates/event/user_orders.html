@@ -4,13 +4,22 @@
 <div class="container service-main-content" style="max-width: 1200px; margin: 0 auto; padding: 20px; margin-top: 120px;">
     <h1>Hello {{ request.user.first_name }} {{ request.user.last_name }}</h1>
 
-    {% if orders %}
+    {% if orders_with_status %}
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-            {% for order in orders %}
+            {% for order, status in orders_with_status %}
                 <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
                     <h2>Order #{{ order.ref_code }}</h2>
                     <p>{{ order.created_at|date:"F d, Y H:i" }}</p>
-                    <p>Status: {{ order.get_status_display }}</p>
+                    <p>Status: 
+                        <span style="font-weight: bold; color: 
+                            {% if status == 'Pending' %}#d4af37
+                            {% elif status == 'Partially Approved' %}#FFA500
+                            {% elif status == 'Approved' %}#2e8b57
+                            {% elif status == 'Partially Rejected' %}#FF6347
+                            {% else %}#dc143c{% endif %};">
+                            {{ status }}
+                        </span>
+                    </p>
                     
                     <h3>Order Items</h3>
                     <ul>
@@ -22,16 +31,12 @@
                                     {% else %}
                                         <strong>{{ item.product.name }}</strong>
                                     {% endif %}
-                                    {% if item.hire %}
-                                        <p>{{ item.hire_duration|capfirst }}s: {{ item.quantity }}</p>
-                                    {% else %}
-                                        <p>Quantity: {{ item.quantity }}</p>
-                                    {% endif %}
                                 {% elif item.service %}
                                     <strong>{{ item.service.name }} (Hire)</strong>
-                                    <p>{{ item.hire_duration|capfirst }}s: {{ item.quantity }}</p>
                                 {% endif %}
+                                <p>Quantity: {{ item.quantity }}</p>
                                 <p>Price: ${{ item.price }}</p>
+                                <p>Status: {{ item.get_status_display }}</p>
 
                                 {% if item.variations %}
                                     <p>Variations:</p>
@@ -51,14 +56,14 @@
         
         <!-- Pagination -->
         <div style="margin-top: 40px; text-align: center;">
-            {% if orders.has_previous %}
+            {% if page_obj.has_previous %}
                 <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                 style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
                 onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
                 onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
                 &laquo; First
                 </a>
-                <a href="?page={{ orders.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                 style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
                 onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
                 onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
@@ -67,17 +72,17 @@
             {% endif %}
 
             <span style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; background-color: #710919; color: #fff;">
-                Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
             </span>
 
-            {% if orders.has_next %}
-                <a href="?page={{ orders.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                 style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
                 onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
                 onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">
                 Next
                 </a>
-                <a href="?page={{ orders.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                 style="display: inline-block; padding: 10px 20px; margin: 0 5px; border: 1px solid #710919; text-decoration: none; color: #710919; transition: all 0.3s;"
                 onmouseover="this.style.backgroundColor='#710919'; this.style.color='#fff';" 
                 onmouseout="this.style.backgroundColor='#fff'; this.style.color='#710919';">

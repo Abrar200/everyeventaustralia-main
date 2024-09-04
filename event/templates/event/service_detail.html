@@ -29,7 +29,7 @@
                 <p style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">By Quotation Only</p>
             {% else %}
                 <p style="font-size: 24px; font-weight: 600; margin-bottom: 10px;">
-                    $<span id="service-hire-price">{{ service.hire_price }}</span> per {{ service.hire_duration }}
+                    $<span id="service-hire-price">{{ service.hire_price }}</span>
                     <span style="display: block; font-size: 12px; font-weight: 1000; color: #666; margin-top: 2px; letter-spacing: 0.5px;">GST included</span>
                 </p>
             {% endif %}
@@ -56,14 +56,14 @@
                 {% csrf_token %}
                 <input type="hidden" name="service_id" value="{{ service.id }}">
                 <div class="variation-section" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    <div class="hire-duration-selection" id="duration-container" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="quantity-selection" id="quantity-container" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
                         <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 0;">
-                            {{ service.hire_duration|capfirst }}
+                            Quantity
                         </h3>
                         <div style="display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 999px; overflow: hidden;">
-                            <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="decrease-duration">-</button>
-                            <input type="number" name="duration" value="1" min="1" style="width: 40px; text-align: center; border: none; -moz-appearance: textfield;" id="duration-input">
-                            <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="increase-duration">+</button>
+                            <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="decrease-quantity">-</button>
+                            <input type="number" name="quantity" value="1" min="1" style="width: 40px; text-align: center; border: none; -moz-appearance: textfield;" id="quantity-input">
+                            <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="increase-quantity">+</button>
                         </div>
                     </div>
             
@@ -332,10 +332,10 @@
         }
     
         // Price update functionality
-        const durationInput = document.getElementById('duration-input');
+        const quantityInput = document.getElementById('quantity-input');
         const priceDisplay = document.getElementById('service-hire-price');
         
-        if (durationInput && priceDisplay) {
+        if (quantityInput && priceDisplay) {
             const basePrice = parseFloat(priceDisplay.textContent);
             let currentPrice = basePrice;
     
@@ -349,31 +349,31 @@
                     }
                 });
     
-                const duration = parseInt(durationInput.value) || 1;
-                currentPrice = (basePrice + additionalPrice) * duration;
+                const quantity = parseInt(quantityInput.value) || 1;
+                currentPrice = (basePrice + additionalPrice) * quantity;
                 priceDisplay.textContent = currentPrice.toFixed(2);
             }
     
-            const decreaseBtn = document.getElementById('decrease-duration');
-            const increaseBtn = document.getElementById('increase-duration');
+            const decreaseBtn = document.getElementById('decrease-quantity');
+            const increaseBtn = document.getElementById('increase-quantity');
     
             if (decreaseBtn && increaseBtn) {
                 decreaseBtn.addEventListener('click', () => {
-                    if (durationInput.value > 1) {
-                        durationInput.value--;
+                    if (quantityInput.value > 1) {
+                        quantityInput.value--;
                         updatePrice();
                     }
                 });
     
                 increaseBtn.addEventListener('click', () => {
-                    durationInput.value++;
+                    quantityInput.value++;
                     updatePrice();
                 });
             }
     
-            durationInput.addEventListener('change', () => {
-                if (durationInput.value < 1) {
-                    durationInput.value = 1;
+            quantityInput.addEventListener('change', () => {
+                if (quantityInput.value < 1) {
+                    quantityInput.value = 1;
                 }
                 updatePrice();
             });

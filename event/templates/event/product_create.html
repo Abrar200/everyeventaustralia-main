@@ -3,7 +3,6 @@
 {% load static %}
 
 {% block slider %}
-
 {% endblock slider %}
 
 {% block content %}
@@ -17,7 +16,7 @@
                         <div class="row margin-b24">
                             <!-- Basic Product Information -->
                             <div class="col-md-6 margin-bm24 mt-3"><input type="text" name="name" class="comm-field" placeholder="Product Name" required/></div>
-                            <div class="col-md-6 margin-bm24 mt-3"><input type="number" step="0.01" name="price" class="comm-field" placeholder="Price" required/></div>
+                            <div class="col-md-6 margin-bm24 mt-3"><input type="number" step="0.01" name="hire_price" class="comm-field" placeholder="Hire Price" required/></div>
                             <div class="col-md-12 margin-bm24 mt-3"><textarea name="description" class="comm-field" placeholder="Description" required></textarea></div>
                     
                             <!-- Product Images -->
@@ -48,12 +47,12 @@
                                 </select>
                             </div>
                             <div class="col-md-12 margin-bm24 mt-3">
-                                <input type="checkbox" name="in_stock" id="in_stock">
+                                <input type="checkbox" name="in_stock" id="in_stock" onchange="toggleStockLevel()">
                                 <label for="in_stock">In Stock</label>
                             </div>
-                            <div class="col-md-12 margin-bm24 mt-3">
+                            <div id="stock-level-container" class="col-md-12 margin-bm24 mt-3" style="display: none;">
                                 <label for="stock_level">Stock Level:</label>
-                                <input type="number" name="stock_level" id="stock_level" class="comm-field" placeholder="Stock Level" required/>
+                                <input type="number" name="stock_level" id="stock_level" class="comm-field" placeholder="Stock Level"/>
                             </div>
                     
                             <!-- Variations -->
@@ -66,24 +65,14 @@
                                 <button type="button" class="btn btn-secondary mt-3" onclick="addVariation()">Add Another Variation</button>
                             </div>
                     
-                            <!-- For Hire -->
+                            <!-- For Purchase -->
                             <div class="col-md-12 margin-bm24 mt-3">
-                                <input type="checkbox" name="for_hire" id="for_hire" onchange="toggleHireFields()">
-                                <label for="for_hire">For Hire</label>
+                                <input type="checkbox" name="for_purchase" id="for_purchase" onchange="togglePurchaseFields()">
+                                <label for="for_purchase">For Purchase</label>
                             </div>
-                            <div id="hire-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
-                                <div class="row">
-                                    <div class="col-md-6 margin-bm24 mt-3">
-                                        <input type="number" step="0.01" name="hire_price" class="comm-field" placeholder="Hire Price"/>
-                                    </div>
-                                    <div class="col-md-6 margin-bm24 mt-3">
-                                        <label for="hire_duration">Hire Duration:</label>
-                                        <select name="hire_duration" id="hire_duration" class="comm-field">
-                                            <option value="hour">Per Hour</option>
-                                            <option value="day">Per Day</option>
-                                            <option value="week">Per Week</option>
-                                        </select>
-                                    </div>
+                            <div id="purchase-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
+                                <div class="col-md-6 margin-bm24 mt-3">
+                                    <input type="number" step="0.01" name="purchase_price" class="comm-field" placeholder="Purchase Price"/>
                                 </div>
                             </div>
                     
@@ -94,20 +83,16 @@
                             </div>
                             <div id="pickup-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
                                 <div class="col-md-6 margin-bm24 mt-3">
-                                    <input type="text" name="pickup_location" class="comm-field" placeholder="Pickup Location"/>
+                                    <input type="text" name="pickup_location" id="pickup_location" class="comm-field" placeholder="Pickup Location"/>
+                                    <input type="hidden" id="latitude" name="latitude">
+                                    <input type="hidden" id="longitude" name="longitude">
                                 </div>
                             </div>
                     
                             <!-- Can Deliver -->
                             <div class="col-md-12 margin-bm24 mt-3">
-                                <input type="checkbox" name="can_deliver" id="can_deliver" onchange="toggleDeliveryFields()">
+                                <input type="checkbox" name="can_deliver" id="can_deliver">
                                 <label for="can_deliver">Can Deliver</label>
-                            </div>
-                            <div id="delivery-fields" class="col-md-12 margin-bm24 mt-3" style="display: none;">
-                                <div class="col-md-6 margin-bm24 mt-3">
-                                    <label for="delivery_radius">Delivery Radius (km):</label>
-                                    <input type="number" name="delivery_radius" id="delivery_radius" class="comm-field" placeholder="Delivery Radius"/>
-                                </div>
                             </div>
                     
                             <!-- Main Colour Theme -->
@@ -144,9 +129,14 @@
     </div>
 </section>
 
-
 <script>
     let variationIndex = 0;
+
+    function toggleStockLevel() {
+        const stockLevelContainer = document.getElementById('stock-level-container');
+        const inStockCheckbox = document.getElementById('in_stock');
+        stockLevelContainer.style.display = inStockCheckbox.checked ? 'block' : 'none';
+    }
 
     function addVariation() {
         let variationFields = document.getElementById('variation_fields');
@@ -162,6 +152,7 @@
                 </div>
             </div>
             <div class="variation-values" data-index="${variationIndex}"></div>
+            <button type="button" class="remove-button" onclick="removeVariationField(this)">×</button>
         `;
         variationFields.appendChild(newVariation);
         addVariationValue(newVariation.querySelector('button'), variationIndex);
@@ -185,7 +176,7 @@
             </div>
             <div class="col-md-3">
                 <input type="number" step="0.01" name="variation_prices_${variationIndex}[]" class="comm-field w-100" placeholder="Price" style="display: none;">
-                <small class="form-text text-muted">This price will be added to the main purchase price/hire price.</small>
+                <small class="form-text text-muted">This price will be added to the hire price.</small>
             </div>
             <div class="col-md-3">
                 <button type="button" class="btn btn-danger w-100" onclick="removeVariationValue(this)">Remove</button>
@@ -198,6 +189,11 @@
         let priceInput = checkbox.closest('.row').querySelector('input[name^="variation_prices"]');
         priceInput.style.display = checkbox.checked ? 'block' : 'none';
         priceInput.required = checkbox.checked;
+    }
+
+    function removeVariationField(button) {
+        let field = button.closest('.variation-field');
+        field.remove();
     }
 
     function removeVariationValue(button) {
@@ -213,9 +209,9 @@
         }
     }
 
-    function toggleHireFields() {
-        var hireFields = document.getElementById('hire-fields');
-        hireFields.style.display = hireFields.style.display === 'none' ? 'block' : 'none';
+    function togglePurchaseFields() {
+        var purchaseFields = document.getElementById('purchase-fields');
+        purchaseFields.style.display = purchaseFields.style.display === 'none' ? 'block' : 'none';
     }
 
     function togglePickupFields() {
@@ -223,17 +219,50 @@
         pickupFields.style.display = pickupFields.style.display === 'none' ? 'block' : 'none';
     }
 
-    function toggleDeliveryFields() {
-        var deliveryFields = document.getElementById('delivery-fields');
-        deliveryFields.style.display = deliveryFields.style.display === 'none' ? 'block' : 'none';
-    }
-
     function toggleSetupPackdownFields() {
         var setupPackdownFields = document.getElementById('setup-packdown-fields');
         setupPackdownFields.style.display = setupPackdownFields.style.display === 'none' ? 'block' : 'none';
     }
+
+    function initAutocomplete() {
+        var input = document.getElementById('pickup_location');
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            componentRestrictions: { country: 'au' }
+        });
+    
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+    
+            document.getElementById('latitude').value = place.geometry.location.lat();
+            document.getElementById('longitude').value = place.geometry.location.lng();
+        });
+    }
 </script>
 
-
+<style>
+    .variation-field, .image-field {
+        position: relative;
+    }
+    .remove-button {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+</style>
 
 {% endblock content %}

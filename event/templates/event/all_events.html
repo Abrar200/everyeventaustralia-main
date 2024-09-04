@@ -34,10 +34,27 @@
                     Services
                 </label>
                 <label style="display: block; font-size: 14px; color: #333;">
-                    <input type="checkbox" name="type" value="hire" 
-                        {% if 'hire' in type_filter %}checked{% endif %}
+                    <input type="checkbox" name="type" value="purchase" 
+                        {% if 'purchase' in type_filter %}checked{% endif %}
                         style="margin-right: 10px; accent-color: #710919;"> 
-                    For Hire
+                    For Purchase
+                </label>
+            </div>
+
+            <!-- New Best Sellers and New Arrivals Filters -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #710919; font-size: 18px; margin-bottom: 10px;">Special Categories</h4>
+                <label style="display: block; margin-bottom: 10px; font-size: 14px; color: #333;">
+                    <input type="checkbox" name="best_sellers" value="true" 
+                        {% if best_sellers_filter %}checked{% endif %}
+                        style="margin-right: 10px; accent-color: #710919;"> 
+                    Best Sellers
+                </label>
+                <label style="display: block; font-size: 14px; color: #333;">
+                    <input type="checkbox" name="new_arrivals" value="true" 
+                        {% if new_arrivals_filter %}checked{% endif %}
+                        style="margin-right: 10px; accent-color: #710919;"> 
+                    New Arrivals
                 </label>
             </div>
 
@@ -150,7 +167,7 @@
                         </a>
                         <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #710919;">
                             {% if item.hire_price %}
-                                ${{ item.hire_price }}/{{ item.get_hire_duration_display }}
+                                ${{ item.hire_price }}
                             {% elif item.available_by_quotation_only %}
                                 Available By Quotation
                             {% else %}
@@ -173,9 +190,11 @@
                                 <span style="font-size: 14px; color: #666;">Listed by <a href="{% url "business_detail" item.business.business_slug %}" style="color: #710919; text-decoration: none; font-weight: bold;">{{ item.business.business_name }}</a></span>
                             </div>
                         </div>
-                        <button style="background-color: #710919; color: white; border: none; padding: 12px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
-                            Add to Cart
-                        </button>
+                        <a href="{% if item.get_item_type == 'product' %}{% url 'product_detail' item.business.business_slug item.product_slug %}{% else %}{% url 'service_detail' item.business.business_slug item.service_slug %}{% endif %}">
+                            <button style="background-color: #710919; color: white; border: none; padding: 12px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
+                                Add to Cart
+                            </button>
+                        </a>
                     </div>
                 </div>
             {% endfor %}

@@ -1,9 +1,9 @@
 from collections import defaultdict
-from .models import Product, Cart, CartItemVariation, Message, Order
+from .models import Product, Cart, CartItemVariation, Message, Order, OrderItem
 from django.db.models import Sum
 from django.contrib.messages import get_messages
 import logging
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 from django.contrib.sites.models import Site
 from django.conf import settings
 
@@ -86,30 +86,32 @@ def business_order_count(request):
     if request.user.is_authenticated and hasattr(request.user, 'business'):
         business = request.user.business
         
-        # Update the query to ensure it correctly matches the business's products or services in the order items
-        order_count = Order.objects.filter(
-            items__product__business=business, 
-            order_status='ordered'
-        ).distinct().count()
+        # Subquery for items related to the business
+        business_items = OrderItem.objects.filter(
+            Q(product__business=business) | Q(service__business=business),
+            order=OuterRef('pk')
+        )
 
+        # Count orders with any items that need approval
         pending_order_count = Order.objects.filter(
-            items__product__business=business, 
-            status='pending'
+            Exists(business_items.filter(status='pending'))
         ).distinct().count()
 
-        # Also check for services associated with the business
-        pending_order_count += Order.objects.filter(
-            items__service__business=business,
-            status='pending'
+        # Count orders that are fully processed (all items either approved or rejected)
+        order_count = Order.objects.filter(
+            Exists(business_items)
+        ).exclude(
+            Exists(business_items.filter(status='pending'))
         ).distinct().count()
 
         print(f"User: {request.user.username}")
         print(f"Business: {business.business_name}")
-        print(f"Order Count: {order_count}")
+        print(f"Processed Order Count: {order_count}")
         print(f"Pending Order Count: {pending_order_count}")
 
     return {
         'business_order_count': order_count,
         'pending_order_count': pending_order_count,
     }
+
 

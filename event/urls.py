@@ -61,4 +61,9 @@ urlpatterns = [
     path('approve-reject-order/<int:order_id>/<int:business_id>/', views.ReviewOrderView.as_view(), name='review_order'),
     path('my-orders/<int:order_id>/', views.UserOrderDetailsView.as_view(), name='user_order_details'),
     path('venue/<slug:venue_slug>/cancel-subscription/', views.SubscriptionCancelView.as_view(), name='cancel_subscription'),
+    path('get-google-reviews/', views.get_google_reviews, name='get_google_reviews'),
+    path('verify-email/<uidb64>/<token>/', views.VerifyEmailView.as_view(), name='verify_email'),
+    path('cart/update-coordinates/', views.update_cart_coordinates, name='update_cart_coordinates'),
+    path('blogs/', views.BlogPostListView.as_view(), name='blog_list'),
+    path('blogs/<slug:slug>/', views.BlogPostDetailView.as_view(), name='blog_detail'),
 ]

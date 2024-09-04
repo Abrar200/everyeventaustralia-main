@@ -1,24 +1,37 @@
 {% extends "event/base.html" %}
 
+{% load custom_filters %}
+
 {% block content %}
 <div class="container" style="margin-top: 120px; max-width: 800px; padding: 20px; background-color: #FFFFFF; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
     <h1 style="font-size: 36px; color: #000000; margin-bottom: 20px;">Order #{{ order.ref_code }}</h1>
-    
+
     <h2 style="font-size: 28px; color: #000000; margin-bottom: 20px;">Order Information</h2>
+
+    {% for business_id, totals in business_totals.items %}
+        <h3 style="font-size: 24px; color: #000000; margin-top: 30px;">{{ totals.name }}</h3>
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Subtotal: ${{ totals.subtotal|floatformat:2 }}</p>
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Setup/Packdown Fee: ${{ totals.setup_packdown_fee|floatformat:2 }}</p>
+        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Delivery Fee: ${{ totals.delivery_fee|floatformat:2 }}</p>
+        <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Business Total: ${{ totals.total|floatformat:2 }}</p>
+    {% endfor %}
+
+    {% if approved_items %}
+    <h3 style="font-size: 24px; color: #2e8b57; margin-bottom: 15px;">Approved Items</h3>
     <ul style="list-style-type: none; padding: 0;">
-        {% for item in order.items.all %}
+        {% for item in approved_items %}
             <li style="margin-bottom: 20px; padding: 15px; background-color: #f8f8f8; border-radius: 4px;">
                 <strong style="font-size: 20px; color: #000000;">
                     {% if item.product %}
-                        {{ item.product.name }} 
-                        {% if item.hire %}(Hire) - {{ item.hire_duration|title }}: {{ item.quantity }}{% else %}- Quantity: {{ item.quantity }}{% endif %}
+                        {{ item.product.name }}
+                        {% if item.hire %}(Hire){% endif %}
                     {% elif item.service %}
-                        {{ item.service.name }} 
-                        (Hire) - {{ item.service.hire_duration|title }}s: {{ item.quantity }}{% else %}- Quantity: {{ item.quantity }}
+                        {{ item.service.name }} (Hire)
                     {% endif %}
+                    - Quantity: {{ item.quantity }}
                 </strong>
-                <p style="font-size: 16px; color: #000000; margin-top: 5px;">Price: ${{ item.price }}</p>
-                
+                <p style="font-size: 16px; color: #000000; margin-top: 5px;">Price: ${{ item.price|floatformat:2 }}</p>
+
                 {% if item.variations %}
                     <p style="font-size: 16px; color: #000000; margin-top: 10px;">Variations:</p>
                     <ul style="list-style-type: none; padding-left: 15px;">
@@ -30,63 +43,107 @@
             </li>
         {% endfor %}
     </ul>
+    {% endif %}
 
-    <h2 style="font-size: 28px; color: #000000; margin-bottom: 20px;">Order Summary</h2>
-    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Subtotal: ${{ order.total_amount|floatformat:2 }}</p>
-    {% if order.delivery_fee %}
-        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Delivery: ${{ order.delivery_fee|floatformat:2 }}</p>
-    {% endif %}
-    {% if order.setup_packdown_fee %}
-        <p style="font-size: 16px; color: #000000; margin-top: 5px;">Setup/Packdown Fee: ${{ order.setup_packdown_fee|floatformat:2 }}</p>
-    {% endif %}
-    
-    {% with total=order.total_amount %}
-        {% if order.delivery_fee %}
-            {% with total=total|add:order.delivery_fee %}
-                {% if order.setup_packdown_fee %}
-                    {% with total=total|add:order.setup_packdown_fee %}
-                        <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-                    {% endwith %}
-                {% else %}
-                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
+    {% if rejected_items %}
+    <h3 style="font-size: 24px; color: #dc143c; margin-bottom: 15px;">Rejected Items</h3>
+    <ul style="list-style-type: none; padding: 0;">
+        {% for item in rejected_items %}
+            <li style="margin-bottom: 20px; padding: 15px; background-color: #f8f8f8; border-radius: 4px;">
+                <strong style="font-size: 20px; color: #000000;">
+                    {% if item.product %}
+                        {{ item.product.name }}
+                        {% if item.hire %}(Hire){% endif %}
+                    {% elif item.service %}
+                        {{ item.service.name }} (Hire)
+                    {% endif %}
+                    - Quantity: {{ item.quantity }}
+                </strong>
+                <p style="font-size: 16px; color: #000000; margin-top: 5px;">Price: ${{ item.price|floatformat:2 }}</p>
+
+                {% if item.variations %}
+                    <p style="font-size: 16px; color: #000000; margin-top: 10px;">Variations:</p>
+                    <ul style="list-style-type: none; padding-left: 15px;">
+                        {% for variation in item.variations %}
+                            <li style="font-size: 16px; color: #000000;">{{ variation.variation_name }}: {{ variation.variation_value }}</li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
-            {% endwith %}
-        {% else %}
-            {% if order.setup_packdown_fee %}
-                {% with total=total|add:order.setup_packdown_fee %}
-                    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-                {% endwith %}
-            {% else %}
-                <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total: ${{ total|floatformat:2 }}</p>
-            {% endif %}
-        {% endif %}
-    {% endwith %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if pending_items %}
+    <h3 style="font-size: 24px; color: #d4af37; margin-bottom: 15px;">Pending Items</h3>
+    <ul style="list-style-type: none; padding: 0;">
+        {% for item in pending_items %}
+            <li style="margin-bottom: 20px; padding: 15px; background-color: #f8f8f8; border-radius: 4px;">
+                <strong style="font-size: 20px; color: #000000;">
+                    {% if item.product %}
+                        {{ item.product.name }}
+                        {% if item.hire %}(Hire){% endif %}
+                    {% elif item.service %}
+                        {{ item.service.name }} (Hire)
+                    {% endif %}
+                    - Quantity: {{ item.quantity }}
+                </strong>
+                <p style="font-size: 16px; color: #000000; margin-top: 5px;">Price: ${{ item.price|floatformat:2 }}</p>
+
+                {% if item.variations %}
+                    <p style="font-size: 16px; color: #000000; margin-top: 10px;">Variations:</p>
+                    <ul style="list-style-type: none; padding-left: 15px;">
+                        {% for variation in item.variations %}
+                            <li style="font-size: 16px; color: #000000;">{{ variation.variation_name }}: {{ variation.variation_value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Order Summary</h2>
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Approved Items Total: ${{ total_approved|floatformat:2 }}</p>
+    {% if total_rejected > 0 %}
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Rejected Items Total: ${{ total_rejected|floatformat:2 }}</p>
+    {% endif %}
+    {% if total_pending > 0 %}
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Pending Items Total: ${{ total_pending|floatformat:2 }}</p>
+    {% endif %}
+    {% if order.afterpay_fee %}
+    <p style="font-size: 16px; color: #000000; margin-top: 5px;">Afterpay Fee (Non-refundable): ${{ order.afterpay_fee|floatformat:2 }}</p>
+    {% endif %}
+
+    <p style="font-size: 18px; color: #000000; font-weight: bold; margin-top: 10px;">Total Charged: ${{ total_price|floatformat:2 }}</p>
+
+    {% if total_rejected > 0 %}
+    <p style="font-size: 18px; color: #dc143c; font-weight: bold; margin-top: 10px;">Total Refunded: ${{ total_rejected|floatformat:2 }}</p>
+    {% endif %}
 
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Customer Information</h2>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Email: {{ order.user.email }}</p>
-    
+
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Event Details</h2>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Date: {{ order.event_date }}</p>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Time: {{ order.event_time|time:"g:i A" }}</p>
     <p style="font-size: 16px; color: #000000; margin-top: 5px;">Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}</p>
-    
+
     {% if order.note %}
         <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Order Notes</h2>
         <p style="font-size: 16px; color: #000000; margin-top: 5px;">{{ order.note }}</p>
     {% endif %}
-    
+
     <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Delivery/Pickup Method</h2>
     <ul style="list-style-type: none; padding-left: 0;">
         {% for item in order.items.all %}
-            {% if item.product or item.service %}
-                <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">
-                    {% if item.delivery_method == 'delivery' %}
-                        Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
-                    {% else %}
-                        Pickup at {% if item.product %}{{ item.product.pickup_location }}{% else %}{{ item.service.pickup_location }}{% endif %} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
-                    {% endif %}
-                </li>
-            {% endif %}
+            <li style="font-size: 16px; color: #000000; margin-bottom: 5px;">
+                {% if item.delivery_method == 'delivery' %}
+                    Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
+                {% else %}
+                    Pickup at {% if item.product %}{{ item.product.pickup_location }}{% else %}{{ item.service.pickup_location }}{% endif %} for {% if item.product %}{{ item.product.name }}{% else %}{{ item.service.name }}{% endif %}<br>
+                {% endif %}
+            </li>
         {% endfor %}
     </ul>
 
@@ -96,5 +153,39 @@
     {% else %}
         <p style="font-size: 16px; color: #000000; margin-top: 5px;">Card</p>
     {% endif %}
+
+
+    <h2 style="font-size: 28px; color: #000000; margin-top: 30px;">Terms and Conditions</h2>
+    <ul style="list-style-type: none; padding-left: 0;">
+        {% for signature in signatures %}
+            <li style="font-size: 16px; color: #000000; margin-bottom: 20px;">
+                <h4 class="mt-3">{{ signature.business.business_name }}</h4>
+
+                {% with business_id=signature.business.id|stringformat:"s" %}
+                    
+                    {% with business_terms_data=business_terms|get_item:business_id %}
+                        {% if business_terms_data %}
+                            {% if business_terms_data.terms_pdf %}
+                                <p class="mt-3">
+                                    <a href="{{ business_terms_data.terms_pdf }}" download>Download Terms and Conditions PDF</a>
+                                </p>
+                                <div class="terms-content">
+                                    Please download and review the Terms and Conditions PDF above.
+                                </div>
+                            {% else %}
+                                <div class="terms-content mt-3">
+                                    {{ business_terms_data.terms|linebreaks }}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p>No terms and conditions available for this business.</p>
+                        {% endif %}
+                    {% endwith %}
+                {% endwith %}
+                
+                <img class="mt-3" src="{{ signature.signature.url }}" alt="Signature" style="max-width: 100%; height: auto; border: 1px solid #000;">
+            </li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

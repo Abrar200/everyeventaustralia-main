@@ -34,7 +34,7 @@
                 <p style="font-size: 14px; font-weight: normal; margin-left: 10px;">({{ product.stock_level }} left)</p>
             </div>
             <p style="font-size: 24px; font-weight: 600; margin-bottom: 10px; position: relative;">
-                $<span id="product-price">{{ product.price }}</span>
+                $<span id="product-price">{{ product.hire_price }}</span>
                 <span style="display: block; font-size: 12px; font-weight: 1000; color: #666; margin-top: 2px; letter-spacing: 0.5px;">GST included</span>
             </p>
             {% if product.setup_packdown_fee %}
@@ -66,18 +66,12 @@
             <form class="variations_form cart" method="post" action="{% url 'add_to_cart' %}" id="add-to-cart-form">
                 {% csrf_token %}
                 <input type="hidden" name="product_id" value="{{ product.id }}">
-                <input type="hidden" name="hire" id="hire" value="false">
+                <input type="hidden" name="hire" id="hire" value="true">
                 <div class="variation-section" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
 
                     <div class="quantity-selection" id="quantity-container" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
                         <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 0;">
                             <span id="quantity-label">Quantity</span>
-                            <span id="duration-label" style="display: none;">
-                                {% if product.hire_duration == 'hour' %}Hours
-                                {% elif product.hire_duration == 'day' %}Days
-                                {% elif product.hire_duration == 'week' %}Weeks
-                                {% endif %}
-                            </span>
                         </h3>
                         <div style="display: flex; align-items: center; border: 1px solid #e5e7eb; border-radius: 999px; overflow: hidden;">
                             <button type="button" style="background: none; border: none; padding: 10px 15px; cursor: pointer;" id="decrease-quantity">-</button>
@@ -86,18 +80,18 @@
                         </div>
                     </div>
 
-
-                    {% if product.for_hire %}
-                        <div class="purchase-hire-selection" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 20px;">
-                            <button type="button" id="purchase-btn" class="btn-selection active" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Purchase</button>
-                            <button type="button" id="hire-btn" class="btn-selection" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Hire</button>
-                        </div>
-                    {% endif %}
+                    
+                    <div class="purchase-hire-selection" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 20px;">
+                        <button type="button" id="hire-btn" class="btn-selection active" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #fff; background: #710919;">Hire</button>
+                        {% if product.for_purchase %}
+                            <button type="button" id="purchase-btn" class="btn-selection" style="padding: 10px 20px; border: 1px solid #710919; cursor: pointer; color: #710919; background: #fff;">Purchase</button>
+                        {% endif %}
+                    </div>                    
 
                     {% for variation in variations %}
                     <div class="variation" style="margin-bottom: 15px;">
                         <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">{{ variation.name|capfirst }}</h3>
-                        <select name="variations" class="form-select variation-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;" data-base-price="{{ product.price }}">
+                        <select name="variations" class="form-select variation-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px;" data-base-price="{{ product.hire_price }}">
                             <option value="" data-price="0">Select an Option</option>
                             {% for value in variation.values.all %}
                             <option value="{{ value.id }}" data-price="{{ value.price|default:0 }}">{{ value.value }}</option>
@@ -146,7 +140,6 @@
                     </p>
                 </div>
             </div>
-
 
             <div class="product-description">
                 <p>{{ product.description|split_paragraphs }}</p>
@@ -208,7 +201,7 @@
                         <img src="{{ similar_product.image.url }}" alt="{{ similar_product.name }}" style="width: 100%; height: 200px; object-fit: cover;">
                         <div style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
                             <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #333;">{{ similar_product.name }}</h3>
-                            <p style="font-size: 16px; font-weight: bold; color: #710919; margin-bottom: 10px;">${{ similar_product.price }}</p>
+                            <p style="font-size: 16px; font-weight: bold; color: #710919; margin-bottom: 10px;">${{ similar_product.hire_price }}</p>
                             <div style="display: flex; align-items: center; margin-top: auto;">
                                 <img src="{{ similar_product.business.profile_picture.url }}" alt="{{ similar_product.business.business_name }}" style="width: 30px; height: 30px; border-radius: 15px; margin-right: 10px;">
                                 <div style="display: flex; flex-direction: column;">
@@ -320,8 +313,8 @@
         const increaseBtn = document.getElementById('increase-quantity');
         const quantityInput = document.getElementById('quantity-input');
         const priceDisplay = document.getElementById('product-price');
-        const basePrice = parseFloat('{{ product.price }}');
-        const hirePrice = parseFloat('{{ product.hire_price }}');
+        const basePrice = parseFloat('{{ product.hire_price }}');
+        const purchasePrice = parseFloat('{{ product.purchase_price }}');
         let currentPrice = basePrice;
         const quickHireField = document.getElementById('hire');
     
@@ -336,7 +329,7 @@
             });
     
             const quantity = parseInt(quantityInput.value) || 1;
-            const currentBasePrice = quickHireField.value === 'true' ? hirePrice : basePrice;
+            const currentBasePrice = quickHireField.value === 'true' ? basePrice : purchasePrice;
             currentPrice = (currentBasePrice + additionalPrice) * quantity;
             priceDisplay.textContent = currentPrice.toFixed(2);
         }
@@ -365,6 +358,22 @@
                 updatePrice();
             });
         });
+    
+        if (document.getElementById('purchase-btn')) {
+            document.getElementById('purchase-btn').addEventListener('click', () => {
+                quickHireField.value = 'false';
+                updatePrice();
+                document.getElementById('purchase-btn').classList.add('active');
+                document.getElementById('hire-btn').classList.remove('active');
+            });
+
+            document.getElementById('hire-btn').addEventListener('click', () => {
+                quickHireField.value = 'true';
+                updatePrice();
+                document.getElementById('hire-btn').classList.add('active');
+                document.getElementById('purchase-btn').classList.remove('active');
+            });
+        }
     
         updatePrice(); // Initial call to set the price based on the default selections
     
@@ -398,38 +407,47 @@
                 document.body.style.overflow = 'auto';
             }
         });
+    });
+
+
+    const quickHireField = document.getElementById('hire');
+    const hireBtn = document.getElementById('hire-btn');
+    const purchaseBtn = document.getElementById('purchase-btn');
     
-        const purchaseBtn = document.getElementById('purchase-btn');
-        const hireBtn = document.getElementById('hire-btn');
-        const quantityLabel = document.getElementById('quantity-label');
-        const durationLabel = document.getElementById('duration-label');
-    
-        purchaseBtn.addEventListener('click', () => {
-            purchaseBtn.classList.add('active');
-            hireBtn.classList.remove('active');
-            purchaseBtn.style.backgroundColor = '#710919';
-            purchaseBtn.style.color = '#fff';
-            hireBtn.style.backgroundColor = '#fff';
-            hireBtn.style.color = '#710919';
-            quantityLabel.style.display = 'inline';
-            durationLabel.style.display = 'none';
-            quickHireField.value = 'false';
-            updatePrice();
-        });
-    
-        hireBtn.addEventListener('click', () => {
+    function updateButtonStyles() {
+        if (quickHireField.value === 'true') {
             hireBtn.classList.add('active');
-            purchaseBtn.classList.remove('active');
             hireBtn.style.backgroundColor = '#710919';
             hireBtn.style.color = '#fff';
+            purchaseBtn.classList.remove('active');
             purchaseBtn.style.backgroundColor = '#fff';
             purchaseBtn.style.color = '#710919';
-            quantityLabel.style.display = 'none';
-            durationLabel.style.display = 'inline';
+        } else {
+            purchaseBtn.classList.add('active');
+            purchaseBtn.style.backgroundColor = '#710919';
+            purchaseBtn.style.color = '#fff';
+            hireBtn.classList.remove('active');
+            hireBtn.style.backgroundColor = '#fff';
+            hireBtn.style.color = '#710919';
+        }
+    }
+
+    if (purchaseBtn && hireBtn) {
+        hireBtn.addEventListener('click', () => {
             quickHireField.value = 'true';
+            updateButtonStyles();
             updatePrice();
         });
-    });
+
+        purchaseBtn.addEventListener('click', () => {
+            quickHireField.value = 'false';
+            updateButtonStyles();
+            updatePrice();
+        });
+
+        // Initialize the button styles
+        updateButtonStyles();
+    }
     
     function adjustLayout() {
         const imagesWrapper = document.querySelector('.product-images-wrapper');

@@ -20,7 +20,7 @@
         <p style="margin-bottom: 20px;">Order Reference: #{{ order.ref_code }}</p>
         
         <p style="margin-bottom: 20px;">Dear {{ business.business_name }},<br>
-        You have received a new order that requires your approval.</p>
+        You have received a new order that requires your approval. Please approve/decline within 48 hours.</p>
         
         <a href="{{ review_url }}" style="display: block; background-color: #8B0000; color: white; text-align: center; padding: 10px; text-decoration: none; margin-bottom: 20px;">Review Order</a>
         
@@ -42,13 +42,7 @@
                             (Hire)
                         {% endif %}
                         <br>
-                        {% if item.item_type == 'service' %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% elif item.hire %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% else %}
-                            Quantity: {{ item.quantity }}
-                        {% endif %}
+                        Quantity: {{ item.quantity }}
                         {% for variation in item.variations %}
                             <br>{{ variation.variation_name }}: {{ variation.variation_value }}
                         {% endfor %}
@@ -60,23 +54,23 @@
             <tfoot>
                 <tr>
                     <td colspan="2" style="padding: 10px; text-align: right;"><strong>Subtotal:</strong></td>
-                    <td style="padding: 10px; text-align: right;">${{ business_subtotal }}</td>
+                    <td style="padding: 10px; text-align: right;">${{ business_subtotal|floatformat:2 }}</td>
                 </tr>
                 {% if business_setup_packdown_fee > 0 %}
                 <tr>
                     <td colspan="2" style="padding: 10px; text-align: right;"><strong>Setup/Packdown Fee:</strong></td>
-                    <td style="padding: 10px; text-align: right;">${{ business_setup_packdown_fee }}</td>
+                    <td style="padding: 10px; text-align: right;">${{ business_setup_packdown_fee|floatformat:2 }}</td>
                 </tr>
                 {% endif %}
                 {% if business_delivery_fee > 0 %}
                 <tr>
                     <td colspan="2" style="padding: 10px; text-align: right;"><strong>Delivery Fee:</strong></td>
-                    <td style="padding: 10px; text-align: right;">${{ business_delivery_fee }}</td>
+                    <td style="padding: 10px; text-align: right;">${{ business_delivery_fee|floatformat:2 }}</td>
                 </tr>
                 {% endif %}
                 <tr>
                     <td colspan="2" style="padding: 10px; text-align: right;"><strong>Total:</strong></td>
-                    <td style="padding: 10px; text-align: right;"><strong>${{ business_total }}</strong></td>
+                    <td style="padding: 10px; text-align: right;"><strong>${{ business_total|floatformat:2 }}</strong></td>
                 </tr>
             </tfoot>
         </table>
@@ -95,7 +89,8 @@
             <p style="margin: 0;">
                 Date: {{ order.event_date }}<br>
                 Time: {{ order.event_time|time:"h:i A" }}<br>
-                Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}
+                Address: {{ order.address }}, {{ order.postal_code }}<br>
+                Billing Address: {{ order.billing_address }}, {{ order.postal_code }}
             </p>
 
             {% if order.note %}
@@ -109,7 +104,7 @@
                     {% if item.delivery_method == 'delivery' %}
                         Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {{ item.name }}<br>
                     {% else %}
-                        Pickup at {{ item.pickup_location }} for {{ item.name }}<br>
+                        Pickup at {{ item.pickup_location|default:"N/A" }} for {{ item.name }}<br>
                     {% endif %}
                 {% endfor %}
             </p>

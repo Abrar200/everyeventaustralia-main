@@ -7,18 +7,18 @@
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #f5f5f5;">
     <div style="background-color: white; padding: 20px; border: 1px solid #ddd;">
         <header style="margin-bottom: 20px;">
-            <img src="{{ request.build_absolute_uri }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
+            <img src="{{ domain }}{% static 'event/images/logo.svg' %}" alt="Every Event Australia" style="height: 30px;">
         </header>
 
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ request.build_absolute_uri }}{% static 'event/images/order_confirmed.png' %}" alt="Order Status" style="width: 80%; max-width: 400px;">
+            <img src="{{ domain }}{% static 'event/images/order_confirmed.png' %}" alt="Order Status" style="width: 80%; max-width: 400px;">
         </div>
         
         <h1 style="font-size: 24px; margin-bottom: 5px;">Order Confirmed</h1>
         <p style="margin-bottom: 20px;">Order Reference: #{{ order.ref_code }}</p>
         
         <p style="margin-bottom: 20px;">Dear {{ business.business_name }},<br>
-        The order has been approved and confirmed. Payment has been processed.</p>
+        Your part of the order has been approved and confirmed. Payment has been processed.</p>
         
         <div style="background-color: #333; color: white; padding: 10px; margin-bottom: 10px;">
             <h2 style="margin: 0; font-size: 18px;">Order Information</h2>
@@ -33,22 +33,16 @@
                     </td>
                     <td style="padding: 10px;">
                         <strong>{{ item.name }}</strong>
-                        {% if item.item_type == 'service' or item.hire %}
+                        {% if item.hire %}
                             (Hire)
                         {% endif %}
                         <br>
-                        {% if item.item_type == 'service' %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% elif item.hire %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% else %}
-                            Quantity: {{ item.quantity }}
-                        {% endif %}
+                        Quantity: {{ item.quantity }}
                         {% for variation in item.variations %}
                             <br>{{ variation.variation_name }}: {{ variation.variation_value }}
                         {% endfor %}
                     </td>
-                    <td style="padding: 10px; text-align: right;">${{ item.item_total_price }}</td>
+                    <td style="padding: 10px; text-align: right;">${{ item.price }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -92,26 +86,6 @@
                 <h3 style="margin: 15px 0 5px;">Order Notes</h3>
                 <p style="margin: 0;">{{ order.note }}</p>
             {% endif %}
-            
-            <h3 style="margin: 15px 0 5px;">Delivery/pickup method</h3>
-            <p style="margin: 0;">
-                {% for item in cart_items %}
-                    {% if item.delivery_method == 'delivery' %}
-                        Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {{ item.name }}<br>
-                    {% else %}
-                        Pickup at {{ item.pickup_location }} for {{ item.name }}<br>
-                    {% endif %}
-                {% endfor %}
-            </p>
-
-            <h3 style="margin: 15px 0 5px;">Payment method</h3>
-            <p style="margin: 0;">
-                {% if order.payment_method == 'afterpay_clearpay' %}
-                    Afterpay
-                {% else %}
-                    Card
-                {% endif %}
-            </p>
         </div>
     </div>
     

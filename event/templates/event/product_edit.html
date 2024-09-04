@@ -3,7 +3,6 @@
 {% load static %}
 
 {% block slider %}
-
 {% endblock slider %}
 
 {% block content %}
@@ -20,7 +19,7 @@
                                 <input type="text" name="name" class="comm-field" value="{{ product.name }}" required/>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
-                                <input type="number" step="0.01" name="price" class="comm-field" value="{{ product.price }}" required/>
+                                <input type="number" step="0.01" name="hire_price" class="comm-field" value="{{ product.hire_price }}" required/>
                             </div>
                             <div class="col-md-12 margin-bm24 mt-3">
                                 <textarea name="description" class="comm-field" required>{{ product.description }}</textarea>
@@ -29,18 +28,32 @@
                             <!-- Product Images -->
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="image">Image 1:</label>
+                                <br>
+                                <img style="height: 100px;" src="{{ product.image.url }}" alt="Product Image">
                                 <input type="file" name="image" id="image" class="comm-field"/>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="image2">Image 2:</label>
+                                {% if product.image2 %}
+                                    <br>
+                                    <img style="height: 100px;" src="{{ product.image2.url }}" alt="Product Image">
+                                {% endif %}
                                 <input type="file" name="image2" id="image2" class="comm-field"/>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="image3">Image 3:</label>
+                                {% if product.image3 %}
+                                    <br>
+                                    <img style="height: 100px;" src="{{ product.image3.url }}" alt="Product Image">
+                                {% endif %}
                                 <input type="file" name="image3" id="image3" class="comm-field"/>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="image4">Image 4:</label>
+                                {% if product.image4 %}
+                                    <br>
+                                    <img style="height: 100px;" src="{{ product.image4.url }}" alt="Product Image">
+                                {% endif %}
                                 <input type="file" name="image4" id="image4" class="comm-field"/>
                             </div>
 
@@ -102,29 +115,22 @@
                                                     </div>
                                                 {% endfor %}
                                             </div>
+                                            <button type="button" class="remove-button" onclick="removeVariationField(this)">×</button>
                                         </div>
                                     {% endfor %}
                                 </div>
                                 <button type="button" class="btn btn-secondary mt-3" onclick="addVariation()">Add Another Variation</button>
                             </div>
 
-                            <!-- For Hire -->
+                            <!-- For Purchase -->
                             <div class="col-md-12 margin-bm24 mt-3">
-                                <input type="checkbox" name="for_hire" id="for_hire" {% if product.for_hire %}checked{% endif %} onchange="toggleHireFields()">
-                                <label for="for_hire">For Hire</label>
+                                <input type="checkbox" name="for_purchase" id="for_purchase" {% if product.for_purchase %}checked{% endif %} onchange="togglePurchaseFields()">
+                                <label for="for_purchase">For Purchase</label>
                             </div>
-                            <div id="hire-fields" class="col-md-12 margin-bm24 mt-3" style="display: {% if product.for_hire %}block{% else %}none{% endif %};">
+                            <div id="purchase-fields" class="col-md-12 margin-bm24 mt-3" style="display: {% if product.for_purchase %}block{% else %}none{% endif %};">
                                 <div class="row">
                                     <div class="col-md-6 margin-bm24 mt-3">
-                                        <input type="number" step="0.01" name="hire_price" class="comm-field" value="{{ product.hire_price }}" placeholder="Hire Price"/>
-                                    </div>
-                                    <div class="col-md-6 margin-bm24 mt-3">
-                                        <label for="hire_duration">Hire Duration:</label>
-                                        <select name="hire_duration" id="hire_duration" class="comm-field">
-                                            <option value="hour" {% if product.hire_duration == 'hour' %}selected{% endif %}>Per Hour</option>
-                                            <option value="day" {% if product.hire_duration == 'day' %}selected{% endif %}>Per Day</option>
-                                            <option value="week" {% if product.hire_duration == 'week' %}selected{% endif %}>Per Week</option>
-                                        </select>
+                                        <input type="number" step="0.01" name="purchase_price" class="comm-field" value="{{ product.purchase_price }}" placeholder="Purchase Price"/>
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +142,9 @@
                             </div>
                             <div id="pickup-fields" class="col-md-12 margin-bm24 mt-3" style="display: {% if product.for_pickup %}block{% else %}none{% endif %};">
                                 <div class="col-md-6 margin-bm24 mt-3">
-                                    <input type="text" name="pickup_location" class="comm-field" value="{{ product.pickup_location }}" placeholder="Pickup Location"/>
+                                    <input type="text" id="pickup_location" name="pickup_location" class="comm-field" value="{{ product.pickup_location }}" placeholder="Pickup Location"/>
+                                    <input type="hidden" id="latitude" name="latitude" value="{{ product.latitude }}">
+                                    <input type="hidden" id="longitude" name="longitude" value="{{ product.longitude }}">
                                 </div>
                             </div>
 
@@ -145,23 +153,14 @@
                                 <input type="checkbox" name="can_deliver" id="can_deliver" {% if product.can_deliver %}checked{% endif %} onchange="toggleDeliveryFields()">
                                 <label for="can_deliver">Can Deliver</label>
                             </div>
-                            <div id="delivery-fields" class="col-md-12 margin-bm24 mt-3" style="display: {% if product.can_deliver %}block{% else %}none{% endif %};">
-                                <div class="col-md-6 margin-bm24 mt-3">
-                                    <label for="delivery_radius">Delivery Radius (km):</label>
-                                    <input type="number" name="delivery_radius" id="delivery_radius" class="comm-field" value="{{ product.delivery_radius }}" placeholder="Delivery Radius"/>
-                                </div>
-                            </div>
 
                             <!-- Main Colour Theme -->
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <label for="main_colour_theme">Main Colour Theme:</label>
                                 <select name="main_colour_theme" id="main_colour_theme" class="comm-field">
-                                    <option value="red" {% if product.main_colour_theme == 'red' %}selected{% endif %}>Red</option>
-                                    <option value="blue" {% if product.main_colour_theme == 'blue' %}selected{% endif %}>Blue</option>
-                                    <option value="green" {% if product.main_colour_theme == 'green' %}selected{% endif %}>Green</option>
-                                    <option value="yellow" {% if product.main_colour_theme == 'yellow' %}selected{% endif %}>Yellow</option>
-                                    <option value="black" {% if product.main_colour_theme == 'black' %}selected{% endif %}>Black</option>
-                                    <option value="white" {% if product.main_colour_theme == 'white' %}selected{% endif %}>White</option>
+                                    {% for color in product.COLOUR_CHOICES %}
+                                        <option value="{{ color.0 }}" {% if product.main_colour_theme == color.0 %}selected{% endif %}>{{ color.1 }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
@@ -185,6 +184,8 @@
     </div>
 </section>
 
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initAutocomplete" async defer></script>
 <script>
     let variationIndex = {{ variations_with_values|length }};
 
@@ -199,6 +200,11 @@
     function toggleHireFields() {
         var hireFields = document.getElementById('hire-fields');
         hireFields.style.display = hireFields.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function togglePurchaseFields() {
+        var purchaseFields = document.getElementById('purchase-fields');
+        purchaseFields.style.display = purchaseFields.style.display === 'none' ? 'block' : 'none';
     }
 
     function togglePickupFields() {
@@ -230,6 +236,7 @@
                 </div>
             </div>
             <div class="variation-values" data-index="${variationIndex}"></div>
+            <button type="button" class="remove-button" onclick="removeVariationField(this)">×</button>
         `;
         variationFields.appendChild(newVariation);
         addVariationValue(newVariation.querySelector('button'), variationIndex);
@@ -269,10 +276,55 @@
         priceInput.required = checkbox.checked;
     }
 
+    function removeVariationField(button) {
+        let field = button.closest('.variation-field');
+        field.remove();
+    }
+
     function removeVariationValue(button) {
         let valueRow = button.closest('.row');
         valueRow.remove();
     }
+
+    function initAutocomplete() {
+        var input = document.getElementById('pickup_location');
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            componentRestrictions: { country: 'au' }
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            document.getElementById('latitude').value = place.geometry.location.lat();
+            document.getElementById('longitude').value = place.geometry.location.lng();
+        });
+    }
 </script>
+
+<style>
+    .variation-field, .image-field {
+        position: relative;
+    }
+    .remove-button {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+</style>
 
 {% endblock content %}

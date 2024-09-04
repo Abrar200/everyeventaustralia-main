@@ -42,13 +42,7 @@
                             (Hire)
                         {% endif %}
                         <br>
-                        {% if item.item_type == 'service' %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% elif item.hire %}
-                            {{ item.hire_duration|title }}s: {{ item.quantity }}
-                        {% else %}
-                            Quantity: {{ item.quantity }}
-                        {% endif %}
+                        Quantity: {{ item.quantity }}
                         {% for variation in item.variations %}
                             <br>{{ variation.variation_name }}: {{ variation.variation_value }}
                         {% endfor %}
@@ -62,14 +56,24 @@
                     <td colspan="2" style="padding: 10px; text-align: right;"><strong>Subtotal:</strong></td>
                     <td style="padding: 10px; text-align: right;">${{ subtotal|floatformat:2 }}</td>
                 </tr>
-                <tr>
-                    <td colspan="2" style="padding: 10px; text-align: right;"><strong>Delivery:</strong></td>
-                    <td style="padding: 10px; text-align: right;">${{ delivery_fee|floatformat:2 }}</td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="padding: 10px; text-align: right;"><strong>Setup/Packdown Fee:</strong></td>
-                    <td style="padding: 10px; text-align: right;">${{ setup_packdown_fee|floatformat:2 }}</td>
-                </tr>
+                {% if delivery_fee > 0 %}
+                    <tr>
+                        <td colspan="2" style="padding: 10px; text-align: right;"><strong>Delivery:</strong></td>
+                        <td style="padding: 10px; text-align: right;">${{ delivery_fee|floatformat:2 }}</td>
+                    </tr>
+                {% endif %}
+                {% if setup_packdown_fee > 0 %}
+                    <tr>
+                        <td colspan="2" style="padding: 10px; text-align: right;"><strong>Setup/Packdown Fee:</strong></td>
+                        <td style="padding: 10px; text-align: right;">${{ setup_packdown_fee|floatformat:2 }}</td>
+                    </tr>
+                {% endif %}
+                {% if afterpay_fee > 0 %}
+                    <tr>
+                        <td colspan="2" style="padding: 10px; text-align: right;"><strong>Afterpay Fee:</strong></td>
+                        <td style="padding: 10px; text-align: right;">${{ afterpay_fee|floatformat:2 }}</td>
+                    </tr>
+                {% endif %}
                 <tr>
                     <td colspan="2" style="padding: 10px; text-align: right;"><strong>Total:</strong></td>
                     <td style="padding: 10px; text-align: right;"><strong>${{ total_price|floatformat:2 }}</strong></td>
@@ -91,7 +95,8 @@
             <p style="margin: 0;">
                 Date: {{ order.event_date }}<br>
                 Time: {{ order.event_time|time:"h:i A" }}<br>
-                Address: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }}
+                Event Address: {{ order.address }}, {{ order.postal_code }}<br>
+                Billing Address: {{ order.billing_address }}, {{ order.postal_code }}
             </p>
 
 
@@ -107,7 +112,7 @@
                     {% if item.delivery_method == 'delivery' %}
                         Delivery to {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.postal_code }} for {{ item.name }}<br>
                     {% else %}
-                        Pickup at {{ item.pickup_location }} for {{ item.name }}<br>
+                        Pickup at {{ item.pickup_location|default:"N/A" }} for {{ item.name }}<br>
                     {% endif %}
                 {% endfor %}
             </p>

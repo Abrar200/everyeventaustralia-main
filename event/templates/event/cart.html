@@ -30,13 +30,7 @@
                         </div>
                         <div class="cart-item-actions">
                             <div class="cart-item-quantity">
-                                {% if item.hire or item.is_service %}
-                                    <label for="quantity_{{ item.id }}">
-                                        {{ item.hire_duration|title }}s
-                                    </label>
-                                {% else %}
-                                    <label for="quantity_{{ item.id }}">Qty</label>
-                                {% endif %}
+                                <label for="quantity_{{ item.id }}">Qty</label>
                                 <input type="number" id="quantity_{{ item.id }}" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" class="quantity-input" data-item-id="{{ item.id }}">
                             </div>
                             <div class="cart-item-price">
@@ -86,14 +80,16 @@
         const debugDiv = document.createElement('div');
         debugDiv.id = 'debug-info';
         document.body.appendChild(debugDiv);
-        
+
+        // Initialize Google Places Autocomplete
         let autocomplete = new google.maps.places.Autocomplete(addressInput, {
             types: ['address'],
             componentRestrictions: { country: 'AU' }
         });
-        
+
+        // Trigger when a place is selected from the autocomplete dropdown
         autocomplete.addListener('place_changed', validateDeliveryAddress);
-        
+
         function validateDeliveryAddress() {
             const place = autocomplete.getPlace();
             
@@ -110,6 +106,7 @@
             debugDiv.innerHTML = `<p>Selected Address: ${place.formatted_address}</p>`;
             debugDiv.innerHTML += `<p>Coordinates: Lat ${coordinates.lat}, Lng ${coordinates.lng}</p>`;
             
+            // Send the coordinates to the server to validate the delivery
             fetch('/cart/validate-delivery/', {
                 method: 'POST',
                 headers: {
@@ -122,7 +119,7 @@
             .then(data => {
                 debugDiv.innerHTML += `<p>Server Response: ${JSON.stringify(data, null, 2)}</p>`;
                 if (data.valid) {
-                    enableCheckout();
+                    storeCoordinatesInCart(coordinates);
                 } else {
                     disableCheckout(data.message);
                 }
@@ -131,6 +128,30 @@
                 console.error('Error:', error);
                 debugDiv.innerHTML += `<p>Error: ${error.message}</p>`;
                 disableCheckout("An error occurred while validating the address. Please try again.");
+            });
+        }
+
+        function storeCoordinatesInCart(coordinates) {
+            // Store the validated coordinates in the cart
+            fetch('/cart/update-coordinates/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(coordinates)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    enableCheckout();
+                } else {
+                    disableCheckout("Unable to store coordinates in cart.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                disableCheckout("An error occurred while storing the coordinates. Please try again.");
             });
         }
         
@@ -195,7 +216,6 @@
             });
         }
 
-        
         function updateCartDisplay(data) {
             data.items.forEach(item => {
                 const priceElement = document.querySelector(`.item-price[data-item-id="${item.id}"]`);
@@ -203,7 +223,7 @@
                 const quantityInput = document.querySelector(`.quantity-input[data-item-id="${item.id}"]`);
         
                 if (priceElement) priceElement.textContent = item.price.toFixed(2);
-                if (totalElement) totalElement.textContent = item.total.toFixed(2);
+                if (totalElement) totalElement.textContent = item.total_price.toFixed(2);
                 if (quantityInput) quantityInput.value = item.quantity;
             });
         
@@ -215,6 +235,7 @@
         }
     });
 </script>
+
 
 <style>
     .cart-items {

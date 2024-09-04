@@ -32,12 +32,13 @@
             </div>
             
             {% if user == venue.user %}
-                <a href="{% url 'edit_venue' venue.venue_slug %}" class="btn-theme btn-black">
-                    <span class="material-icons-outlined me-2">Edit Venue</span>
-                </a>
-                <a href="{% url 'cancel_subscription' venue.venue_slug %}" class="btn-theme btn-danger">
-                    <span class="material-icons-outlined me-2">Cancel Subscription</span>
-                </a>
+                <div style="text-align: center; margin-top: 10px;">
+                    <a href="{% url 'edit_venue' venue.venue_slug %}" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
+                        Edit Venue
+                    </a>
+                    <a href="{% url 'cancel_subscription' venue.venue_slug %}" class="btn-theme" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease; display: inline-block;">Cancel Subscription</a>
+                </div>
+                
             {% endif %}
             <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">{{ venue.description|split_paragraphs }}</p>
             <a href="#inquiry-form" class="btn-theme" style="background-color: #710919; color: #FFFFFF; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease; display: inline-block;">Contact {{ venue.venue_name }}</a>
@@ -47,6 +48,9 @@
         <div class="explore-venue" style="margin-bottom: 40px;">
             <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">Explore {{ venue.venue_name }}</h2>
             <div class="venue-images" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div class="venue-image" style="position: relative; padding-top: 75%; overflow: hidden; border-radius: 8px; cursor: pointer;">
+                    <img src="{{ venue.venue_image.url }}" alt="{{ venue.venue_name }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onclick="openModal(this)">
+                </div>
                 {% for image in venue.images.all %}
                     <div class="venue-image" style="position: relative; padding-top: 75%; overflow: hidden; border-radius: 8px; cursor: pointer;">
                         <img src="{{ image.image.url }}" alt="{{ venue.venue_name }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onclick="openModal(this)">

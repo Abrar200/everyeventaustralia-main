@@ -51,6 +51,18 @@ class ServiceCategory(models.Model):
         return self.name
 
 
+class DeliveryByRadius(models.Model):
+    business = models.ForeignKey('Business', on_delete=models.CASCADE, related_name='delivery_radius_options')
+    radius = models.IntegerField(validators=[MinValueValidator(1)], help_text='Enter the delivery radius in kilometers.')
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Enter the delivery fee for this radius.')
+
+    class Meta:
+        unique_together = ('business', 'radius')
+
+    def __str__(self):
+        return f"{self.business.business_name} - {self.radius} km - ${self.price}"
+
+
 class Business(models.Model):
     seller = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='business')
     business_name = models.CharField(max_length=100)
@@ -69,8 +81,9 @@ class Business(models.Model):
     event_categories = models.ManyToManyField(EventCategory, related_name='businesses')
     is_featured = models.BooleanField(default=False)
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
-    delivery_radius = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)], help_text='Enter the delivery radius in kilometers.')
-    price_per_way = models.IntegerField(null=True, blank=True, help_text='Enter the delivery fee per way. The total fee will be twice this amount for a round trip.')
+    delivery_type = models.CharField(max_length=50, choices=[('price_per_way', 'Price Per Way'), ('by_radius', 'By Radius')], blank=True, null=True)
+    max_delivery_distance = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1)], help_text='Enter the maximum delivery distance in kilometers for Price Per Way.')
+    delivery_price_per_way = models.IntegerField(null=True, blank=True, help_text='Enter the delivery fee per way. The total fee will be twice this amount for a round trip.')
 
     def __str__(self):
         return self.business_name
@@ -112,14 +125,7 @@ class OpeningHour(models.Model):
         else:
             return f"{self.business.business_name} - {self.get_day_display()} ({self.opening_time} - {self.closing_time})"
     
-
 class Product(models.Model):
-    HIRE_DURATION_CHOICES = [
-        ('hour', 'Per Hour'),
-        ('day', 'Per Day'),
-        ('week', 'Per Week'),
-    ]
-
     COLOUR_CHOICES = [
         ('red', 'Red'),
         ('blue', 'Blue'),
@@ -133,7 +139,7 @@ class Product(models.Model):
     category = models.ForeignKey('ProductCategory', on_delete=models.SET_NULL, null=True, related_name='products')
     product_slug = models.SlugField(unique=True, blank=True)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    hire_price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='products/')
     image2 = models.ImageField(upload_to='products/', null=True, blank=True)
     image3 = models.ImageField(upload_to='products/', null=True, blank=True)
@@ -144,17 +150,15 @@ class Product(models.Model):
     is_popular = models.BooleanField(default=False)
     is_best_seller = models.BooleanField(default=False)
     trending = models.BooleanField(default=False)
-    new_releases = models.BooleanField(default=False)
+    new_arrivals = models.BooleanField(default=False)
     has_variations = models.BooleanField(default=False)
-    for_hire = models.BooleanField(default=False)
-    hire_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    hire_duration = models.CharField(max_length=10, choices=HIRE_DURATION_CHOICES, null=True, blank=True)
+    for_purchase = models.BooleanField(default=False)
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     for_pickup = models.BooleanField(default=False)
     pickup_location = models.CharField(max_length=255, null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     can_deliver = models.BooleanField(default=False)
-    delivery_radius = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)], help_text='Enter the delivery radius in kilometers.')
     main_colour_theme = models.CharField(max_length=10, choices=COLOUR_CHOICES, null=True, blank=True)
     setup_packdown_fee = models.BooleanField(default=False)
     setup_packdown_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -169,16 +173,14 @@ class Product(models.Model):
         data = {
             'id': self.id,
             'name': self.name,
-            'price': float(self.price),
+            'hire_price': float(self.hire_price),
+            'purchase_price': float(self.purchase_price) if self.purchase_price else None,
             'description': self.description,
             'images': [self.image.url, self.image2.url] if self.image and self.image2 else [],
-            'for_hire': self.for_hire,
-            'hire_price': float(self.hire_price) if self.hire_price else None,
-            'hire_duration': self.hire_duration,
+            'for_purchase': self.for_purchase,
             'for_pickup': self.for_pickup,
             'pickup_location': self.pickup_location,
             'can_deliver': self.can_deliver,
-            'delivery_radius': self.delivery_radius,
             'main_colour_theme': self.main_colour_theme,
             'setup_packdown_fee': self.setup_packdown_fee,
             'setup_packdown_fee_amount': float(self.setup_packdown_fee_amount) if self.setup_packdown_fee_amount else None,
@@ -242,13 +244,13 @@ class Service(models.Model):
     image = models.ImageField(upload_to='services/', null=True)
     description = models.TextField()
     hire_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    hire_duration = models.CharField(max_length=10, choices=[('hour', 'Hour'), ('day', 'Day'), ('week', 'Week')], null=True, blank=True)
     available_by_quotation_only = models.BooleanField(default=False)
     setup_packdown_fee = models.BooleanField(default=False)
     setup_packdown_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     has_variations = models.BooleanField(default=False)
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='services')
     is_best_seller = models.BooleanField(default=False)
+    new_arrivals = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.business.business_name}, {self.name}'
@@ -272,6 +274,7 @@ class Service(models.Model):
             return 0
         star_count = self.reviews.filter(rating=star).count()
         return round((star_count / total_reviews) * 100)
+
 
 class ServiceImage(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='images')
@@ -328,15 +331,21 @@ class Cart(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     hire = models.BooleanField(default=False)
     delivery_method = models.CharField(max_length=10, choices=DELIVERY_METHOD_CHOICES, default='delivery')
+    customer_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    customer_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name if self.product else self.service.name}"
 
+    
     def calculate_total_price(self):
         if self.product:
-            base_price = self.product.hire_price if self.hire else self.product.price
+            base_price = self.product.hire_price if self.hire else self.product.purchase_price
         elif self.service:
-            base_price = self.service.hire_price if not self.service.available_by_quotation_only else self.price
+            if self.service.available_by_quotation_only:
+                base_price = self.price  # Use the price set when adding the quote to cart
+            else:
+                base_price = self.service.hire_price
         else:
             base_price = Decimal('0')
 
@@ -346,7 +355,7 @@ class Cart(models.Model):
                 variations_price += variation.product_variation.price
             elif variation.service_variation and variation.service_variation.price:
                 variations_price += variation.service_variation.price
-        
+
         self.price = base_price + variations_price
         self.save()
 
@@ -369,8 +378,10 @@ class Order(models.Model):
         ('delivered', 'delivered'),
     ]
     STATUS_CHOICES = [
-        ('pending', 'Pending Approval'),
+        ('pending', 'Pending'),
+        ('partially_approved', 'Partially Approved'),
         ('approved', 'Approved'),
+        ('partially_rejected', 'Partially Rejected'),
         ('rejected', 'Rejected'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -378,7 +389,8 @@ class Order(models.Model):
     ref_code = models.CharField(max_length=20, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    address = models.CharField(max_length=255)  # Increase max_length to accommodate full addresses
+    address = models.CharField(max_length=255, verbose_name="Delivery/Event Address")
+    billing_address = models.CharField(max_length=255, null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     city = models.CharField(max_length=100, null=True)
@@ -390,17 +402,32 @@ class Order(models.Model):
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default="ordered")
     delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     setup_packdown_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    afterpay_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     event_date = models.DateField(null=True, blank=True)
     event_time = models.TimeField(null=True, blank=True)
     payment_method = models.CharField(max_length=20, choices=[('card', 'Credit Card'), ('afterpay_clearpay', 'Afterpay')], default='card')  # New field
     payment_intent = models.CharField(max_length=255, null=True, blank=True)
+    business_delivery_fees = models.JSONField(default=dict)
     
     def __str__(self):
         return f"Order #{self.id} by {self.user.username} #{self.ref_code}"
     
+    def all_businesses_responded(self):
+        return self.approvals.count() == self.items.values('product__business').distinct().count()
 
-    def all_businesses_approved(self):
-        return all(approval.approved for approval in self.approvals.all())
+
+    def update_status(self):
+        approved_items = self.items.filter(status='approved')
+        rejected_items = self.items.filter(status='rejected')
+        pending_items = self.items.filter(status='pending')
+        
+        if pending_items.exists():
+            self.status = 'partially_approved' if approved_items.exists() else 'pending'
+        elif rejected_items.exists():
+            self.status = 'partially_rejected' if approved_items.exists() else 'rejected'
+        else:
+            self.status = 'approved'
+        self.save()
 
 
 class OrderItem(models.Model):
@@ -409,6 +436,12 @@ class OrderItem(models.Model):
         ('delivery', 'Delivery')
     ]
 
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=True, blank=True)
@@ -416,7 +449,6 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     variations = JSONField(null=True, blank=True)
     hire = models.BooleanField(default=False)
-    hire_duration = models.CharField(max_length=10, choices=[('hour', 'Hour'), ('day', 'Day'), ('week', 'Week')], null=True, blank=True)
     delivery_method = models.CharField(max_length=10, choices=ORDER_ITEM_DELIVERY_METHOD_CHOICES, default='delivery')
 
     def __str__(self):
@@ -530,8 +562,7 @@ class Venue(models.Model):
     video_url = models.CharField(max_length=255, blank=True, null=True)
     states = models.ManyToManyField('State')
     views_count = models.IntegerField(default=0)
-    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
-    subscription_start_date = models.DateTimeField(null=True, blank=True)
+    stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.venue_name
@@ -552,7 +583,6 @@ class Venue(models.Model):
             return 0
         star_count = self.reviews.filter(rating=star).count()
         return round((star_count / total_reviews) * 100)
-
 
 class VenueOpeningHour(models.Model):
     DAY_CHOICES = [
@@ -597,7 +627,6 @@ class VenueReview(models.Model):
     @property
     def date(self):
         return (timezone.now() - self.created_at).days
-    
 
 class VenueView(models.Model):
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='views')
@@ -616,3 +645,43 @@ class VenueInquiry(models.Model):
 
     def __str__(self):
         return f"Inquiry by {self.user.username} for {self.venue.venue_name}"
+    
+from django_ckeditor_5.fields import CKEditor5Field
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True, blank=True, null=True)
+    blog_banner_image = models.ImageField(upload_to='blog_banner_images/')
+    blog_preview = models.TextField()
+    pub_date = models.DateField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class Paragraph(models.Model):
+    blog_post = models.ForeignKey(BlogPost, related_name='paragraphs', on_delete=models.CASCADE)
+    content = CKEditor5Field('Content', config_name='default')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f'Paragraph {self.order} in {self.blog_post.title}'
+
+class Image(models.Model):
+    paragraph = models.ForeignKey(Paragraph, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='blog_images/')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f'Image {self.order} in Paragraph {self.paragraph.order} of {self.paragraph.blog_post.title}'

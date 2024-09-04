@@ -171,7 +171,7 @@
                                     <div class="sr-list-right">
                                         <div>
                                             <h4><a href="{% url 'product_detail' business.business_slug product.product_slug %}">{{ product.name }}</a></h4>
-                                            <h6>${{ product.price }}</h6>
+                                            <h6>${{ product.hire_price }}</h6>
                                             <p>{{ product.description|truncatechars:100 }}</p>
                                         </div>
                                         <div class="sr-list-footer">
@@ -204,7 +204,7 @@
                                             {% if service.available_by_quotation_only %}
                                                 <h6>Available By Quotation</h6>
                                             {% else %}
-                                                <h6>${{ service.hire_price }}/{{ service.hire_duration }}</h6>
+                                                <h6>${{ service.hire_price }}</h6>
                                             {% endif %}
                                             <p>{{ service.description|truncatechars:100 }}</p>
                                         </div>

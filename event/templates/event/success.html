@@ -12,7 +12,6 @@
         <div class="overflow-x-auto">
             <p>Thank you for your purchase. Your order has been successfully placed.</p>
             <p>Order Reference: {{ order.ref_code }}</p>
-            <p>Total Amount: ${{ total_price }}</p>
             <p>Status: {{ order.get_status_display }}</p>
             <p>Please note that your order is pending approval from the vendor(s). You will receive a confirmation email once all vendors have approved your order.</p>
             <a href="{% url 'user_orders' %}" style="display: inline-block; padding: 12px 24px; background-color: #710919; color: white; text-decoration: none; font-weight: bold; transition: background-color 0.3s ease; margin-top: 20px;">

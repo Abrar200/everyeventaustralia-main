@@ -1,0 +1,54 @@
+{% extends "event/base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="section-holder" style="margin-top: 120px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="confirmation-box">
+                    <h2 class="text-center">Cancel Subscription</h2>
+                    <p class="text-center">
+                        Are you sure you want to cancel your subscription and remove your venue: <strong>{{ venue.venue_name }}</strong>?
+                    </p>
+                    <p class="text-center">
+                        This action cannot be undone.
+                    </p>
+                    <div class="text-center mt-4">
+                        <form method="post" action="{% url 'cancel_subscription' venue_slug=venue.venue_slug %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Yes, Cancel Subscription</button>
+                            <a href="{% url 'venue_detail' venue_slug=venue.venue_slug %}" class="btn btn-secondary">No, Go Back</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+
+<style>
+    .confirmation-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .confirmation-box h2 {
+        color: #dc3545;
+    }
+    
+    .confirmation-box p {
+        font-size: 1.1em;
+    }
+    
+    .confirmation-box .btn {
+        padding: 10px 20px;
+        font-size: 1em;
+        margin: 10px;
+    }
+</style>    

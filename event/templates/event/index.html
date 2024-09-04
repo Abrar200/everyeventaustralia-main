@@ -16,8 +16,8 @@
                         <h1 style="font-size: clamp(36px, 7.5vw, 54px); line-height: 1.2; margin-bottom: 10px;">Find Your Perfect Event Supplies and Venue</h1>
                         <p style="font-size: clamp(14px, 3vw, 18px); line-height: 1.4; margin-bottom: 20px;">Browse, compare & book online from trusted Melbourne and Adelaide vendors online storefronts</p>
                         <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                            <a href="#" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
-                            <a href="#" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
+                            <a href="{% url "all_events" %}?new_arrivals=true" class="view-more find-more" style="display: block; width: 100%; max-width: 550px; padding: 15px; margin-bottom: 10px; border: 2px solid white; color: white; text-align: center; text-decoration: none; transition: all 0.3s ease; font-size: clamp(14px, 2.5vw, 18px);">New Arrivals</a>
+                            <a href="{% url "all_events" %}" class="view-more book-now" style="display: block; margin-top: 4px; width: 100%; max-width: 550px; padding: 15px; background-color: white; color: black; text-align: center; text-decoration: none; font-size: clamp(14px, 2.5vw, 18px);">Shop Collections</a>
                         </div>
                     </div>
                 </div>
@@ -182,52 +182,60 @@
             <!-- Card 1 -->
             <div class="col">
                 <div class="card h-100 border-0 shadow-sm">
-                    <img src="{% static "event/images/engagement.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title mb-0 d-flex align-items-center">
-                            Engagement & Wedding
-                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
-                        </h5>
-                    </div>
+                    <a href="{% url 'all_events' %}?event_category=Wedding&event_category=Engagement">
+                        <img src="{% static "event/images/engagement.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-0 d-flex align-items-center">
+                                Engagement & Wedding
+                                <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                            </h5>
+                        </div>
+                    </a>
                 </div>
             </div>
             
             <!-- Card 2 -->
             <div class="col">
                 <div class="card h-100 border-0 shadow-sm">
-                    <img src="{% static "event/images/birthdays.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title mb-0 d-flex align-items-center">
-                            Birthdays and Celebrations
-                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
-                        </h5>
-                    </div>
+                    <a href="{% url 'all_events' %}?event_category=21st+Birthday&event_category=Festivals&event_category=Kids+Parties&event_category=Birthdays&event_category=30th+Birthday">
+                        <img src="{% static "event/images/birthdays.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-0 d-flex align-items-center">
+                                Birthdays and Celebrations
+                                <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                            </h5>
+                        </div>
+                    </a>
                 </div>
             </div>
             
             <!-- Card 3 -->
             <div class="col">
                 <div class="card h-100 border-0 shadow-sm">
-                    <img src="{% static "event/images/christening.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title mb-0 d-flex align-items-center">
-                            Christening & Baptisms
-                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
-                        </h5>
-                    </div>
+                    <a href="{% url 'all_events' %}?event_category=Christenings">
+                        <img src="{% static "event/images/christening.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-0 d-flex align-items-center">
+                                Christening & Baptisms
+                                <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                            </h5>
+                        </div>
+                    </a>
                 </div>
             </div>
             
             <!-- Card 4 -->
             <div class="col">
                 <div class="card h-100 border-0 shadow-sm">
-                    <img src="{% static "event/images/bridal.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title mb-0 d-flex align-items-center">
-                            Bridal Shower & Hen's Night
-                            <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
-                        </h5>
-                    </div>
+                    <a href="{% url 'all_events' %}?event_category=Wedding&event_category=Engagement">
+                        <img src="{% static "event/images/bridal.jpeg" %}" class="card-img-top" alt="Event 4" style="height: 240px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-0 d-flex align-items-center">
+                                Bridal Shower & Hen's Night
+                                <i class="fas fa-arrow-right ms-2" style="font-size: 0.8em;"></i>
+                            </h5>
+                        </div>
+                    </a>
                 </div>
             </div>
             
@@ -281,23 +289,19 @@
                             <div style="flex-grow: 1;"></div>
                             {% if item.type == 'service' and item.available_by_quotation_only %}
                             {% else %}
-                                <p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">${{ item.price }}</p>
+                                <p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">${{ item.hire_price }}</p>
                             {% endif %}
                             
                             {% if item.type == 'product' %}
-                                <form action="{% url 'add_to_cart' %}" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="product_id" value="{{ item.id }}">
+                                <a href="{% url 'product_detail' item.business.business_slug item.product_slug %}">
                                     <button type="submit" class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Add to Cart</small></button>
-                                </form>
+                                </a>
                             {% elif item.type == 'service' and item.available_by_quotation_only %}
                                 <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}"><button type="submit" class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Get Quote</small></button></a>
                             {% else %}
-                                <form action="{% url 'add_to_cart' %}" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="service_id" value="{{ item.id }}">
+                                <a href="{% url 'service_detail' item.business.business_slug item.service_slug %}">
                                     <button type="submit" class="add-to-cart" style="width: 100%; padding: 10px; background-color: white; color: black; border: 1px solid black; cursor: pointer; transition: all 0.3s ease;"><small>Add to Cart</small></button>
-                                </form>
+                                </a>
                             {% endif %}
                         </div>
                     </div>
@@ -496,7 +500,7 @@
         </div>
         <div style="position: relative; width: 100%; height: 450px; overflow: hidden;">
             <img src="{% static 'event/images/quote.png' %}" alt="Bride's feet with confetti" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%);">
-            <a href="#" 
+            <a href="{% url "all_events" %}?event_category=Wedding" 
                style="position: absolute; 
                       bottom: 45%; 
                       left: 50%; 
@@ -533,7 +537,7 @@
 
 <section class="as-seen-with py-5">
     <div class="container">
-        <h2 class="section-title">As seen with</h2>
+        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">As Seen With</h2>
         
         <div class="logo-grid">
             <div class="logo-item"><img src="{% static 'event/images/saweddings.png' %}" alt="SA Weddings Logo" class="logo"></div>
@@ -601,44 +605,41 @@
 </style>
 
 
+<section class="as-seen-with py-5">
+    <div class="container">
+        <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Customer Reviews</h2>
+        <div class="reviews-container">
+            {% for review in google_reviews %}
+                <div class="review">
+                    <h3>{{ review.author_name }}</h3>
+                    <p>Rating: {{ review.rating }} / 5</p>
+                    <p>{{ review.text }}</p>
+                    <p><small>Reviewed on: {{ review.relative_time_description }}</small></p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
 <section class="real-events-advice py-5">
     <div class="container">
         <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Real Events & Advice</h2>
         
         <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-bottom: 30px;">
-            <!-- Card 1 -->
+            {% for blog in blogs %}
             <div style="flex: 1 1 300px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease-in-out;">
-                <img src="{% static 'event/images/blog1.jpeg' %}" alt="Event 1" style="width: 100%; height: 200px; object-fit: cover;">
+                <img src="{{ blog.blog_banner_image.url }}" alt="Event 1" style="width: 100%; height: 200px; object-fit: cover;">
                 <div style="padding: 15px;">
-                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Elegant Garden Wedding</h5>
-                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">April 23, 2024</p>
-                    <p style="font-size: 0.9rem;">A charming outdoor celebration filled with floral delights and rustic touches.</p>
+                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">{{ blog.title }}</h5>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">{{ blog.pub_date }}</p>
+                    <p style="font-size: 0.9rem;">{{ blog.blog_preview }}</p>
                 </div>
             </div>
-            
-            <!-- Card 2 -->
-            <div style="flex: 1 1 300px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease-in-out;">
-                <img src="{% static 'event/images/blog2.webp' %}" alt="Event 2" style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 15px;">
-                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Chic Urban Birthday Bash</h5>
-                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">April 23, 2024</p>
-                    <p style="font-size: 0.9rem;">A stylish city celebration with modern decor and gourmet catering.</p>
-                </div>
-            </div>
-            
-            <!-- Card 3 -->
-            <div style="flex: 1 1 300px; max-width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease-in-out;">
-                <img src="{% static 'event/images/blog3.webp' %}" alt="Event 3" style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 15px;">
-                    <h5 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Intimate Beachside Vow Renewal</h5>
-                    <p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">April 23, 2024</p>
-                    <p style="font-size: 0.9rem;">A romantic seaside ceremony celebrating years of love and commitment.</p>
-                </div>
-            </div>
+            {% endfor %}
         </div>
         
         <div style="text-align: center;">
-            <a href="#" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
+            <a href="{% url "blog_list" %}" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
                 View all blogs
             </a>
         </div>

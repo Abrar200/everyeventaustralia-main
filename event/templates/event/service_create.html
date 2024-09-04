@@ -17,7 +17,7 @@
                         <div class="row margin-b24">
                             <!-- Basic Service Information -->
                             <div class="col-md-6 margin-bm24 mt-3"><input type="text" name="name" class="comm-field" placeholder="Service Name" required/></div>
-                            <div class="col-md-12 margin-bm24 mt-3"><textarea name="description" class="comm-field" placeholder="Description" required></textarea></div>
+                            <div class="col-md-6 margin-bm24 mt-3"><textarea name="description" class="comm-field" placeholder="Description" required></textarea></div>
 
                             <div class="col-md-12 margin-bm24 mt-3">
                                 <input type="checkbox" name="available_by_quotation_only" id="available_by_quotation_only"/>
@@ -27,14 +27,6 @@
                             <!-- Hire Details -->
                             <div class="col-md-6 margin-bm24 mt-3">
                                 <input type="number" step="0.01" name="hire_price" class="comm-field" placeholder="Hire Price" id="hire_price"/>
-                            </div>
-                            <div class="col-md-6 margin-bm24 mt-3">
-                                <select name="hire_duration" class="comm-field" id="hire_duration">
-                                    <option value="" disabled selected>Hire Duration</option>
-                                    <option value="hour">Hour</option>
-                                    <option value="day">Day</option>
-                                    <option value="week">Week</option>
-                                </select>
                             </div>
                             
                             <!-- Setup/Packdown Fee -->
@@ -48,7 +40,7 @@
                             
                             <!-- Variations -->
                             <div class="col-md-12 margin-bm24 mt-3">
-                                <input type="checkbox" name="has_variations" id="has_variations_checkbox" onchange="toggleServiceVariations()"/>
+                                <input type="checkbox" name="has_variations" id="has_variations_checkbox"/>
                                 <label for="has_variations_checkbox">Has Variations</label>
                             </div>
                             <div id="service-variations-section" class="col-md-12 margin-bm24 mt-3" style="display: none;">
@@ -66,7 +58,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6 margin-bm24 mt-3">
-                                <label for="category">Image*:</label>
+                                <label for="images">Image*:</label>
                                 <input type="file" name="images" class="comm-field" multiple required/>
                                 <button type="button" class="btn btn-secondary mt-3" onclick="addImageField()">Add Another Image</button>
                             </div>
@@ -84,44 +76,74 @@
     <!-- /container -->
 </section>
 
-
 <style>
     .disabled-field {
         opacity: 0.3;
         pointer-events: none;
     }
+    .variation-field, .image-field {
+        position: relative;
+    }
+    .remove-button {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
 </style>
 
-
 <script>
-    document.getElementById('setup_packdown_fee_checkbox').addEventListener('change', function() {
-        var setupFeeField = document.getElementById('setup_packdown_fee_amount');
-        setupFeeField.style.display = this.checked ? 'block' : 'none';
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+        const setupPackdownFeeCheckbox = document.getElementById('setup_packdown_fee_checkbox');
+        const setupFeeField = document.getElementById('setup_packdown_fee_amount');
+        const availableByQuotationCheckbox = document.getElementById('available_by_quotation_only');
+        const hirePriceField = document.getElementById('hire_price');
+        const hasVariationsCheckbox = document.getElementById('has_variations_checkbox');
+        const variationsSection = document.getElementById('service-variations-section');
 
-    document.getElementById('available_by_quotation_only').addEventListener('change', function() {
-        var hirePriceField = document.getElementById('hire_price');
-        var hasVariationsCheckbox = document.getElementById('has_variations_checkbox');
-        var disable = this.checked;
-        hirePriceField.disabled = disable;
-        hasVariationsCheckbox.disabled = disable;
-    
-        // Apply or remove the disabled-field class
-        hirePriceField.parentElement.classList.toggle('disabled-field', disable);
-        hasVariationsCheckbox.parentElement.classList.toggle('disabled-field', disable);
-    
-        // If disabling and 'has_variations' was checked, uncheck it and hide the variations section
-        if (disable && hasVariationsCheckbox.checked) {
-            hasVariationsCheckbox.checked = false;
+        setupPackdownFeeCheckbox.addEventListener('change', function() {
+            setupFeeField.style.display = this.checked ? 'block' : 'none';
+        });
+
+        availableByQuotationCheckbox.addEventListener('change', function() {
+            const disable = this.checked;
+            hirePriceField.disabled = disable;
+            hasVariationsCheckbox.disabled = disable;
+            hirePriceField.parentElement.classList.toggle('disabled-field', disable);
+            hasVariationsCheckbox.parentElement.classList.toggle('disabled-field', disable);
+
+            if (disable && hasVariationsCheckbox.checked) {
+                hasVariationsCheckbox.checked = false;
+                toggleServiceVariations();
+            }
+        });
+
+        hasVariationsCheckbox.addEventListener('change', function() {
             toggleServiceVariations();
+        });
+
+        function toggleServiceVariations() {
+            variationsSection.style.display = hasVariationsCheckbox.checked ? 'block' : 'none';
+            if (variationsSection.style.display === 'block' && document.getElementsByClassName('variation-field').length === 0) {
+                addServiceVariation();
+            }
         }
     });
 
     let serviceVariationIndex = 0;
 
     function addServiceVariation() {
-        let variationFields = document.getElementById('service_variation_fields');
-        let newVariation = document.createElement('div');
+        const variationFields = document.getElementById('service_variation_fields');
+        const newVariation = document.createElement('div');
         newVariation.className = 'variation-field mt-3';
         newVariation.innerHTML = `
             <div class="row mt-3">
@@ -133,6 +155,7 @@
                 </div>
             </div>
             <div class="variation-values" data-index="${serviceVariationIndex}"></div>
+            <button type="button" class="remove-button" onclick="removeVariationField(this)">×</button>
         `;
         variationFields.appendChild(newVariation);
         addServiceVariationValue(newVariation.querySelector('button'), serviceVariationIndex);
@@ -140,9 +163,9 @@
     }
 
     function addServiceVariationValue(button, variationIndex) {
-        let variationValues = button.closest('.variation-field').querySelector('.variation-values');
-        let valueIndex = variationValues.children.length;
-        let newValue = document.createElement('div');
+        const variationValues = button.closest('.variation-field').querySelector('.variation-values');
+        const valueIndex = variationValues.children.length;
+        const newValue = document.createElement('div');
         newValue.className = 'row mt-3';
         newValue.innerHTML = `
             <div class="col-md-3">
@@ -166,30 +189,40 @@
     }
 
     function togglePriceInput(checkbox) {
-        let priceInput = checkbox.closest('.row').querySelector('input[name^="variation_prices"]');
+        const priceInput = checkbox.closest('.row').querySelector('input[name^="variation_prices"]');
         priceInput.style.display = checkbox.checked ? 'block' : 'none';
         priceInput.required = checkbox.checked;
     }
 
+    function removeVariationField(button) {
+        const field = button.closest('.variation-field');
+        field.remove();
+    }
+
     function removeVariationValue(button) {
-        let valueRow = button.closest('.row');
+        const valueRow = button.closest('.row');
         valueRow.remove();
     }
 
-    function toggleServiceVariations() {
-        var variationsSection = document.getElementById('service-variations-section');
-        variationsSection.style.display = variationsSection.style.display === 'none' ? 'block' : 'none';
-        if (variationsSection.style.display === 'block' && document.getElementsByClassName('variation-field').length === 0) {
-            addServiceVariation();
-        }
+    function addImageField() {
+        const imageFields = document.querySelector('input[name="images"]');
+        const newField = imageFields.cloneNode();
+        newField.value = ''; // Clear the value of the new field
+        newField.className = 'comm-field mt-3 image-field'; // Add mt-3 class
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'remove-button';
+        removeButton.textContent = '×';
+        removeButton.onclick = function() {
+            removeImageField(newField, removeButton);
+        };
+        imageFields.parentNode.insertBefore(newField, imageFields.nextSibling);
+        imageFields.parentNode.insertBefore(removeButton, newField.nextSibling);
     }
 
-    function addImageField() {
-        var imageFields = document.querySelector('input[name="images"]');
-        var newField = imageFields.cloneNode();
-        newField.value = ''; // Clear the value of the new field
-        newField.className = 'comm-field mt-3'; // Add mt-3 class
-        imageFields.parentNode.insertBefore(newField, imageFields.nextSibling);
+    function removeImageField(field, button) {
+        field.remove();
+        button.remove();
     }
 </script>
 

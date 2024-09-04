@@ -124,11 +124,11 @@
                     <a href="{% url 'home' %}">Home</a>
                 </li>
                 <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
-                <li class="menu-item"><a href="{% url 'all_events' %}?type=hire">Hire</a></li>
+                <li class="menu-item"><a href="{% url 'all_events' %}?type=products">Hire</a></li>
                 <li class="menu-item"><a href="{% url 'all_events' %}?type=services">Services</a></li>
                 <li class="menu-item"><a href="{% url 'venues' %}">Find a Venue</a></li>
                 <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
-                <li class="menu-item"><a href="{% url 'venues' %}">Blogs</a></li>
+                <li class="menu-item"><a href="{% url 'blog_list' %}">Real Events and Advice</a></li>
             </ul>
         </div>
         <div class="menu-contact">
@@ -150,18 +150,18 @@
     <header style="position: fixed; top: 40px; left: 0; right: 0; z-index: 1000; background-color: #ffffff; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
             <div class="mobile-nav-wrapper">
-                <div class="logo-container" style="display: flex; align-items: center; justify-content: center;">
+                <div class="logo-container" style="display: flex; align-items: center; justify-content: center; margin-top: 7px;">
                     <a href="{% url 'home' %}">
                         <img src="{% static 'event/images/EEArebuildlogo2.png' %}" alt="Every Event Australia">
                     </a>
                 </div>
                 <nav style="display: flex; justify-content: flex-end; align-items: center;">
-                    <ul style="list-style: none; padding: 0; margin-right: 0px; margin-bottom: 5px; display: flex; justify-content: flex-end; flex-grow: 1; max-width: 800px;">
+                    <ul style="list-style: none; padding: 0; margin-right: 33px; margin-bottom: 5px; display: flex; justify-content: flex-end; flex-grow: 1; max-width: 800px;">
                         <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'about_us' %}" style="text-decoration: none; color: #000; font-weight: 500;">ABOUT US</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=hire" style="text-decoration: none; color: #000; font-weight: 500;">HIRE</a></li>
+                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=products" style="text-decoration: none; color: #000; font-weight: 500;">HIRE</a></li>
                         <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=services" style="text-decoration: none; color: #000; font-weight: 500;">SERVICES</a></li>
                         <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">FIND A VENUE</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">REAL EVENTS & ADVICE</a></li>
+                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'blog_list' %}" style="text-decoration: none; color: #000; font-weight: 500;">REAL EVENTS & ADVICE</a></li>
                     </ul>
                     <div class="nav-icons" style="display: flex; align-items: center;">
                         <a href="#" onclick="openSearchModal()" style="color: #000;">
@@ -405,7 +405,7 @@
                                         <li><a href="{% url 'about_us' %}#contact-us">Contact us</a></li>
                                         <li><a href="#">FAQs</a></li>
                                         <li><a href="{% url 'all_events' %}">Find Vendors</a></li>
-                                        <li><a href="#">Real Events and Advice</a></li>
+                                        <li><a href="{% url 'blog_list' %}">Real Events and Advice</a></li>
                                         <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
                                         <li><a href="{% url 'terms_and_conditions' %}">Terms and Conditions</a></li>
                                     </ul>

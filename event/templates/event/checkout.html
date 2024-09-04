@@ -7,8 +7,6 @@
 
 {% block content %}
 <style>
-    /* General Styles (unchanged from your original code) */
-
     .checkout-container {
         max-width: 1200px;
         margin: 120px auto 0;
@@ -124,9 +122,43 @@
         border: none;
         border-radius: 4px;
         cursor: pointer;
+        transition: background-color 0.3s, opacity 0.3s;
     }
 
-    /* Existing Media Query */
+    .checkout-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .checkout-button-container {
+        position: relative;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .checkout-button-tooltip {
+        visibility: hidden;
+        width: 200px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .checkout-button-container:hover .checkout-button-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
     @media (max-width: 768px) {
         .form-section {
             width: 100%;
@@ -144,7 +176,6 @@
         }
     }
 
-    /* New Breakpoint for Small Screens (480px) */
     @media (max-width: 480px) {
         .checkout-container {
             padding: 10px;
@@ -176,7 +207,6 @@
         }
     }
 
-    /* New Breakpoint for Extra Small Screens (320px) */
     @media (max-width: 320px) {
         .checkout-container {
             padding: 5px;
@@ -218,6 +248,10 @@
                 <div class="form-group">
                     <label for="address" class="form-label">Delivery/Event Address</label>
                     <input type="text" id="address" name="address" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="billing_address" class="form-label">Billing Address</label>
+                    <input type="text" id="billing_address" name="billing_address" required class="form-input">
                 </div>
                 <div class="form-group">
                     <label for="event_date" class="form-label">Event Date</label>
@@ -264,38 +298,35 @@
                                             {% if item.hire or item.service %} (Hire){% endif %}
                                         </h3>
                                         <p>{{ item.business_name }}</p>
-                                        {% if item.hire %}
-                                            <p>{% if item.hire_duration == 'hour' %}Hours{% elif item.hire_duration == 'day' %}Days{% else %}Weeks{% endif %}: {{ item.quantity }}</p>
-                                        {% else %}
-                                            <p>Quantity: {{ item.quantity }}</p>
-                                        {% endif %}
+                                        <p>Quantity: {{ item.quantity }}</p>
                                     </div>
                                 </td>
                                 <td style="text-align: right;">${{ item.item_total_price }}</td>
                             </tr>
                         {% endfor %}
-                        {% if delivery_fee > 0 %}
-                        <tr>
+                        <tr id="subtotal-row">
+                            <td>Subtotal</td>
+                            <td id="subtotal" style="text-align: right;">$0.00</td>
+                        </tr>
+                        <tbody id="delivery-breakdown"></tbody>
+                        <tr id="delivery-fee-row">
                             <td>Delivery Fee</td>
-                            <td id="delivery-fee" style="text-align: right;">${{ delivery_fee }}</td>
+                            <td id="delivery-fee" style="text-align: right;">$0.00</td>
                         </tr>
-                        {% endif %}
-                        {% if setup_packdown_fee > 0 %}
-                        <tr>
+                        <tr id="setup-packdown-fee-row">
                             <td>Setup/Packdown Fee</td>
-                            <td style="text-align: right;">${{ setup_packdown_fee }}</td>
+                            <td id="setup-packdown-fee" style="text-align: right;">$0.00</td>
                         </tr>
-                        {% endif %}
+                        <tr id="afterpay-fee-row" style="display: none;">
+                            <td>Afterpay Fee</td>
+                            <td id="afterpay-fee" style="text-align: right;">$0.00</td>
+                        </tr>
                     </tbody>
                     <tfoot>
                         <tr>
                             <th>Total</th>
-                            <td id="total-price" 
-                                data-subtotal="{{ total_price|subtract:delivery_fee|subtract:setup_packdown_fee }}" 
-                                data-setup-packdown-fee="{{ setup_packdown_fee }}" 
-                                data-total="{{ total_price }}" 
-                                style="text-align: right;">
-                                <strong>${{ total_price }}</strong>
+                            <td id="total-price" style="text-align: right;">
+                                <strong>$0.00</strong>
                             </td>
                         </tr>
                     </tfoot>
@@ -304,49 +335,34 @@
                     <label for="payment_method" class="form-label">Payment Method</label>
                     <select id="payment_method" name="payment_method" required class="form-input">
                         <option value="card">Credit Card</option>
-                        <option value="afterpay_clearpay" id="afterpay_option">Afterpay</option>
+                        <option value="afterpay_clearpay" id="afterpay_option">Afterpay (+6%)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="delivery_method" class="form-label">Delivery/Pickup Method</label>
-                    {% for method in delivery_methods %}
+                    {% for item in cart_items %}
                         <div>
-                            <strong>{{ method.name }} ({{ method.business_name }})</strong>
-                            {% if method.method == 'both' %}
-                                <select name="delivery_method_{{ method.id }}" class="delivery-method form-input" 
-                                    data-id="{{ method.id }}" 
-                                    data-business-id="{{ method.business_id }}" 
-                                    data-price-per-way="{{ method.price_per_way }}" 
-                                    data-item-type="{{ method.item_type }}"
-                                    data-item-name="{{ method.name }}"
-                                    data-business-name="{{ method.business_name }}"
-                                    required>
+                            <strong>{{ item.name }} ({{ item.business_name }})</strong>
+                            {% if item.delivery_method == 'both' %}
+                                <select name="delivery_method_{{ item.id }}" class="delivery-method form-input" 
+                                        data-id="{{ item.id }}" required>
                                     <option value="delivery">Delivery</option>
                                     <option value="pickup">Pickup</option>
                                 </select>
-                                <p id="pickup-location-{{ method.id }}" style="display: none;">Pickup Location: {{ method.pickup_location }}</p>
-                            {% elif method.method == 'delivery' or method.item_type == 'service' %}
-                                <p>Delivery</p>
-                                <input type="hidden" name="delivery_method_{{ method.id }}" class="delivery-method" value="delivery" 
-                                    data-id="{{ method.id }}" 
-                                    data-business-id="{{ method.business_id }}" 
-                                    data-price-per-way="{{ method.price_per_way }}" 
-                                    data-item-type="{{ method.item_type }}"
-                                    data-item-name="{{ method.name }}"
-                                    data-business-name="{{ method.business_name }}">
-                            {% else %}
-                                <p>Pickup Location: {{ method.pickup_location }}</p>
-                                <input type="hidden" name="delivery_method_{{ method.id }}" class="delivery-method" value="pickup" 
-                                    data-id="{{ method.id }}" 
-                                    data-business-id="{{ method.business_id }}" 
-                                    data-price-per-way="{{ method.price_per_way }}" 
-                                    data-item-type="{{ method.item_type }}"
-                                    data-item-name="{{ method.name }}"
-                                    data-business-name="{{ method.business_name }}">
+                                <p id="pickup-location-{{ item.id }}" style="display: none;">Pickup Location: {{ item.pickup_location }}</p>
+                            {% elif item.delivery_method == 'delivery' %}
+                                <p>Delivery Only</p>
+                                <input type="hidden" name="delivery_method_{{ item.id }}" class="delivery-method" value="delivery" 
+                                       data-id="{{ item.id }}">
+                            {% elif item.delivery_method == 'pickup' %}
+                                <p>Pickup Only</p>
+                                <input type="hidden" name="delivery_method_{{ item.id }}" class="delivery-method" value="pickup" 
+                                       data-id="{{ item.id }}">
+                                <p>Pickup Location: {{ item.pickup_location }}</p>
                             {% endif %}
                         </div>
                     {% endfor %}
-                </div>
+                </div>               
             </div>
 
             <div class="terms-container">
@@ -372,211 +388,570 @@
                         <button type="button" class="clear-signature">Clear Signature</button>
                     </div>
                 {% endfor %}
-            </div>
+            </div>            
 
-            <div style="width: 100%; margin-top: 20px;">
+            <div class="checkout-button-container">
                 <button id="checkout-button" class="checkout-button" disabled>Place Order</button>
+                <span class="checkout-button-tooltip">Please sign all terms and conditions before proceeding.</span>
             </div>
         </form>
     </div>
 </div>
 
-
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places,geometry"></script>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <script>
-    var stripe = Stripe('{{ stripe_public_key }}');
-    var checkoutButton = document.getElementById('checkout-button');
-    var paymentMethodSelect = document.getElementById('payment_method');
-    var afterpayOption = document.getElementById('afterpay_option');
-    var totalAmount = {{ total_price }};
-    const addressInput = document.getElementById('address');
+var cartItems = {{ cart_items_json|safe }};
+console.log("Cart items loaded:", cartItems);
+var stripe = Stripe('{{ stripe_public_key }}');
+var checkoutButton = document.getElementById('checkout-button');
+var paymentMethodSelect = document.getElementById('payment_method');
+var afterpayOption = document.getElementById('afterpay_option');
+var totalPriceElement = document.getElementById('total-price');
+var subtotalElement = document.getElementById('subtotal');
+var deliveryFeeElement = document.getElementById('delivery-fee');
+var setupPackdownFeeElement = document.getElementById('setup-packdown-fee');
+var afterpayFeeElement = document.getElementById('afterpay-fee');
 
-    let autocomplete = new google.maps.places.Autocomplete(addressInput, {
-        types: ['address'],
-        componentRestrictions: { country: 'AU' }
+var subtotal = 0;
+var deliveryFee = 0;
+var setupPackdownFee = 0;
+var afterpayFee = 0;
+var totalAmount = 0;
+var afterpayPercentage = 0.06;
+var businessDeliveryFees = {};
+
+var billingAddressInput = document.getElementById('billing_address');
+var deliveryAddressInput = document.getElementById('address');
+
+function initializeCheckout() {
+    console.log("Initializing checkout...");
+
+    try {
+        if (google && google.maps) {
+            console.log("Google Maps loaded successfully.");
+            var billingAutocomplete = new google.maps.places.Autocomplete(billingAddressInput, {
+                types: ['address'],
+                componentRestrictions: { country: 'AU' }
+            });
+
+            var deliveryAutocomplete = new google.maps.places.Autocomplete(deliveryAddressInput, {
+                types: ['address'],
+                componentRestrictions: { country: 'AU' }
+            });
+
+            deliveryAutocomplete.addListener('place_changed', function() {
+                const place = deliveryAutocomplete.getPlace();
+                if (place.geometry && place.geometry.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    console.log(`Autocomplete selected: lat ${lat}, lng ${lng}`);
+                    updateCustomerCoordinates(lat, lng);
+                }
+            });
+        } else {
+            console.warn("Google Maps not loaded. Autocomplete disabled.");
+        }
+
+        initializeCustomerCoordinates();
+        calculateSubtotal();
+        updateDeliveryFee();
+        calculateSetupPackdownFee();
+        updateTotalPrice();
+        signaturePads = initializeSignaturePads();
+
+        paymentMethodSelect.addEventListener('change', handlePaymentMethodChange);
+
+        document.querySelectorAll('.delivery-method').forEach(select => {
+            select.addEventListener('change', handleDeliveryMethodChange);
+        });
+
+        initializeSignaturePads();
+
+        checkoutButton.addEventListener('click', handleCheckout);
+
+    } catch (error) {
+        console.error("Error initializing checkout:", error);
+    }
+}
+
+function calculateSubtotal() {
+    console.log("Calculating subtotal...");
+    subtotal = cartItems.reduce((sum, item) => sum + item.item_total_price, 0);
+    console.log(`Calculated subtotal: $${subtotal.toFixed(2)}`);
+    if (subtotalElement) {
+        subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+    } else {
+        console.warn("Subtotal element not found");
+    }
+}
+
+function updateDeliveryFeeBreakdownUI() {
+    console.log("Updating delivery fee breakdown UI...");
+    const deliveryBreakdownContainer = document.getElementById('delivery-breakdown');
+    if (!deliveryBreakdownContainer) {
+        console.warn("Delivery breakdown container not found. Skipping breakdown update.");
+        return;
+    }
+    deliveryBreakdownContainer.innerHTML = '';
+
+    Object.keys(businessDeliveryFees).forEach(businessId => {
+        const fee = businessDeliveryFees[businessId];
+        const business = cartItems.find(item => item.business.id == businessId);
+        const businessName = business ? business.business_name : 'Unknown Business';
+
+        if (fee > 0) {
+            console.log(`Adding breakdown for ${businessName}: $${fee.toFixed(2)}`);
+
+            const breakdownItem = document.createElement('tr');
+            breakdownItem.innerHTML = 
+                `<td>${businessName} Delivery Fee</td>
+                <td style="text-align: right;">$${fee.toFixed(2)}</td>`;
+            deliveryBreakdownContainer.appendChild(breakdownItem);
+        }
+    });
+}
+
+function initializeCustomerCoordinates() {
+    console.log("Initializing customer coordinates...");
+    console.log("Cart items:", cartItems); // Log the entire cartItems array
+    let coordinatesInitialized = false;
+    for (let item of cartItems) {
+        console.log("Checking item:", item); // Log each item
+        if (item.customer_lat && item.customer_lng) {
+            console.log(`Found coordinates in cart item: lat ${item.customer_lat}, lng ${item.customer_lng}`);
+            updateCustomerCoordinates(item.customer_lat, item.customer_lng);
+            coordinatesInitialized = true;
+            break;
+        }
+    }
+    if (!coordinatesInitialized) {
+        console.warn("Unable to initialize customer coordinates from cart items");
+    }
+}
+
+function updateCustomerCoordinates(lat, lng) {
+    console.log(`Updating customer coordinates: lat ${lat}, lng ${lng}`);
+    cartItems.forEach(item => {
+        if (!item.delivery_info) {
+            item.delivery_info = {};
+        }
+        item.delivery_info.customer_lat = lat;
+        item.delivery_info.customer_lng = lng;
+    });
+    updateDeliveryFee();
+}
+
+
+function updateDeliveryFee() {
+    console.log("Updating delivery fee...");
+    const deliveryMethods = document.querySelectorAll('.delivery-method');
+    businessDeliveryFees = {};
+
+    deliveryMethods.forEach(function(select) {
+        const method = select.value;
+        const itemId = select.dataset.id;
+        console.log(`Processing item ${itemId}, delivery method: ${method}`);
+
+        const item = cartItems.find(item => item.id.toString() === itemId);
+        if (!item) {
+            console.warn(`Item ${itemId} not found in cartItems`);
+            return;
+        }
+
+        console.log("Item:", item);
+
+        let fee = 0;
+        if (method === 'delivery') {
+            const business = item.business;
+            if (business.delivery_type === 'price_per_way') {
+                console.log("Calculating price per way fee...");
+                fee = calculatePricePerWayFee(item);
+            } else if (business.delivery_type === 'by_radius') {
+                console.log("Calculating by radius fee...");
+                fee = calculateByRadiusFee(item);
+            }
+
+            if (fee === null) {
+                console.warn(`Delivery not available for item ${itemId}`);
+                // Handle the case where delivery is not available (e.g., show an error message)
+                return;
+            }
+        }
+
+        const businessId = item.business.id;
+        console.log(`Calculated fee for item ${itemId}: $${fee}`);
+
+        if (fee > 0) {
+            if (businessId && (!businessDeliveryFees[businessId] || fee > businessDeliveryFees[businessId])) {
+                businessDeliveryFees[businessId] = fee;
+            }
+        }
     });
 
-    // Function to check Afterpay eligibility
-    function checkAfterpayEligibility() {
-        if (totalAmount > 2000) {
-            afterpayOption.disabled = true;
-            afterpayOption.text = "Afterpay (Unavailable for orders over $2000)";
-        } else {
-            afterpayOption.disabled = false;
-            afterpayOption.text = "Afterpay";
+    updateDeliveryFeeBreakdownUI();
+
+    deliveryFee = Object.values(businessDeliveryFees).reduce((sum, fee) => sum + fee, 0);
+    console.log(`Total Delivery Fee: $${deliveryFee.toFixed(2)}`);
+
+    if (deliveryFeeElement) {
+        deliveryFeeElement.textContent = `$${deliveryFee.toFixed(2)}`;
+    } else {
+        console.warn("Delivery fee element not found");
+    }
+    updateTotalPrice();
+}
+
+
+function calculateByRadiusFee(item) {
+    console.log("Calculating by radius fee...");
+    console.log("Item:", item);
+
+    const distance = calculateDistance(item);
+    console.log(`Calculated distance: ${distance.toFixed(2)}km`);
+    console.log("Radius options:", item.business.delivery_radius_options);
+
+    // Sort radius options by radius in ascending order
+    const sortedOptions = item.business.delivery_radius_options.sort((a, b) => a.radius - b.radius);
+
+    for (let option of sortedOptions) {
+        if (distance <= option.radius) {
+            console.log(`Selected radius option: ${option.radius}km, fee: $${option.price}`);
+            return option.price;
         }
     }
 
-    // Check eligibility on page load
-    checkAfterpayEligibility();
+    console.log("Distance exceeds maximum radius, no delivery available");
+    return null; // Indicate that delivery is not available
+}
 
-    document.querySelectorAll('.delivery-method').forEach(function(select) {
-        select.addEventListener('change', function() {
-            updateDeliveryFee();
-        });
-    });
+function calculatePricePerWayFee(item) {
+    console.log("Calculating price per way fee...");
+    console.log("Item:", item);
 
-    function updateDeliveryFee() {
-        let deliveryFee = 0;
-        const deliveryMethods = document.querySelectorAll('.delivery-method');
-        const businessDeliveryFees = {};
+    const distance = calculateDistance(item);
+    console.log(`Calculated distance: ${distance.toFixed(2)}km`);
+
+    if (distance <= item.business.max_delivery_distance) {
+        const fee = item.business.delivery_price_per_way * 2; // Multiply by 2 for round trip
+        console.log(`Price per way fee: $${fee}`);
+        return fee;
+    }
     
-        console.log("--- Updating Delivery Fee ---");
+    console.log("Distance exceeds max distance, no delivery available");
+    return null; // Indicate that delivery is not available
+}
+
+
+function calculateDistance(item) {
+    console.log("Calculating distance...");
+    console.log("Item:", item);
+
+    if (!item.customer_lat || !item.customer_lng || 
+        !item.business.latitude || !item.business.longitude) {
+        console.warn("Missing coordinates for distance calculation");
+        return Infinity;
+    }
+
+    const customerLat = parseFloat(item.customer_lat);
+    const customerLng = parseFloat(item.customer_lng);
+    const businessLat = parseFloat(item.business.latitude);
+    const businessLng = parseFloat(item.business.longitude);
+
+    if (isNaN(customerLat) || isNaN(customerLng) || isNaN(businessLat) || isNaN(businessLng)) {
+        console.warn("Invalid coordinates for distance calculation");
+        return Infinity;
+    }
+
+    if (google && google.maps && google.maps.geometry) {
+        const customerLatLng = new google.maps.LatLng(customerLat, customerLng);
+        const businessLocation = new google.maps.LatLng(businessLat, businessLng);
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(customerLatLng, businessLocation) / 1000;
+        console.log(`Calculated distance: ${distance.toFixed(2)}km`);
+        return distance;
+    } else {
+        console.warn("Google Maps geometry library not loaded. Distance calculation fallback to 0.");
+        return 0;
+    }
+}
+
+
+function calculateSetupPackdownFee() {
+    console.log("Calculating setup/packdown fee...");
+    setupPackdownFee = cartItems.reduce((sum, item) => {
+        let fee = 0;
+        if (item.setup_packdown_fee) {
+            fee = parseFloat(item.setup_packdown_fee_amount);
+        }
+        console.log(`Item ${item.id} setup/packdown fee: $${fee}`);
+        return sum + fee;
+    }, 0);
+    console.log(`Total setup/packdown fee: $${setupPackdownFee.toFixed(2)}`);
+    if (setupPackdownFeeElement) {
+        setupPackdownFeeElement.textContent = `$${setupPackdownFee.toFixed(2)}`;
+        document.getElementById('setup-packdown-fee-row').style.display = setupPackdownFee > 0 ? 'table-row' : 'none';
+    } else {
+        console.warn("Setup/packdown fee element not found");
+    }
+}
+
+
+function updateTotalPrice() {
+    console.log("Updating total price...");
+    totalAmount = subtotal + deliveryFee + setupPackdownFee;
     
-        deliveryMethods.forEach(function(select) {
-            const method = select.value;
-            const businessId = select.dataset.businessId;
-            const pricePerWay = parseFloat(select.dataset.pricePerWay);
-            const itemType = select.dataset.itemType;
-            const itemName = select.dataset.itemName;
-            const businessName = select.dataset.businessName;
+    console.log(`Subtotal: $${subtotal.toFixed(2)}`);
+    console.log(`Delivery Fee: $${deliveryFee.toFixed(2)}`);
+    console.log(`Setup/Packdown Fee: $${setupPackdownFee.toFixed(2)}`);
     
-            console.log(`Item: ${itemName}, Business: ${businessName}, Type: ${itemType}, Method: ${method}, Price per way: ${pricePerWay}`);
-    
-            if (itemType === 'service' || method === 'delivery') {
-                if (!businessDeliveryFees[businessId] || pricePerWay > businessDeliveryFees[businessId]) {
-                    businessDeliveryFees[businessId] = pricePerWay * 2;
-                }
-                console.log(`${itemType === 'service' ? 'Service' : 'Product'} '${itemName}' from ${businessName}: Delivery - $${businessDeliveryFees[businessId].toFixed(2)}`);
-            } else {
-                console.log(`Product '${itemName}' from ${businessName}: Pickup - No fee`);
-            }
-        });
-    
-        deliveryFee = Object.values(businessDeliveryFees).reduce((sum, fee) => sum + fee, 0);
-    
-        console.log(`Total Delivery Fee: $${deliveryFee.toFixed(2)}`);
-    
-        const deliveryFeeElement = document.getElementById('delivery-fee');
+    if (deliveryFee > 0) {
         if (deliveryFeeElement) {
             deliveryFeeElement.textContent = `$${deliveryFee.toFixed(2)}`;
-        } else {
-            console.error("Delivery fee element not found");
+            document.getElementById('delivery-fee-row').style.display = 'table-row';
         }
-        
-        // Update total price
-        const totalPriceElement = document.getElementById('total-price');
-        if (totalPriceElement) {
-            const subtotal = parseFloat(totalPriceElement.dataset.subtotal);
-            const setupPackdownFee = parseFloat(totalPriceElement.dataset.setupPackdownFee);
-            
-            console.log(`Subtotal: $${subtotal}`);
-            console.log(`Setup/Packdown Fee: $${setupPackdownFee}`);
-            
-            if (isNaN(subtotal)) {
-                console.error("Subtotal is NaN");
-            }
-            if (isNaN(setupPackdownFee)) {
-                console.error("Setup/Packdown Fee is NaN");
-            }
-            
-            const totalPrice = subtotal + deliveryFee + setupPackdownFee;
-            
-            console.log(`Calculated Total Price: $${totalPrice.toFixed(2)}`);
-            
-            totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
-            totalPriceElement.dataset.total = totalPrice.toFixed(2);
-        } else {
-            console.error("Total price element not found");
+    } else {
+        if (deliveryFeeElement) {
+            document.getElementById('delivery-fee-row').style.display = 'none';
         }
-    
-        console.log("--- End of Delivery Fee Update ---");
     }
-    
-    // Initial call to set delivery fee on page load
-    updateDeliveryFee();
 
-    // Initialize signature pads
+    if (setupPackdownFee > 0) {
+        if (setupPackdownFeeElement) {
+            setupPackdownFeeElement.textContent = `$${setupPackdownFee.toFixed(2)}`;
+            document.getElementById('setup-packdown-fee-row').style.display = 'table-row';
+        }
+    } else {
+        if (setupPackdownFeeElement) {
+            document.getElementById('setup-packdown-fee-row').style.display = 'none';
+        }
+    }
+
+    if (afterpayFee > 0) {
+        totalAmount += afterpayFee;
+        console.log(`Afterpay Fee: $${afterpayFee.toFixed(2)}`);
+    }
+
+    console.log(`Calculated Total Price: $${totalAmount.toFixed(2)}`);
+
+    if (totalPriceElement) {
+        totalPriceElement.innerHTML = `<strong>$${totalAmount.toFixed(2)}</strong>`;
+    } else {
+        console.warn("Total price element not found");
+    }
+    checkAfterpayEligibility();
+}
+
+function checkAfterpayEligibility() {
+    console.log("Checking Afterpay eligibility...");
+    if (totalAmount > 2000) {
+        console.log("Total amount exceeds $2000, Afterpay not available");
+        afterpayOption.disabled = true;
+        afterpayOption.text = "Afterpay (Unavailable for orders over $2000)";
+    } else {
+        const potentialTotalWithAfterpay = totalAmount * (1 + afterpayPercentage);
+        console.log(`Potential total with Afterpay: $${potentialTotalWithAfterpay.toFixed(2)}`);
+        if (potentialTotalWithAfterpay > 2000) {
+            console.log("Potential total with Afterpay exceeds $2000, Afterpay not available");
+            afterpayOption.disabled = true;
+            afterpayOption.text = "Afterpay (Unavailable, exceeds $2000 limit with fee)";
+        } else {
+            console.log("Afterpay is available");
+            afterpayOption.disabled = false;
+            afterpayOption.text = "Afterpay (+6%)";
+        }
+    }
+}
+
+function handlePaymentMethodChange() {
+    console.log(`Payment method changed to: ${this.value}`);
+    if (this.value === 'afterpay_clearpay') {
+        afterpayFee = totalAmount * afterpayPercentage;
+        const totalWithAfterpayFee = totalAmount + afterpayFee;
+
+        console.log(`Afterpay fee: $${afterpayFee.toFixed(2)}`);
+        console.log(`Total with Afterpay fee: $${totalWithAfterpayFee.toFixed(2)}`);
+
+        if (totalWithAfterpayFee > 2000) {
+            console.warn("Selecting Afterpay will exceed the $2000 limit");
+            alert("Selecting Afterpay will exceed the $2000 limit. Please choose another payment method.");
+            this.value = "card";
+            afterpayFee = 0;
+            document.getElementById('afterpay-fee-row').style.display = 'none';
+        } else {
+            afterpayFeeElement.textContent = `$${afterpayFee.toFixed(2)}`;
+            document.getElementById('afterpay-fee-row').style.display = 'table-row';
+        }
+    } else {
+        console.log("Resetting Afterpay fee to 0");
+        afterpayFee = 0;
+        document.getElementById('afterpay-fee-row').style.display = 'none';
+    }
+    updateTotalPrice();
+}
+
+function handleDeliveryMethodChange() {
+    console.log(`Delivery method changed for item ${this.dataset.id} to: ${this.value}`);
+    updateDeliveryFee();
+    
+    const pickupLocationElement = document.getElementById(`pickup-location-${this.dataset.id}`);
+    if (pickupLocationElement) {
+        pickupLocationElement.style.display = this.value === 'pickup' ? 'block' : 'none';
+        console.log(`Pickup location display for item ${this.dataset.id}: ${pickupLocationElement.style.display}`);
+    } else {
+        console.warn(`Pickup location element not found for item ${this.dataset.id}`);
+    }
+}
+
+function initializeSignaturePads() {
+    console.log("Initializing signature pads...");
     const signaturePads = {};
     document.querySelectorAll('.signature-pad').forEach(container => {
         const canvas = container.querySelector('canvas');
         const businessId = container.closest('.business-terms').dataset.businessId;
         signaturePads[businessId] = new SignaturePad(canvas);
+        console.log(`Signature pad initialized for business ${businessId}`);
     });
 
-    // Clear signature buttons
     document.querySelectorAll('.clear-signature').forEach(button => {
         button.addEventListener('click', function() {
             const businessId = this.closest('.business-terms').dataset.businessId;
             signaturePads[businessId].clear();
+            console.log(`Signature cleared for business ${businessId}`);
             checkAllSignatures();
         });
     });
 
-    // Function to check if all signatures are completed
     function checkAllSignatures() {
+        console.log("Checking all signatures...");
         const allSigned = Object.values(signaturePads).every(pad => !pad.isEmpty());
         checkoutButton.disabled = !allSigned;
+        
+        const tooltip = document.querySelector('.checkout-button-tooltip');
+        if (allSigned) {
+            console.log("All signatures completed");
+            tooltip.style.visibility = 'hidden';
+        } else {
+            console.log("Not all signatures completed");
+            tooltip.style.visibility = 'visible';
+        }
     }
-
-    // Add event listeners to signature pads
+    
     Object.values(signaturePads).forEach(pad => {
         pad.addEventListener('endStroke', checkAllSignatures);
     });
 
-    checkoutButton.addEventListener('click', function(e) {
-        e.preventDefault();
+    return signaturePads;
+}
+function handleCheckout(e) {
+    e.preventDefault();
+    console.log("Handling checkout...");
 
-        var form = document.getElementById('checkout-form');
-        var formData = new FormData(form);
-        var data = {
-            address: formData.get('address'),
-            city: formData.get('city'),
-            state: formData.get('state'),
-            postal_code: formData.get('postal_code'),
-            note: formData.get('note'),
-            event_date: formData.get('event_date'),
-            event_time: formData.get('event_time'),
-            payment_method: formData.get('payment_method'),
-            delivery_methods: {},
-            signatures: {}
-        };
+    var form = document.getElementById('checkout-form');
+    var formData = new FormData(form);
+    var data = {
+        address: formData.get('address'),
+        billing_address: formData.get('billing_address'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        postal_code: formData.get('postal_code'),
+        note: formData.get('note'),
+        event_date: formData.get('event_date'),
+        event_time: formData.get('event_time'),
+        payment_method: formData.get('payment_method'),
+        delivery_methods: {},
+        signatures: {},
+        subtotal: subtotal,
+        delivery_fee: deliveryFee,
+        businessDeliveryFees: businessDeliveryFees,  // Add this line
+        setup_packdown_fee: setupPackdownFee,
+        afterpay_fee: afterpayFee,
+        total_price: totalAmount
+    };
 
-        document.querySelectorAll('.delivery-method').forEach(function(select) {
-            data.delivery_methods[select.dataset.id] = select.value;
-        });
+    console.log("Collected form data:", data);
 
-        // Collect signatures
-        Object.entries(signaturePads).forEach(([businessId, pad]) => {
-            data.signatures[businessId] = pad.toDataURL();
-        });
-
-        // Debug statement to print selected delivery methods
-        console.log("Selected delivery methods:", data.delivery_methods);
-
-        if (data.payment_method === 'afterpay_clearpay' && totalAmount > 2000) {
-            alert('Afterpay is not available for orders over $2000. Please select a different payment method.');
-            return;
-        }
-
-        fetch("{% url 'checkout' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(function(response) {
-            if (!response.ok) {
-                return response.json().then(err => { throw err; });
-            }
-            return response.json();
-        })
-        .then(function(session) {
-            return stripe.redirectToCheckout({ sessionId: session.id });
-        })
-        .then(function(result) {
-            if (result.error) {
-                alert(result.error.message);
-            }
-        })
-        .catch(function(error) {
-            console.error('Error:', error);
-            alert(error.error || 'An error occurred. Please try again.');
-        });
+    document.querySelectorAll('.delivery-method').forEach(function(select) {
+        data.delivery_methods[select.dataset.id] = select.value;
     });
+
+    console.log("Collected delivery methods:", data.delivery_methods);
+
+    // Use existing signature pads
+    Object.keys(signaturePads).forEach(businessId => {
+        if (!signaturePads[businessId].isEmpty()) {
+            data.signatures[businessId] = signaturePads[businessId].toDataURL();
+        }
+    });
+
+    console.log("Collected signatures for businesses:", Object.keys(data.signatures));
+
+    if (data.payment_method === 'afterpay_clearpay' && totalAmount > 2000) {
+        console.warn("Afterpay selected but total amount exceeds $2000");
+        alert('Afterpay is not available for orders over $2000. Please select a different payment method.');
+        return;
+    }
+
+    console.log("Sending checkout data to server...");
+    fetch("{% url 'checkout' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(function(response) {
+        console.log("Received response from server");
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
+    .then(function(session) {
+        console.log("Redirecting to Stripe Checkout...");
+        return stripe.redirectToCheckout({ sessionId: session.id });
+    })
+    .then(function(result) {
+        if (result.error) {
+            console.error("Stripe Checkout error:", result.error.message);
+            alert(result.error.message);
+        }
+    })
+    .catch(function(error) {
+        console.error('Checkout error:', error);
+        alert(error.error || 'An error occurred. Please try again.');
+    });
+}
+
+function updateCustomerCoordinates(lat, lng) {
+    console.log(`Updating customer coordinates: lat ${lat}, lng ${lng}`);
+    cartItems.forEach(item => {
+        if (item.delivery_info) {
+            item.delivery_info.customer_lat = lat;
+            item.delivery_info.customer_lng = lng;
+        }
+    });
+    updateDeliveryFee();
+}
+
+// Add event listener for address input
+deliveryAddressInput.addEventListener('change', function() {
+    console.log("Delivery address changed, updating coordinates...");
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: this.value }, function(results, status) {
+        if (status === 'OK') {
+            const lat = results[0].geometry.location.lat();
+            const lng = results[0].geometry.location.lng();
+            console.log(`Geocoded coordinates: lat ${lat}, lng ${lng}`);
+            updateCustomerCoordinates(lat, lng);
+        } else {
+            console.warn("Geocoding failed:", status);
+        }
+    });
+});
+
+// Initialize the checkout process
+initializeCheckout();
 </script>
 {% endblock content %}

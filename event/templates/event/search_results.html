@@ -45,9 +45,11 @@
                                 <span style="font-size: 14px; color: #666;">Listed by <a href="{% url "business_detail" item.business.business_slug %}" style="color: #710919; text-decoration: none; font-weight: bold;">{{ item.business.business_name }}</a></span>
                             </div>
                         </div>
-                        <button style="background-color: #710919; color: white; border: none; padding: 8px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
-                            Add to Cart
-                        </button>
+                        <a href="{% if item.get_item_type == 'product' %}{% url 'product_detail' item.business.business_slug item.product_slug %}{% else %}{% url 'service_detail' item.business.business_slug item.service_slug %}{% endif %}">
+                            <button style="background-color: #710919; color: white; border: none; padding: 8px; cursor: pointer; transition: all 0.3s; font-size: 14px; width: 100%; margin-top: auto;" onmouseover="this.style.backgroundColor='#5a0714';" onmouseout="this.style.backgroundColor='#710919';">
+                                Add to Cart
+                            </button>
+                        </a>
                     </div>
                 </div>
             {% endfor %}
