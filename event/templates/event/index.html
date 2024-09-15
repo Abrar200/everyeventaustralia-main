@@ -126,7 +126,7 @@
             bottom: 250px; /* Adjust for even smaller screens if needed */
         }
     }
-    </style>
+</style>
 
 
 <script>
@@ -494,7 +494,7 @@
 <section class="py-5" style="margin-top: -40px;">
     <div class="container">
         <div style="max-width: 1200px; margin: 0 auto;">
-            <p style="font-size: 18px; line-height: 1.5; color: #333; margin-bottom: 20px; text-align: justify; max-width: 800px; margin-left: auto; margin-right: auto;">
+            <p style="font-size: 18px; line-height: 1.5; color: #333; margin-bottom: 50px; text-align: justify; max-width: 800px; margin-left: auto; margin-right: auto;">
                 "Imagine planning your big day without visiting multiple websites and losing track of who you've contacted and what you've booked. Now an Adelaide-based online events marketplace, Every Event Australia, is helping brides and grooms plan, stress-free." - SA Style Magazine
             </p>
         </div>
@@ -609,17 +609,25 @@
     <div class="container">
         <h2 style="font-size: 36px; font-family: Prata, inherit; color: #000000; text-align: left; margin-bottom: 30px;">Customer Reviews</h2>
         <div class="reviews-container">
-            {% for review in google_reviews %}
-                <div class="review">
-                    <h3>{{ review.author_name }}</h3>
-                    <p>Rating: {{ review.rating }} / 5</p>
-                    <p>{{ review.text }}</p>
-                    <p><small>Reviewed on: {{ review.relative_time_description }}</small></p>
-                </div>
-            {% endfor %}
+            <!-- Google Reviews Widget Code -->
+            <div class="embedsocial-widget" data-ref="02730acc89fc35eeb6d36364615aa182">
+                <a href="https://embedsocial.com/google-reviews-widget/" title="Add Google reviews on a website" target="_blank" class="powered-by-es es-slider">
+                    <img src="https://embedsocial.com/cdn/icon/embedsocial-logo.webp" alt="EmbedSocial">
+                    <span>Google reviews widget</span>
+                </a>
+            </div>
+            <script>
+                (function(d, s, id) {
+                    var js; if (d.getElementById(id)) { return; }
+                    js = d.createElement(s); js.id = id;
+                    js.src = "https://embedsocial.com/cdn/aht.js";
+                    d.getElementsByTagName("head")[0].appendChild(js);
+                }(document, "script", "EmbedSocialWidgetScript"));
+            </script>
         </div>
     </div>
 </section>
+
 
 <section class="real-events-advice py-5">
     <div class="container">

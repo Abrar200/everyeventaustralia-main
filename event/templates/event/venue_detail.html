@@ -19,7 +19,7 @@
     <div class="container" style="padding: 0 15px;">
         <!-- About Section -->
         <div style="text-align: center; margin-bottom: 40px;">
-            <h2 style="font-size: 24px; margin-bottom: 20px;">About {{ venue.venue_name }}</h2>
+            <h2 style="font-size: 48px; margin-bottom: 20px;">{{ venue.venue_name }}</h2>
             <div class="venue-rating" style="font-size: 18px; color: #fbbf24;">
                 {% for i in "12345" %}
                     {% if forloop.counter <= venue.overall_review %}
@@ -36,7 +36,6 @@
                     <a href="{% url 'edit_venue' venue.venue_slug %}" style="display: inline-block; padding: 10px 20px; color: #710919; border: 2px solid #710919; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#710919'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#710919';">
                         Edit Venue
                     </a>
-                    <a href="{% url 'cancel_subscription' venue.venue_slug %}" class="btn-theme" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease; display: inline-block;">Cancel Subscription</a>
                 </div>
                 
             {% endif %}
@@ -74,11 +73,11 @@
             <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">More Information</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                 <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px;">Contact Us</h3>
+                    <h3 style="font-size: 24px; margin-bottom: 15px;">Contact Us</h3>
                     <p><strong>Phone:</strong> {{ venue.venue_contact_number }}</p>
                     <p><strong>Email:</strong> {{ venue.venue_email }}</p>
                     <p><strong>Location:</strong> {{ venue.venue_address }}</p>
-                    <h4 style="margin-top: 15px;">Opening Hours:</h4>
+                    <h4 style="font-size: 24px; margin-top: 15px;">Opening Hours:</h4>
                     {% for hour in opening_hours %}
                         <p>{{ hour.get_day_display }}: 
                         {% if hour.is_closed %}
@@ -90,7 +89,7 @@
                     {% endfor %}
                 </div>
                 <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px;">Details</h3>
+                    <h3 style="font-size: 24px; margin-bottom: 15px;">Details</h3>
                     <p><strong>Reception Guests:</strong> Min {{ venue.min_reception_guests }} / Max {{ venue.max_reception_guests }}</p>
                     <p><strong>Price Per Head:</strong> Low ${{ venue.low_price_per_head }} / High ${{ venue.high_price_per_head }}</p>
                     <p><strong>Ceremony Options:</strong> 
@@ -101,7 +100,7 @@
                     <p><strong>In-house Catering:</strong> {% if venue.in_house_catering %}Yes{% else %}No{% endif %}</p>
                 </div>
                 <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px;">Amenities</h3>
+                    <h3 style="font-size: 24px; margin-bottom: 15px;">Amenities</h3>
                     <ul style="list-style-type: none; padding-left: 0;">
                         {% for amenity in venue.amenities.all %}
                             <li style="margin-bottom: 10px; display: flex; align-items: center;">

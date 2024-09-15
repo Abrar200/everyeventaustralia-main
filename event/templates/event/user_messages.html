@@ -228,7 +228,7 @@
                 <form id="quote-form" method="post">
                     {% csrf_token %}
                     <div class="form-group">
-                        <label for="service">Service</label>
+                        <label for="service">Service (Available by quotation only)</label>
                         <select name="service" id="service" class="form-control">
                             {% for service in business_services %}
                                 <option value="{{ service.id }}">{{ service.name }}</option>

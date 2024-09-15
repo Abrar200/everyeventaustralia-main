@@ -56,6 +56,7 @@
     </div>
 </div>
 
+
 <!-- Create Quote Modal -->
 <div class="modal fade" id="createQuoteModal" tabindex="-1" role="dialog" aria-labelledby="createQuoteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -70,10 +71,12 @@
                 <form id="quote-form" method="post">
                     {% csrf_token %}
                     <div class="form-group">
-                        <label for="service">Service</label>
+                        <label for="service">Service (Available by quotation only)</label>
                         <select name="service" id="service" class="form-control">
                             {% for service in business.services.all %}
-                            <option value="{{ service.id }}">{{ service.name }}</option>
+                                {% if service.available_by_quotation_only %}
+                                    <option value="{{ service.id }}">{{ service.name }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                     </div>

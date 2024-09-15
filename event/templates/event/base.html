@@ -1,474 +1,999 @@
 <!DOCTYPE html>
 <html lang="en-US">
+  {% load static %}
 
-{% load static %}
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Every Event Australia{% endblock %}</title>
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400;1,700&display=swap"
+      rel="stylesheet"
+    />
     <!-- Bootstrap CSS -->
-    <link rel='stylesheet' id='bootstrap-css' href='{% static "event/css/bootstrap/css/bootstrap.css" %}' type='text/css' media='all' />
+    <link
+      rel="stylesheet"
+      id="bootstrap-css"
+      href='{% static "event/css/bootstrap/css/bootstrap.css" %}'
+      type="text/css"
+      media="all"
+    />
     <!-- Font Awesome Icons CSS -->
-    <link rel='stylesheet' id='font-awesome' href='{% static "event/css/fontawesome/css/all.css" %}' type='text/css' media='all' />
+    <link
+      rel="stylesheet"
+      id="font-awesome"
+      href='{% static "event/css/fontawesome/css/all.css" %}'
+      type="text/css"
+      media="all"
+    />
     <!-- Owl Carousel -->
-    <link rel='stylesheet' id='owl-carousel' href='{% static "event/js/owl-carousel/owl.carousel.css" %}' type='text/css' media='all' />
+    <link
+      rel="stylesheet"
+      id="owl-carousel"
+      href='{% static "event/js/owl-carousel/owl.carousel.css" %}'
+      type="text/css"
+      media="all"
+    />
     <!-- Main CSS File -->
-    <link rel='stylesheet' id='gleam-style-css' href='{% static "event/style.css" %}' type='text/css' media='all' />
+    <link
+      rel="stylesheet"
+      id="gleam-style-css"
+      href='{% static "event/style.css" %}'
+      type="text/css"
+      media="all"
+    />
     <!-- favicons -->
     <link rel="icon" href="{% static 'event/images/favicon.png' %}" />
-</head>
+  </head>
 
-<body class="home no-top-image">
+  <body class="home no-top-image">
     <div class="menu-mask"></div>
 
-
     <style>
-        @media (min-width: 1025px) {
-            .logo-container img {
-                height: 50px;
-            }
-            .nav-button-holder {
-                display: none;
-            }
-            .nav-icons {
-                margin-left: 140px;
-                margin-top: -50px; /* Adjust this value to move icons up */
-            }
-            nav ul {
-                margin-top: 15px; /* Adjust this value to move menu items down */
-            }
-            header {
-                padding: 40px 0; /* Increase overall header padding */
-            }
+      @media (min-width: 1025px) {
+        .logo-container img {
+          height: 50px;
         }
-        
-        @media (max-width: 1024px) {
-            .logo-container img {
-                height: 70px;
-            }
-            .nav-icons {
-                margin-left: 0;
-            }
+        .nav-button-holder {
+          display: none;
         }
-    
-        /* Apply these styles only for screens 768px and below */
-        @media (max-width: 768px) {
-            .mobile-nav-wrapper {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 20px;
-            }
-            .logo-container {
-                flex: 1;
-                display: flex;
-                justify-content: flex-start;
-                margin-bottom: 0;
-            }
-            .logo-container img {
-                height: 30px;
-                width: 180px;
-            }
-            .nav-icons {
-                flex: 1;
-                display: flex;
-                justify-content: flex-end;
-                align-items: center;
-            }
-            .nav-icons a {
-                margin-left: 15px;
-                font-size: 18px;
-            }
-            .nav-items-to-hide, .nav-button-holder {
-                display: none;
-            }
-            .nav-button-holder {
-                display: block;
-            }
+        .nav-icons {
+          margin-left: 140px;
+          margin-top: -50px; /* Adjust this value to move icons up */
         }
-    
-        /* Further adjust for extra small screens (e.g., phones) */
-        @media (max-width: 576px) {
-            .mobile-nav-wrapper {
-                padding: 10px;
-            }
-            .logo-container img {
-                height: 25px;
-                max-width: 160px;
-            }
-            .nav-icons a {
-                font-size: 16px;
-                margin-left: -1px;
-            }
+        nav ul {
+          margin-top: 15px; /* Adjust this value to move menu items down */
         }
-    </style>      
+        header {
+          padding: 40px 0; /* Increase overall header padding */
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .logo-container img {
+          height: 70px;
+        }
+        .nav-icons {
+          margin-left: 0;
+        }
+      }
+
+      /* Apply these styles only for screens 768px and below */
+      @media (max-width: 768px) {
+        .mobile-nav-wrapper {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 20px;
+        }
+        .logo-container {
+          flex: 1;
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 0;
+        }
+        .logo-container img {
+          height: 30px;
+          width: 180px;
+        }
+        .nav-icons {
+          flex: 1;
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+        }
+        .nav-icons a {
+          margin-left: 15px;
+          font-size: 18px;
+        }
+        .nav-items-to-hide,
+        .nav-button-holder {
+          display: none;
+        }
+        .nav-button-holder {
+          display: block;
+        }
+      }
+
+      /* Further adjust for extra small screens (e.g., phones) */
+      @media (max-width: 576px) {
+        .mobile-nav-wrapper {
+          padding: 10px;
+        }
+        .logo-container img {
+          height: 25px;
+          max-width: 160px;
+        }
+        .nav-icons a {
+          font-size: 16px;
+          margin-left: -1px;
+        }
+      }
+    </style>
 
     <!-- AFTERPAY BLACK BAR -->
-    <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 10px 0; font-family: Arial, sans-serif; font-size: 14px; letter-spacing: 0.5px; position: fixed; top: 0; left: 0; right: 0; z-index: 1001;">
-        BUY NOW, PAY LATER WITH 
-        <img src="{% static 'event/images/afterpay_white.png' %}" alt="Afterpay" style="height: 18px; vertical-align: middle; margin-left: 5px;">
+    <div
+      style="
+        background-color: #000000;
+        color: #ffffff;
+        text-align: center;
+        padding: 10px 0;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+      "
+    >
+      BUY NOW, PAY LATER WITH
+      <img
+        src="{% static 'event/images/afterpay_white.png' %}"
+        alt="Afterpay"
+        style="height: 18px; vertical-align: middle; margin-left: 5px"
+      />
     </div>
     <!-- /AFTERPAY BLACK BAR -->
-    
+
     <!-- MOBILE MENU HOLDER -->
-    <div class="mobile-menu-holder" style="display: none;">
-        <div class="modal-menu-container">
-            <div class="exit-mobile"> <span class="icon-bar1"></span> <span class="icon-bar2"></span></div>
-            <ul class="menu-mobile">
-                <li class="menu-item menu-item-has-children current-menu-item">
-                    <a href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
-                <li class="menu-item"><a href="{% url 'all_events' %}?type=products">Hire</a></li>
-                <li class="menu-item"><a href="{% url 'all_events' %}?type=services">Services</a></li>
-                <li class="menu-item"><a href="{% url 'venues' %}">Find a Venue</a></li>
-                <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
-                <li class="menu-item"><a href="{% url 'blog_list' %}">Real Events and Advice</a></li>
-            </ul>
+    <div class="mobile-menu-holder" style="display: none">
+      <div class="modal-menu-container">
+        <div class="exit-mobile">
+          <span class="icon-bar1"></span> <span class="icon-bar2"></span>
         </div>
-        <div class="menu-contact">
-            <ul>
-                <li><i class="fas fa-map-marker-alt"></i><span>40 Park Ave, Brooklyn, New York</span></li>
-                <li><i class="fas fa-mobile-alt"></i><span>1-800-111-2222</span></li>
-                <li><i class="far fa-envelope"></i><span><a href="mailto:info@everyeventaustralia.com.au">info@everyeventaustralia.com.au</a></span></li>
-            </ul>
-            <ul class="social-media">
-                <li><a class="social-facebook" href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-                <li><a class="social-twitter" href="#" target="_blank"><i class="fab fa-twitter"></i></a></li>
-                <li><a class="social-instagram" href="#" target="_blank"><i class="fab fa-instagram"></i></a></li>
-            </ul>
-        </div>
+        <ul class="menu-mobile">
+          <li class="menu-item menu-item-has-children current-menu-item">
+            <a href="{% url 'home' %}">Home</a>
+          </li>
+          <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
+          <li class="menu-item">
+            <a href="{% url 'all_events' %}?type=products">Hire</a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'all_events' %}?type=services">Services</a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'venues' %}">Find a Venue</a>
+          </li>
+          <li class="menu-item"><a href="{% url 'about_us' %}">About Us</a></li>
+          <li class="menu-item">
+            <a href="{% url 'blog_list' %}">Real Events and Advice</a>
+          </li>
+        </ul>
+      </div>
+      <div class="menu-contact">
+        <ul>
+          <li>
+            <i class="fas fa-map-marker-alt"></i
+            ><span>40 Park Ave, Brooklyn, New York</span>
+          </li>
+          <li><i class="fas fa-mobile-alt"></i><span>1-800-111-2222</span></li>
+          <li>
+            <i class="far fa-envelope"></i
+            ><span
+              ><a href="mailto:info@everyeventaustralia.com.au"
+                >info@everyeventaustralia.com.au</a
+              ></span
+            >
+          </li>
+        </ul>
+        <ul class="social-media">
+          <li>
+            <a class="social-facebook" href="#" target="_blank"
+              ><i class="fab fa-facebook-f"></i
+            ></a>
+          </li>
+          <li>
+            <a class="social-twitter" href="#" target="_blank"
+              ><i class="fab fa-twitter"></i
+            ></a>
+          </li>
+          <li>
+            <a class="social-instagram" href="#" target="_blank"
+              ><i class="fab fa-instagram"></i
+            ></a>
+          </li>
+        </ul>
+      </div>
     </div>
     <!-- /MOBILE MENU HOLDER -->
 
     <!-- HEADER -->
-    <header style="position: fixed; top: 40px; left: 0; right: 0; z-index: 1000; background-color: #ffffff; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-            <div class="mobile-nav-wrapper">
-                <div class="logo-container" style="display: flex; align-items: center; justify-content: center; margin-top: 7px;">
-                    <a href="{% url 'home' %}">
-                        <img src="{% static 'event/images/EEArebuildlogo2.png' %}" alt="Every Event Australia">
+    <header
+      style="
+        position: fixed;
+        top: 40px;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: #ffffff;
+        padding: 10px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px">
+        <div class="mobile-nav-wrapper">
+          <div
+            class="logo-container"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-top: 7px;
+            "
+          >
+            <a href="{% url 'home' %}">
+              <img
+                src="{% static 'event/images/EEArebuildlogo2.png' %}"
+                alt="Every Event Australia"
+              />
+            </a>
+          </div>
+          <nav
+            style="
+              display: flex;
+              justify-content: flex-end;
+              align-items: center;
+            "
+          >
+            <ul
+              style="
+                list-style: none;
+                padding: 0;
+                margin-right: 30px;
+                margin-bottom: 5px;
+                display: flex;
+                justify-content: flex-end;
+                flex-grow: 1;
+                max-width: 800px;
+              "
+            >
+              <li class="nav-items-to-hide" style="margin: 0 15px">
+                <a
+                  href="{% url 'about_us' %}"
+                  style="text-decoration: none; color: #000; font-weight: 500"
+                  >ABOUT US</a
+                >
+              </li>
+              <li class="nav-items-to-hide" style="margin: 0 15px">
+                <a
+                  href="{% url 'all_events' %}?type=products"
+                  style="text-decoration: none; color: #000; font-weight: 500"
+                  >HIRE</a
+                >
+              </li>
+              <li class="nav-items-to-hide" style="margin: 0 15px">
+                <a
+                  href="{% url 'all_events' %}?type=services"
+                  style="text-decoration: none; color: #000; font-weight: 500"
+                  >SERVICES</a
+                >
+              </li>
+              <li class="nav-items-to-hide" style="margin: 0 15px">
+                <a
+                  href="{% url 'venues' %}"
+                  style="text-decoration: none; color: #000; font-weight: 500"
+                  >FIND A VENUE</a
+                >
+              </li>
+              <li class="nav-items-to-hide" style="margin: 0 15px">
+                <a
+                  href="{% url 'blog_list' %}"
+                  style="text-decoration: none; color: #000; font-weight: 500"
+                  >REAL EVENTS & ADVICE</a
+                >
+              </li>
+            </ul>
+            <div class="nav-icons" style="display: flex; align-items: center">
+              <a href="#" onclick="openSearchModal()" style="color: #000">
+                <i class="fas fa-search"></i>
+              </a>
+              <div
+                class="dropdown"
+                style="position: relative; margin-left: 15px"
+              >
+                <a
+                  href="#"
+                  class="dropdown-toggle"
+                  style="color: #000; position: relative"
+                >
+                  {% if pending_order_count > 0 %}
+                  <span
+                    style="
+                      position: absolute;
+                      top: -6px;
+                      right: 5px;
+                      background-color: #ff3b30;
+                      color: white;
+                      border-radius: 50%;
+                      width: 16px;
+                      height: 16px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 10px;
+                      font-weight: 600;
+                    "
+                  >
+                    {{ pending_order_count }}
+                  </span>
+                  {% endif %}
+                  <i class="fas fa-user"></i>
+                </a>
+                <ul
+                  class="dropdown-menu"
+                  style="
+                    display: none;
+                    position: absolute;
+                    background-color: #fff;
+                    list-style-type: none;
+                    padding: 10px 0;
+                    margin: 10px 0 0;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                    width: 220px;
+                    z-index: 1001;
+                    right: 0;
+                    overflow: hidden;
+                  "
+                >
+                  {% if user.is_authenticated %}
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'profile' user.username %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >Profile</a
+                    >
+                  </li>
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'user_orders' %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >My Orders</a
+                    >
+                  </li>
+                  {% if user.is_seller %}
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'business_detail' user.business.business_slug %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >My Business</a
+                    >
+                  </li>
+                  <li style="padding: 0 5px; position: relative">
+                    <a
+                      href="{% url 'business_orders' %}"
+                      style="
+                        display: inline-block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                    >
+                      My Business Orders
                     </a>
-                </div>
-                <nav style="display: flex; justify-content: flex-end; align-items: center;">
-                    <ul style="list-style: none; padding: 0; margin-right: 0px; margin-bottom: 5px; display: flex; justify-content: flex-end; flex-grow: 1; max-width: 800px;">
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'about_us' %}" style="text-decoration: none; color: #000; font-weight: 500;">ABOUT US</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=products" style="text-decoration: none; color: #000; font-weight: 500;">HIRE</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'all_events' %}?type=services" style="text-decoration: none; color: #000; font-weight: 500;">SERVICES</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'venues' %}" style="text-decoration: none; color: #000; font-weight: 500;">FIND A VENUE</a></li>
-                        <li class="nav-items-to-hide" style="margin: 0 15px;"><a href="{% url 'blog_list' %}" style="text-decoration: none; color: #000; font-weight: 500;">REAL EVENTS & ADVICE</a></li>
-                    </ul>
-                    <div class="nav-icons" style="display: flex; align-items: center;">
-                        <a href="#" onclick="openSearchModal()" style="color: #000;">
-                            <i class="fas fa-search"></i>
-                        </a>
-                            <div class="dropdown" style="position: relative; margin-left: 15px;">
-                                <a href="#" class="dropdown-toggle" style="color: #000; position: relative;">
-                                    {% if pending_order_count > 0 %}
-                                        <span style="position: absolute; top: -6px; right: 5px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                            {{ pending_order_count }}
-                                        </span>
-                                    {% endif %}
-                                    <i class="fas fa-user"></i>
-                                </a>                                
-                                    <ul class="dropdown-menu" style="display: none; position: absolute; background-color: #fff; list-style-type: none; padding: 10px 0; margin: 10px 0 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 220px; z-index: 1001; right: 0; overflow: hidden;">
-                                        {% if user.is_authenticated %}
-                                            <li style="padding: 0 5px;"><a href="{% url 'profile' user.username %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">Profile</a></li>
-                                            <li style="padding: 0 5px;"><a href="{% url 'user_orders' %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">My Orders</a></li>
-                                            {% if user.is_seller %}
-                                                <li style="padding: 0 5px;"><a href="{% url 'business_detail' user.business.business_slug %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">My Business</a></li>
-                                                <li style="padding: 0 5px; position: relative;">
-                                                    <a href="{% url 'business_orders' %}" style="display: inline-block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">
-                                                        My Business Orders
-                                                    </a>
-                                                    {% if pending_order_count > 0 %}
-                                                        <span style="position: absolute; top: 12px; right: 20px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                                            {{ pending_order_count }}
-                                                        </span>
-                                                    {% endif %}
-                                                </li>                                                
-                                            {% elif user.is_venue_vendor %}
-                                                <li style="padding: 0 5px;"><a href="{% url 'venue_detail' user.venue.venue_slug %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">My Venue</a></li>
-                                                <li style="padding: 0 5px;"><a href="{% url 'venue_analytics' user.venue.venue_slug %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">Venue Analytics</a></li>
-                                            {% endif %}
-                                            <li style="padding: 0 5px; margin-top: 5px; border-top: 1px solid #f0f0f0;"><a href="{% url 'logout' %}" style="display: block; padding: 12px 20px; color: #ff3b30; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">Logout</a></li>
-                                        {% else %}
-                                            <li style="padding: 0 5px;"><a href="{% url 'login' %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">Login</a></li>
-                                            <li style="padding: 0 5px;"><a href="{% url 'register' %}" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; transition: background-color 0.3s ease;">Customer Signup</a></li>
-                                        {% endif %}
-                                    </ul>
-                            </div>
-                            {% if request.user.is_authenticated %}
-                            <a href="{% url 'cart' %}" style="color: #000; position: relative; margin-left: 15px;">
-                                <i class="fas fa-shopping-cart"></i>
-                                {% if cart_item_count > 0 %}
-                                    <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                        {{ cart_item_count }}
-                                    </span>
-                                {% endif %}
-                            </a>
-                        {% endif %}
-                        <a class="messages-icon" href="{% url 'user_messages' %}" style="color: #000; position: relative; margin-left: 15px;">
-                            <i class="fas fa-comment-alt"></i>
-                            {% if unread_message_count > 0 %}
-                                <span style="position: absolute; top: -8px; right: -8px; background-color: #ff3b30; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    {{ unread_message_count }}
-                                </span>
-                            {% endif %}
-                        </a>
-                        <div class="nav-button-holder" style="margin-left: 15px;">
-                            <button type="button" class="nav-button"><span class="icon-bar"></span></button>
-                        </div>
-                    </div>
-                </nav>
+                    {% if pending_order_count > 0 %}
+                    <span
+                      style="
+                        position: absolute;
+                        top: 12px;
+                        right: 20px;
+                        background-color: #ff3b30;
+                        color: white;
+                        border-radius: 50%;
+                        width: 16px;
+                        height: 16px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 10px;
+                        font-weight: 600;
+                      "
+                    >
+                      {{ pending_order_count }}
+                    </span>
+                    {% endif %}
+                  </li>
+                  {% elif user.is_venue_vendor %}
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'venue_detail' user.venue.venue_slug %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >My Venue</a
+                    >
+                  </li>
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'venue_analytics' user.venue.venue_slug %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >Venue Analytics</a
+                    >
+                  </li>
+                  {% endif %}
+                  <li
+                    style="
+                      padding: 0 5px;
+                      margin-top: 5px;
+                      border-top: 1px solid #f0f0f0;
+                    "
+                  >
+                    <a
+                      href="{% url 'logout' %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #ff3b30;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >Logout</a
+                    >
+                  </li>
+                  {% else %}
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'login' %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >Login</a
+                    >
+                  </li>
+                  <li style="padding: 0 5px">
+                    <a
+                      href="{% url 'register' %}"
+                      style="
+                        display: block;
+                        padding: 12px 20px;
+                        color: #333;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: background-color 0.3s ease;
+                      "
+                      >Customer Signup</a
+                    >
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+              {% if request.user.is_authenticated %}
+              <a
+                href="{% url 'cart' %}"
+                style="color: #000; position: relative; margin-left: 15px"
+              >
+                <i class="fas fa-shopping-cart"></i>
+                {% if cart_item_count > 0 %}
+                <span
+                  style="
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    background-color: #ff3b30;
+                    color: white;
+                    border-radius: 50%;
+                    width: 16px;
+                    height: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    font-weight: 600;
+                  "
+                >
+                  {{ cart_item_count }}
+                </span>
+                {% endif %}
+              </a>
+              {% endif %}
+              <a
+                class="messages-icon"
+                href="{% url 'user_messages' %}"
+                style="color: #000; position: relative; margin-left: 15px"
+              >
+                <i class="fas fa-comment-alt"></i>
+                {% if unread_message_count > 0 %}
+                <span
+                  style="
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    background-color: #ff3b30;
+                    color: white;
+                    border-radius: 50%;
+                    width: 16px;
+                    height: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    font-weight: 600;
+                  "
+                >
+                  {{ unread_message_count }}
+                </span>
+                {% endif %}
+              </a>
+              <div class="nav-button-holder" style="margin-left: 15px">
+                <button type="button" class="nav-button">
+                  <span class="icon-bar"></span>
+                </button>
+              </div>
             </div>
+          </nav>
         </div>
+      </div>
     </header>
-    
 
     <script>
-        // Define toggleMobileMenu as a global function
-        document.querySelector('.nav-button').addEventListener('click', function() {
-            var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
-            mobileMenuHolder.style.display = mobileMenuHolder.style.display === 'block' ? 'none' : 'block';
+      // Define toggleMobileMenu as a global function
+      document
+        .querySelector(".nav-button")
+        .addEventListener("click", function () {
+          var mobileMenuHolder = document.querySelector(".mobile-menu-holder");
+          mobileMenuHolder.style.display =
+            mobileMenuHolder.style.display === "block" ? "none" : "block";
         });
 
-        document.querySelector('.exit-mobile').addEventListener('click', function() {
-            var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
-            mobileMenuHolder.style.display = 'none';
+      document
+        .querySelector(".exit-mobile")
+        .addEventListener("click", function () {
+          var mobileMenuHolder = document.querySelector(".mobile-menu-holder");
+          mobileMenuHolder.style.display = "none";
         });
-    
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdownToggle = document.querySelector('.dropdown-toggle');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-    
-            if (dropdownToggle && dropdownMenu) {
-                dropdownToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
-    
-                    // Ensure the dropdown is within the viewport
-                    const rect = dropdownMenu.getBoundingClientRect();
-                    if (rect.right > window.innerWidth) {
-                        dropdownMenu.style.right = '10px';
-                        dropdownMenu.style.left = 'auto';
-                    }
-                    if (rect.left < 0) {
-                        dropdownMenu.style.left = '10px';
-                        dropdownMenu.style.right = 'auto';
-                    }
-                });
-    
-                document.addEventListener('click', function(e) {
-                    if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                        dropdownMenu.style.display = 'none';
-                    }
-                });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const dropdownToggle = document.querySelector(".dropdown-toggle");
+        const dropdownMenu = document.querySelector(".dropdown-menu");
+
+        if (dropdownToggle && dropdownMenu) {
+          dropdownToggle.addEventListener("click", function (e) {
+            e.preventDefault();
+            dropdownMenu.style.display =
+              dropdownMenu.style.display === "none" ? "block" : "none";
+
+            // Ensure the dropdown is within the viewport
+            const rect = dropdownMenu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) {
+              dropdownMenu.style.right = "10px";
+              dropdownMenu.style.left = "auto";
             }
-    
-            window.openSearchModal = function() {
-                const searchModal = document.getElementById('searchModal');
-                const searchInput = document.getElementById('searchInput');
-                if (searchModal) searchModal.style.display = 'flex';
-                if (searchInput) searchInput.focus();
+            if (rect.left < 0) {
+              dropdownMenu.style.left = "10px";
+              dropdownMenu.style.right = "auto";
             }
-    
-            window.closeSearchModal = function() {
-                const searchModal = document.getElementById('searchModal');
-                if (searchModal) searchModal.style.display = 'none';
+          });
+
+          document.addEventListener("click", function (e) {
+            if (
+              !dropdownToggle.contains(e.target) &&
+              !dropdownMenu.contains(e.target)
+            ) {
+              dropdownMenu.style.display = "none";
             }
-    
-            window.onclick = function(event) {
-                const modal = document.getElementById('searchModal');
-                if (event.target == modal) {
-                    closeSearchModal();
-                }
+          });
+        }
+
+        window.openSearchModal = function () {
+          const searchModal = document.getElementById("searchModal");
+          const searchInput = document.getElementById("searchInput");
+          if (searchModal) searchModal.style.display = "flex";
+          if (searchInput) searchInput.focus();
+        };
+
+        window.closeSearchModal = function () {
+          const searchModal = document.getElementById("searchModal");
+          if (searchModal) searchModal.style.display = "none";
+        };
+
+        window.onclick = function (event) {
+          const modal = document.getElementById("searchModal");
+          if (event.target == modal) {
+            closeSearchModal();
+          }
+        };
+
+        // Check if elements exist before adding event listeners
+        const navButton = document.querySelector(".nav-button");
+        if (navButton) {
+          navButton.addEventListener("click", toggleMobileMenu);
+        }
+
+        const exitMobile = document.querySelector(".exit-mobile");
+        if (exitMobile) {
+          exitMobile.addEventListener("click", function () {
+            var mobileMenuHolder = document.querySelector(
+              ".mobile-menu-holder"
+            );
+            if (mobileMenuHolder) {
+              mobileMenuHolder.style.display = "none";
             }
-    
-            // Check if elements exist before adding event listeners
-            const navButton = document.querySelector('.nav-button');
-            if (navButton) {
-                navButton.addEventListener('click', toggleMobileMenu);
-            }
-    
-            const exitMobile = document.querySelector('.exit-mobile');
-            if (exitMobile) {
-                exitMobile.addEventListener('click', function() {
-                    var mobileMenuHolder = document.querySelector('.mobile-menu-holder');
-                    if (mobileMenuHolder) {
-                        mobileMenuHolder.style.display = 'none';
-                    }
-                });
-            }
-        });
+          });
+        }
+      });
     </script>
-    
+
     <!-- Add this to create space for the fixed elements -->
-    <div style="height: 130px;"></div>
-    
+    <div style="height: 130px"></div>
+
     <!-- Search Modal -->
-    <div id="searchModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 90%; overflow: auto; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(5px);">
-        <div style="background-color: #fff; margin: 15% auto; padding: 30px 30px 0 30px; border-radius: 15px; width: 90%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-            <span onclick="closeSearchModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.3s;">&times;</span>
-            <h2 style="margin-bottom: 20px; color: #333; text-align: center; font-size: calc(18px + 1vw);">Search</h2>
-            <form id="searchForm" action="{% url 'search' %}" method="GET">
-                <div style="display: flex; align-items: center; background-color: #f5f5f5; border-radius: 30px; padding: 5px 20px; margin-bottom: 20px;">
-                    <i class="fas fa-search" style="color: #777; font-size: 18px;"></i>
-                    <input type="text" id="searchInput" name="q" style="flex-grow: 1; border: none; background: none; padding: 10px 15px; font-size: 16px; outline: none; width: 100%;" placeholder="What are you looking for?">
-                </div>
-                <div style="text-align: center; margin-bottom: 0;">
-                    <button type="submit" style="background-color: #710919; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; width: 100%; max-width: 200px; margin: 0 auto;">Search</button>
-                </div>
-            </form>
-        </div>
+    <div
+      id="searchModal"
+      style="
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 90%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(5px);
+      "
+    >
+      <div
+        style="
+          background-color: #fff;
+          margin: 15% auto;
+          padding: 30px 30px 0 30px;
+          border-radius: 15px;
+          width: 90%;
+          max-width: 600px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          max-height: 90vh;
+          overflow-y: auto;
+        "
+      >
+        <span
+          onclick="closeSearchModal()"
+          style="
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+          "
+          >&times;</span
+        >
+        <h2
+          style="
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+            font-size: calc(18px + 1vw);
+          "
+        >
+          Search
+        </h2>
+        <form id="searchForm" action="{% url 'search' %}" method="GET">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              background-color: #f5f5f5;
+              border-radius: 30px;
+              padding: 5px 20px;
+              margin-bottom: 20px;
+            "
+          >
+            <i class="fas fa-search" style="color: #777; font-size: 18px"></i>
+            <input
+              type="text"
+              id="searchInput"
+              name="q"
+              style="
+                flex-grow: 1;
+                border: none;
+                background: none;
+                padding: 10px 15px;
+                font-size: 16px;
+                outline: none;
+                width: 100%;
+              "
+              placeholder="What are you looking for?"
+            />
+          </div>
+          <div style="text-align: center; margin-bottom: 0">
+            <button
+              type="submit"
+              style="
+                background-color: #710919;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                width: 100%;
+                max-width: 200px;
+                margin: 0 auto;
+              "
+            >
+              Search
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
     <!-- /Search Modal -->
 
-    
     <!-- /HEADER -->
-    {% block blackbar %}
-    
-    {% endblock blackbar %}
+    {% block blackbar %} {% endblock blackbar %}
     <!-- PAGE CONTENT -->
-    <div class="page-holder custom-page-template page-full fullscreen-page home-page-content clearfix">
-
-
-        {% block slider %}
-        
-        {% endblock slider %}
-
-        {% if messages %}
-            <div class="container mt-3">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}" role="alert">
-                        <p style="color:white">{{ message }}</p>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
+    <div
+      class="page-holder custom-page-template page-full fullscreen-page home-page-content clearfix"
+    >
+      {% block slider %} {% endblock slider %} {% if messages %}
+      <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+          <p style="color: white">{{ message }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% block content %} {% endblock %}
     </div>
     <!-- /PAGE CONTENT -->
 
+    <div class="container-fluid mt-5" style="margin-bottom: -40px">
+      <div class="row text-center">
+        <div class="col-md-4 mb-4 mb-md-0">
+          <img
+            src="{% static 'event/images/tick.png' %}"
+            alt="Payment Methods"
+            style="height: 40px; display: inline-block"
+          />
 
-
-    <div class="container-fluid mt-5" style="margin-bottom: -40px;">
-        <div class="row text-center">
-            <div class="col-md-4 mb-4 mb-md-0">
-                <img src="{% static 'event/images/tick.png' %}" alt="Payment Methods" style="height: 40px; display: inline-block;">
-
-                <p>Australian Owned</p>
-            </div>
-            <div class="col-md-4 mb-4 mb-md-0">
-                <img src="{% static 'event/images/tick.png' %}" alt="Payment Methods" style="height: 40px; display: inline-block;">
-                <p>Reputable Vendors</p>
-            </div>
-            <div class="col-md-4">
-                <img src="{% static 'event/images/tick.png' %}" alt="Payment Methods" style="height: 40px; display: inline-block;">
-                <p>Buy Now Pay Later</p>
-            </div>
+          <p>Australian Owned</p>
         </div>
+        <div class="col-md-4 mb-4 mb-md-0">
+          <img
+            src="{% static 'event/images/tick.png' %}"
+            alt="Payment Methods"
+            style="height: 40px; display: inline-block"
+          />
+          <p>Reputable Vendors</p>
+        </div>
+        <div class="col-md-4">
+          <img
+            src="{% static 'event/images/tick.png' %}"
+            alt="Payment Methods"
+            style="height: 40px; display: inline-block"
+          />
+          <p>Buy Now Pay Later</p>
+        </div>
+      </div>
     </div>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-widgets">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="foo-block">
-                            <div class="widget widget-footer widget_text">
-                                <h5 class="widgettitle">About Us</h5>
-                                <div class="textwidget">
-                                    <p style="text-align: justify">
-                                        Every Event Australia, Australia's First Online Events Marketplace & Venue Directory, was created after our founder Mariah, planned her own wedding in 2020 and realised the huge need for a centralised platform where all event hire and services across different vendors could be easily viewed and booked online - without the need for the back and forth between client and vendor. <br> <br>
-                                        "The idea is to simplify the event and wedding planning process while showing transparent prices and no booking fees." - Mariah
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="foo-block">
-                            <div class="widget widget-footer widget_text">
-                                <h5 class="widgettitle">Customer Care</h5>
-                                <div class="textwidget custom-html-widget">
-                                    <ul style="list-style-type: none; padding-left: 0;">
-                                        <li><a href="{% url 'home' %}">Home page</a></li>
-                                        <li><a href="{% url 'about_us' %}#contact-us">Contact us</a></li>
-                                        <li><a href="#">FAQs</a></li>
-                                        <li><a href="{% url 'all_events' %}">Find Vendors</a></li>
-                                        <li><a href="{% url 'blog_list' %}">Real Events and Advice</a></li>
-                                        <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-                                        <li><a href="{% url 'terms_and_conditions' %}">Terms and Conditions</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="foo-block foo-last">
-                            <div class="widget_text widget widget-footer widget_custom_html">
-                                <h5 class="widgettitle">Vendor Portals</h5>
-                                <div class="textwidget custom-html-widget">
-                                    <ul style="list-style-type: none; padding-left: 0;">
-                                        {% if user.is_authenticated %}
-                                            {% if user.is_seller %}
-                                                <li class="menu-item"><a href="{% url 'business_detail' user.business.business_slug %}">My Business</a></li>
-                                            {% elif user.is_venue_vendor %}
-                                                <li class="menu-item"><a href="{% url 'venue_detail' user.venue.venue_slug %}">My Venue</a></li>
-                                                <li class="menu-item"><a href="{% url 'venue_analytics' user.venue.venue_slug %}">Venue Analytics</a></li>
-                                            {% endif %}
-                                        {% else %}
-                                            <li class="menu-item"><a href="{% url 'login' %}">Login</a></li>
-                                            <li class="menu-item"><a href="{% url 'register' %}">Register</a></li>
-                                            <li class="menu-item"><a href="{% url 'business_registration' %}">Register Your Business</a></li>
-                                            <li class="menu-item"><a href="{% url 'venue_vendor_register' %}">List Your Venue</a></li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+      <div style="text-align: left" class="container">
+        <div class="footer-widgets">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="foo-block">
+                <div class="widget widget-footer widget_text">
+                  <h5 class="widgettitle">About Us</h5>
+                  <div class="textwidget">
+                    <p style="text-align: justify">
+                      Every Event Australia, Australia's First Online Events
+                      Marketplace & Venue Directory, was created after our
+                      founder Mariah, planned her own wedding in 2020 and
+                      realised the huge need for a centralised platform where
+                      all event hire and services across different vendors could
+                      be easily viewed and booked online - without the need for
+                      the back and forth between client and vendor. <br />
+                      <br />
+                      "The idea is to simplify the event and wedding planning
+                      process while showing transparent prices and no booking
+                      fees." - Mariah
+                    </p>
+                  </div>
                 </div>
-                <div class="row align-items-center mt-4">
-                    <div class="col-md-8"></div>
-                    <div class="col-md-4">
-                        <div class="text-md-center">
-                            <div class="social-icons" style="margin-bottom: 15px;">
-                                <a href="#" target="_blank" style="margin-right: 15px;"><i class="fab fa-facebook-f"></i></a>
-                                <a href="#" target="_blank" style="margin-right: 15px;"><i class="fab fa-instagram"></i></a>
-                                <a href="#" target="_blank" style="margin-right: 15px;"><i class="fab fa-tiktok"></i></a>
-                                <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
-                            </div>
-                            <div class="payment-options">
-                                <img src="{% static 'event/images/payment.png' %}" alt="Payment Methods" style="max-width: 200px; display: inline-block;">
-                                <img src="{% static 'event/images/afterpay.png' %}" alt="Payment Methods" style="max-width: 130px; max-height: 140px; display: inline-block;">
-                            </div>
-                        </div>
-                    </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="foo-block">
+                <div class="widget widget-footer widget_text">
+                  <h5 class="widgettitle">Customer Care</h5>
+                  <div class="textwidget custom-html-widget">
+                    <ul style="list-style-type: none; padding-left: 0">
+                      <li><a href="{% url 'home' %}">Home page</a></li>
+                      <li>
+                        <a href="{% url 'about_us' %}#contact-us">Contact us</a>
+                      </li>
+                      <li><a href="#">FAQs</a></li>
+                      <li><a href="{% url 'all_events' %}">Find Vendors</a></li>
+                      <li>
+                        <a href="{% url 'blog_list' %}"
+                          >Real Events and Advice</a
+                        >
+                      </li>
+                      <li>
+                        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'terms_and_conditions' %}"
+                          >Terms and Conditions</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
                 </div>
+              </div>
             </div>
-            <div class="copyright mt-4">
-                <div class="footer-copy"> Copyright &copy; 2024, Every Event Australia</div>
+            <div class="col-md-4">
+              <div class="foo-block foo-last">
+                <div
+                  class="widget_text widget widget-footer widget_custom_html"
+                >
+                  <h5 class="widgettitle">Vendor Portals</h5>
+                  <div class="textwidget custom-html-widget">
+                    <ul style="list-style-type: none; padding-left: 0">
+                      {% if user.is_authenticated %} {% if user.is_seller %}
+                      <li class="menu-item">
+                        <a
+                          href="{% url 'business_detail' user.business.business_slug %}"
+                          >My Business</a
+                        >
+                      </li>
+                      {% elif user.is_venue_vendor %}
+                      <li class="menu-item">
+                        <a href="{% url 'venue_detail' user.venue.venue_slug %}"
+                          >My Venue</a
+                        >
+                      </li>
+                      <li class="menu-item">
+                        <a
+                          href="{% url 'venue_analytics' user.venue.venue_slug %}"
+                          >Venue Analytics</a
+                        >
+                      </li>
+                      {% endif %} {% else %}
+                      <li class="menu-item">
+                        <a href="{% url 'login' %}">Login</a>
+                      </li>
+                      <li class="menu-item">
+                        <a href="{% url 'register' %}">Register</a>
+                      </li>
+                      <li class="menu-item">
+                        <a href="{% url 'business_registration' %}"
+                          >Register Your Business</a
+                        >
+                      </li>
+                      <li class="menu-item">
+                        <a href="{% url 'venue_vendor_register' %}"
+                          >List Your Venue</a
+                        >
+                      </li>
+                      {% endif %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="row align-items-center mt-4">
+            <div class="col-md-8"></div>
+            <div class="col-md-4">
+              <div class="text-md-center">
+                <div class="social-icons" style="margin-bottom: 15px">
+                  <a href="#" target="_blank" style="margin-right: 15px"
+                    ><i class="fab fa-facebook-f"></i
+                  ></a>
+                  <a href="#" target="_blank" style="margin-right: 15px"
+                    ><i class="fab fa-instagram"></i
+                  ></a>
+                  <a href="#" target="_blank" style="margin-right: 15px"
+                    ><i class="fab fa-tiktok"></i
+                  ></a>
+                  <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                </div>
+                <div class="payment-options">
+                  <img
+                    src="{% static 'event/images/payment.png' %}"
+                    alt="Payment Methods"
+                    style="max-width: 200px; display: inline-block"
+                  />
+                  <img
+                    src="{% static 'event/images/afterpay.png' %}"
+                    alt="Payment Methods"
+                    style="
+                      max-width: 130px;
+                      max-height: 140px;
+                      display: inline-block;
+                    "
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </footer>    
+        <div class="copyright mt-4">
+          <div class="footer-copy">
+            Copyright &copy; 2024, Every Event Australia
+          </div>
+        </div>
+      </div>
+    </footer>
     <!-- FOOTER -->
     <div class="scrollup">
-        <a class="scrolltop" href="#">
-            <i class="fa fa-chevron-up"></i>
-        </a>
+      <a class="scrolltop" href="#">
+        <i style="color: white" class="fa fa-chevron-up"></i>
+      </a>
     </div>
-    <!-- JS --> 
-    <script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <!-- JS -->
+    <script
+      data-cfasync="false"
+      src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"
+    ></script>
     <script src='{% static "event/js/jquery.js" %}'></script>
     <script src='{% static "event/js/jquery-migrate.min.js" %}'></script>
     <script src='{% static "event/css/bootstrap/js/popper.js" %}'></script>
@@ -483,5 +1008,5 @@
     <!-- CONTACT FORM JS -->
     <script src='{% static "event/js/jquery.form.min.js" %}'></script>
     <script src='{% static "event/js/contactform.js" %}'></script>
-</body>
+  </body>
 </html>

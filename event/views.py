@@ -2783,7 +2783,6 @@ Customer Email: {email}
 
         return redirect('user_orders')
 
-
 @login_required
 def create_quote(request, username):
     print(f"[DEBUG] Entering create_quote view. Username: {username}")
@@ -2804,6 +2803,11 @@ def create_quote(request, username):
         if form.is_valid():
             print("[DEBUG] Form is valid")
             service = form.cleaned_data['service']
+            
+            # Check if the service is available by quotation only
+            if not service.available_by_quotation_only:
+                return JsonResponse({'success': False, 'error': 'This service is not available for quotation'})
+            
             price = form.cleaned_data['price']
             
             # Create the message
@@ -2970,7 +2974,7 @@ def message_buyer(request, username):
     ).filter(business=business).order_by('timestamp')
 
     can_create_quote = bool(request.user.business)
-    business_services = business.services.all() if business else []
+    business_services = business.services.filter(available_by_quotation_only=True) if business else []
 
     context = {
         'user': user,
@@ -3138,8 +3142,10 @@ def user_messages_view(request):
                 Q(sender=selected_business.seller, recipient=selected_user)
             ).filter(business=selected_business).order_by('timestamp')
             can_create_quote = True
-            business_services = selected_business.services.all()
+            business_services = selected_business.services.filter(available_by_quotation_only=True)
         else:
+            can_create_quote = False
+            business_services = []
             conversation_messages = Message.objects.filter(
                 Q(sender=request.user, recipient=selected_business.seller) |
                 Q(sender=selected_business.seller, recipient=request.user)
@@ -3151,7 +3157,7 @@ def user_messages_view(request):
         business = Business.objects.filter(seller=request.user).first()
         if request.user.business:
             can_create_quote = True
-            business_services = business.services.all()
+            business_services = business.services.filter(available_by_quotation_only=True)
         conversation_messages = Message.objects.filter(
             Q(sender=request.user, recipient=selected_user) |
             Q(sender=selected_user, recipient=request.user)
